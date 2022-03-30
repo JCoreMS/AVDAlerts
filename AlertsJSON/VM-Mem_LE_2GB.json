@@ -1,0 +1,51 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "metricAlerts_memory_available_le_2gb_alert_name": {
+            "defaultValue": "memory_available_le_2gb_alert",
+            "type": "String"
+        },
+        "virtualMachines_vm_spoke1_externalid": {
+            "defaultValue": "/subscriptions/24730882-456b-42df-a6f8-8590ca6e4e37/resourceGroups/rg-spoke1/providers/Microsoft.Compute/virtualMachines/vm-spoke1",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "microsoft.insights/metricAlerts",
+            "apiVersion": "2018-03-01",
+            "name": "[parameters('metricAlerts_memory_available_le_2gb_alert_name')]",
+            "location": "global",
+            "properties": {
+                "description": "Alert when available memory on a VM is less than or equal to 2GB",
+                "severity": 3,
+                "enabled": true,
+                "scopes": [
+                    "[parameters('virtualMachines_vm_spoke1_externalid')]"
+                ],
+                "evaluationFrequency": "PT5M",
+                "windowSize": "PT5M",
+                "criteria": {
+                    "allOf": [
+                        {
+                            "threshold": 2147483648,
+                            "name": "Metric1",
+                            "metricNamespace": "microsoft.compute/virtualmachines",
+                            "metricName": "Available Memory Bytes",
+                            "operator": "LessThanOrEqual",
+                            "timeAggregation": "Average",
+                            "criterionType": "StaticThresholdCriterion"
+                        }
+                    ],
+                    "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria"
+                },
+                "autoMitigate": true,
+                "targetResourceType": "Microsoft.Compute/virtualMachines",
+                "targetResourceRegion": "westus2",
+                "actions": []
+            }
+        }
+    ]
+}
