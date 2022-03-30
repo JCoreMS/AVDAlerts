@@ -1,0 +1,3 @@
+STOR - Storage category
+VM - Virtual Machine
+USR - User based information

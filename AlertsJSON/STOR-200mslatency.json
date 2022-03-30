@@ -1,0 +1,59 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "metricAlerts_StorageAccountHighThreshold_name": {
+            "defaultValue": "StorageAccountHighThreshold",
+            "type": "String"
+        },
+        "storageAccounts_jh0109_externalid": {
+            "defaultValue": "/subscriptions/73f35fe7-5cca-453f-9ac5-e705e1b2f421/resourceGroups/rg-storageacctauth/providers/Microsoft.Storage/storageAccounts/jh0109",
+            "type": "String"
+        },
+        "actionGroups_alertgroup1_externalid": {
+            "defaultValue": "/subscriptions/73f35fe7-5cca-453f-9ac5-e705e1b2f421/resourceGroups/rg-storageacctauth/providers/microsoft.insights/actionGroups/alertgroup1",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "microsoft.insights/metricAlerts",
+            "apiVersion": "2018-03-01",
+            "name": "[parameters('metricAlerts_StorageAccountHighThreshold_name')]",
+            "location": "global",
+            "properties": {
+                "severity": 2,
+                "enabled": true,
+                "scopes": [
+                    "[parameters('storageAccounts_jh0109_externalid')]"
+                ],
+                "evaluationFrequency": "PT5M",
+                "windowSize": "PT15M",
+                "criteria": {
+                    "allOf": [
+                        {
+                            "threshold": 200,
+                            "name": "Metric1",
+                            "metricNamespace": "microsoft.storage/storageaccounts",
+                            "metricName": "SuccessServerLatency",
+                            "operator": "GreaterThan",
+                            "timeAggregation": "Average",
+                            "criterionType": "StaticThresholdCriterion"
+                        }
+                    ],
+                    "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+                },
+                "autoMitigate": false,
+                "targetResourceType": "Microsoft.Storage/storageAccounts",
+                "targetResourceRegion": "eastus",
+                "actions": [
+                    {
+                        "actionGroupId": "[parameters('actionGroups_alertgroup1_externalid')]",
+                        "webHookProperties": {}
+                    }
+                ]
+            }
+        }
+    ]
+}
