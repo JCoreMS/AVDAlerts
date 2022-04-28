@@ -4,7 +4,7 @@ AVD Host Pools & Log Analytics Workspace
 
 ## Import Custom Role
 
-- Allows write to Log Analytics Workspace (CustomRole-Write2LAW.json)
+- Allows write to Log Analytics Workspace (CustomRole-Write2LAW.json)  
   (Not covered by Owner or Contributor)
 
 ## Function App
