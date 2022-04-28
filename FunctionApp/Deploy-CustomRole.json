@@ -1,0 +1,38 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "metadata": {
+      "_generator": {
+        "name": "bicep",
+        "version": "0.5.6.12127",
+        "templateHash": "2227781763411200690"
+      }
+    },
+    "parameters": {},
+    "variables": {
+      "actions": "Microsoft.Insights/Telemetry/Write",
+      "roleName": "AVDFunctionApp - Write to Metrics",
+      "roleDescription": "This role allows the AVD Function App to write to a Log Analytics Metrics for additional AVD monitoring and alerting.",
+      "roleDefName": "[guid(subscription().id, string(variables('actions')))]"
+    },
+    "resources": [
+      {
+        "type": "Microsoft.Authorization/roleDefinitions",
+        "apiVersion": "2018-01-01-preview",
+        "name": "[variables('roleDefName')]",
+        "properties": {
+          "roleName": "[variables('roleName')]",
+          "description": "[variables('roleDescription')]",
+          "type": "customRole",
+          "permissions": [
+            {
+              "actions": "[variables('actions')]"
+            }
+          ],
+          "assignableScopes": [
+            "[subscription().id]"
+          ]
+        }
+      }
+    ]
+  }
