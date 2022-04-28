@@ -10,10 +10,10 @@
     },
     "parameters": {},
     "variables": {
-      "actions": "Microsoft.Insights/Telemetry/Write",
+      "dataActions": ["Microsoft.Insights/Telemetry/Write"],
       "roleName": "AVDFunctionApp - Write to Metrics",
       "roleDescription": "This role allows the AVD Function App to write to a Log Analytics Metrics for additional AVD monitoring and alerting.",
-      "roleDefName": "[guid(subscription().id, string(variables('actions')))]"
+      "roleDefName": "[guid(subscription().id, string(variables('dataActions')))]"
     },
     "resources": [
       {
@@ -26,7 +26,7 @@
           "type": "customRole",
           "permissions": [
             {
-              "actions": "[variables('actions')]"
+              "dataActions": "[variables('dataActions')]"
             }
           ],
           "assignableScopes": [
