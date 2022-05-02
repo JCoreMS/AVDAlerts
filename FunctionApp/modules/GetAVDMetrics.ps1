@@ -147,7 +147,8 @@ $azmontoken = Create-AccessToken -resourceURI $AZMonResourceURI
 Write-Output ("Collecting AVD Azure Subscriptions")
 $subscriptionsQuery = "/subscriptions?api-version=2016-06-01"
 $subscriptions = (Query-Azure $subscriptionsQuery $token).Value.Where{$_.displayName -eq $subscriptionName}
-
+Write-Output ("Found '{0}' Subscriptions" -f $subscriptions.Count)
+if($subscriptions.count -eq 0){Write-Warning ("-----> No Subscrptions Found")}
 
 foreach ($subscription in $subscriptions) {
     Write-Output ("Working on '{0}' Subscription Resources" -f $subscription.displayName)

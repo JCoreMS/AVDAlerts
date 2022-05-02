@@ -2,8 +2,15 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "ResourceGroupName": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource Group to create resources in."
+            }
+        },
         "Location": {
             "type": "string",
+            "defaultValue": "[resourceGroup().location]",
             "metadata": {
                 "description": "Azure Region for Resources"
             }
@@ -11,8 +18,8 @@
     },
     "functions": [],
     "variables": {
-        "hostingPlanName": "[concat('asp-',resourceGroup().location,'AVDMetricsFuncApp')]",
-        "FunctionAppName" : "[concat('fa-AVDMetrics-',resourceGroup().location)]"
+        "hostingPlanName": "[concat('asp-',parameters('Location'),'-AVDMetricsFuncApp')]",
+        "FunctionAppName" : "[concat('fa-AVDMetrics-',parameters('Location'))]"
     },
     "resources": [
         {

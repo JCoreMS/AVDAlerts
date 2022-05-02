@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "ResourceGroupName": {
-            "value": "rg-eastus2-AVDManage"
+            "value": "rg-eastus2-AVDAlerts"
         },
         "Location": {
             "value": "eastus2"
