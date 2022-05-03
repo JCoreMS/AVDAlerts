@@ -43,6 +43,10 @@ resource sites_FunctionAppName 'Microsoft.Web/sites@2021-03-01' = {
           value: '0'
         }
         {
+          name: 'SubscriptionName'
+          value: subscription().displayName
+        }
+        {
           name: 'AzureWebJobsStorage'
           value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${listKeys(storageAccount.id, '2019-06-01').keys[0].value}'
         }

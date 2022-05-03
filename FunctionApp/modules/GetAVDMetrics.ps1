@@ -12,7 +12,7 @@ if ($Timer.IsPastDue) {
 # USER DEFINED INFORMATION REQUIRED
 #    Initial Subscription for getting Authentication Token
 #    Tag used for LogAnalytics and HostPool Workspaces
-$subscriptionName = "FTA JCore - Azure CXP Internal"
+$subscriptionName = $env:SubsrciptionName
 $tagName = "AVD-Function"
 $tagValue = "PROD"
 
