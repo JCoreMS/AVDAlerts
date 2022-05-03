@@ -86,7 +86,6 @@ resource sites_FunctionAppName_AVDMetrics_Every5Min 'Microsoft.Web/sites/functio
     }
     files: {
       'run.ps1': loadTextContent('GetAVDMetrics.ps1')
-      //'requirements.psd1': loadTextContent('requirements.psd1')
     }
   }
 }
