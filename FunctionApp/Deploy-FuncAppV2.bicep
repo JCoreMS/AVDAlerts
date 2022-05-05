@@ -6,11 +6,14 @@ param ResourceGroupName string
 @description('Azure Region for Resources')
 param Location string = deployment().location
 
-@description('Tag Name to identify Resource Groups that have AVD HostPool Resources')
-param TagName string = 'AVD-Function'
+@description('Host Pool Name(s) to monitor with this solution')
+param HostPoolNames string
 
-@description('Tag Value to identify Resource Groups that have AVD HostPool Resources')
-param TagValue string = 'PROD'
+@description('Log Analytics Workspace to store Metrics data')
+param LogAnalyticsWorkSpaceName string
+
+@description('Log Analytics Resource Group Name')
+param LogAnalyticsResourceGroup string
 
 var dataActions = [
   'Microsoft.Insights/Telemetry/Write'
@@ -41,12 +44,13 @@ resource roleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-prev
   }
 }
 
-module functionApp 'modules/functionApp.bicep' = {
+module functionApp 'modules/functionAppV2.bicep' = {
   scope: resourceGroup
   name: 'FunctionAppDeployment'
   params: {
     Location: Location
-    TagName: TagName
-    TagValue: TagValue
+    HostPoolNames: HostPoolNames
+    LogAnalyticsWorkspaceName: LogAnalyticsWorkSpaceName
+    LogAnalyticsResourceGroup: LogAnalyticsResourceGroup
   }
 }

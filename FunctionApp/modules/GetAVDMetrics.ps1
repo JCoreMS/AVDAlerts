@@ -12,9 +12,9 @@ if ($Timer.IsPastDue) {
 # USER DEFINED INFORMATION REQUIRED
 #    Initial Subscription for getting Authentication Token
 #    Tag used for LogAnalytics and HostPool Workspaces
-$subscriptionName = $env:SubsrciptionName
-$tagName = "AVD-Function"
-$tagValue = "PROD"
+$subscriptionName = $env:SubscriptionName
+$tagName = $env:TagName
+$tagValue = $env:TagValue
 
 # Write an information log with the current time.
 Write-Host "PowerShell timer trigger function ran! TIME: $currentUTCtime"

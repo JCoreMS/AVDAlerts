@@ -1,6 +1,6 @@
 param Location string
-param TagName string
-param TagValue string
+param HostPoolNames string
+param LogAnalyticsWorkspaceName string
 
 var hostingPlanName_var = 'asp-${Location}-AVDMetricsFuncApp'
 var FunctionAppName = 'fa-AVDMetrics-${Location}-autodeploy'
@@ -49,12 +49,20 @@ resource sites_FunctionAppName 'Microsoft.Web/sites@2021-03-01' = {
           value: subscription().displayName
         }
         {
-          name: 'TagName'
-          value: TagName
+          name: 'subscriptionID'
+          value: subscription().subscriptionId
         }
         {
-          name: 'TagValue'
-          value: TagValue
+          name: 'HostPoolNames'
+          value: HostPoolNames
+        }
+        {
+          name: 'LogAnalyticsWorkSpaceName'
+          value: LogAnalyticsWorkspaceName
+        }
+        {
+          name: 'LogAnalyticsResourceGroup'
+          value: LogAnalyticsResourceGroup
         }
         {
           name: 'AzureWebJobsStorage'
@@ -99,7 +107,7 @@ resource sites_FunctionAppName_AVDMetrics_Every5Min 'Microsoft.Web/sites/functio
       ]
     }
     files: {
-      'run.ps1': loadTextContent('GetAVDMetrics.ps1')
+      'run.ps1': loadTextContent('GetAVDMetricsV2.ps1')
     }
   }
 }

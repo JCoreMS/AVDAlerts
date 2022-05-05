@@ -1,0 +1,30 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "ResourceGroupName": {
+            "value": "rg-eastus2-AVDAlerts"
+        },
+        "Location": {
+            "value": "eastus2"
+        },
+        "HostPoolNames": {
+            "value": [
+                "hp-AVDLab",
+                "hp-eastus2-GenUser-AADJoin",
+                "hp-eastus2-GovGenUsr",
+                "hp-eastus2-HybridJoinVMs",
+                "hp-eastus2-personal",
+                "hp-eastus2-preview-win11",
+                "hp-eastus2-RemoteApps",
+                "hp-eastus2-SSO"
+            ]
+        },
+        "LogAnalyticsWorkSpaceName": {
+            "value": "law-eastus2-AVDVMs"
+        },
+        "LogAnalyticsResourceGroup": {
+            "value": "rg-eastus2-AVDLab-Manage"
+        }
+    }
+}
