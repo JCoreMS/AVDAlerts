@@ -1,6 +1,7 @@
 param Location string
 param HostPoolNames string
 param LogAnalyticsWorkspaceName string
+param LogAnalyticsResourceGroup string
 
 var hostingPlanName_var = 'asp-${Location}-AVDMetricsFuncApp'
 var FunctionAppName = 'fa-AVDMetrics-${Location}-autodeploy'
