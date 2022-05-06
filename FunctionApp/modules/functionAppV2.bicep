@@ -1,6 +1,6 @@
 param Location string
 param LogAnalyticsWorkspaceName string
-param HostPoolResourceLocationRG array
+param HostPoolResourceGroupNames array
 
 var hostingPlanName_var = 'asp-${Location}-AVDMetricsFuncApp'
 var FunctionAppName = 'fa-AVDMetrics-${Location}-autodeploy'
@@ -57,8 +57,8 @@ resource sites_FunctionAppName 'Microsoft.Web/sites@2021-03-01' = {
           value: LogAnalyticsWorkspaceName
         }
         {
-          name: 'HostPoolResourceLocationRG'
-          value: string(HostPoolResourceLocationRG)
+          name: 'HostPoolResourceGroupNames'
+          value: string(HostPoolResourceGroupNames)
         }
         {
           name: 'AzureWebJobsStorage'

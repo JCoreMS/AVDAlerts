@@ -1,0 +1,42 @@
+{
+  "type": 10,
+  "content": {
+    "chartId": "workbook2f29f567-1115-48bc-8d8a-32de6c732450",
+    "version": "MetricsItem/2.0",
+    "size": 0,
+    "chartType": 2,
+    "resourceType": "microsoft.storage/storageaccounts",
+    "metricScope": 0,
+    "resourceIds": [
+      "/subscriptions/b0aeeba8-4430-4cf1-acbc-6e24cadf86c9/resourceGroups/af-storage-rg/providers/Microsoft.Storage/storageAccounts/storr7zq"
+    ],
+    "timeContext": {
+      "durationMs": 3600000
+    },
+    "metrics": [
+      {
+        "namespace": "microsoft.storage/storageaccounts/fileservices",
+        "metric": "microsoft.storage/storageaccounts/fileservices-Capacity-FileCapacity",
+        "aggregation": 4,
+        "splitBy": null,
+        "columnName": "File Capacity"
+      },
+      {
+        "namespace": "microsoft.storage/storageaccounts/fileservices",
+        "metric": "microsoft.storage/storageaccounts/fileservices-Capacity-FileShareCapacityQuota",
+        "aggregation": 4,
+        "columnName": "Quota"
+      },
+      {
+        "namespace": "microsoft.storage/storageaccounts/fileservices",
+        "metric": "microsoft.storage/storageaccounts/fileservices-Capacity-FileShareProvisionedIOPS",
+        "aggregation": 4,
+        "columnName": "IOPS"
+      }
+    ],
+    "gridSettings": {
+      "rowLimit": 10000
+    }
+  },
+  "name": "metric - 0"
+}

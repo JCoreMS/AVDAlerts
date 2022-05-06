@@ -10,7 +10,7 @@ param Location string = deployment().location
 param LogAnalyticsWorkSpaceName string
 
 @description('Resource Group with Host Pool "type" Resources (may be different than RG with VMs)')
-param HostPoolResourceLocationRG array
+param HostPoolResourceGroupNames array
 
 var dataActions = [
   'Microsoft.Insights/Telemetry/Write'
@@ -47,7 +47,7 @@ module functionApp 'modules/functionAppV2.bicep' = {
   params: {
     Location: Location
     LogAnalyticsWorkspaceName: LogAnalyticsWorkSpaceName
-    HostPoolResourceLocationRG: HostPoolResourceLocationRG
+    HostPoolResourceGroupNames: HostPoolResourceGroupNames
   }
 }
 
