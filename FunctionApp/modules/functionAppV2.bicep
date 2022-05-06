@@ -1,7 +1,6 @@
 param Location string
-param HostPoolNames string
 param LogAnalyticsWorkspaceName string
-param LogAnalyticsResourceGroup string
+param HostPoolResourceLocationRG array
 
 var hostingPlanName_var = 'asp-${Location}-AVDMetricsFuncApp'
 var FunctionAppName = 'fa-AVDMetrics-${Location}-autodeploy'
@@ -54,16 +53,12 @@ resource sites_FunctionAppName 'Microsoft.Web/sites@2021-03-01' = {
           value: subscription().subscriptionId
         }
         {
-          name: 'HostPoolNames'
-          value: HostPoolNames
-        }
-        {
           name: 'LogAnalyticsWorkSpaceName'
           value: LogAnalyticsWorkspaceName
         }
         {
-          name: 'LogAnalyticsResourceGroup'
-          value: LogAnalyticsResourceGroup
+          name: 'HostPoolResourceLocationRG'
+          value: string(HostPoolResourceLocationRG)
         }
         {
           name: 'AzureWebJobsStorage'
@@ -103,12 +98,15 @@ resource sites_FunctionAppName_AVDMetrics_Every5Min 'Microsoft.Web/sites/functio
           name: 'Timer'
           type: 'timerTrigger'
           direction: 'in'
-          schedule: '0 */5 * * * *'
+          schedule: '0 */59 * * * *'
         }
       ]
     }
     files: {
       'run.ps1': loadTextContent('GetAVDMetricsV2.ps1')
+      'requirements.psd1': loadTextContent('requirements.psd1')
     }
   }
 }
+
+output principalID string = sites_FunctionAppName.identity.principalId

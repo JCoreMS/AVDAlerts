@@ -8,23 +8,14 @@
         "Location": {
             "value": "eastus2"
         },
-        "HostPoolNames": {
-            "value": [
-                "hp-AVDLab",
-                "hp-eastus2-GenUser-AADJoin",
-                "hp-eastus2-GovGenUsr",
-                "hp-eastus2-HybridJoinVMs",
-                "hp-eastus2-personal",
-                "hp-eastus2-preview-win11",
-                "hp-eastus2-RemoteApps",
-                "hp-eastus2-SSO"
-            ]
-        },
         "LogAnalyticsWorkSpaceName": {
             "value": "law-eastus2-AVDVMs"
         },
-        "LogAnalyticsResourceGroup": {
-            "value": "rg-eastus2-AVDLab-Manage"
+        "HostPoolResourceLocationRG": {
+            "value": [
+                "rg-eastus2-AVDLab-Resources"
+            ]
         }
+
     }
 }

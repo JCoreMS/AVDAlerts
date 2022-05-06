@@ -14,9 +14,7 @@ if ($Timer.IsPastDue) {
 #    Tag used for LogAnalytics and HostPool Workspaces
 $subscriptionName = $env:SubscriptionName
 $subscriptionid = $env:subscriptionID
-$HostPoolNames = $env:HostPoolNames
 $LAWName = $env:LogAnalyticsWorkSpaceName
-$LAWRG = $env:LogAnalyticsResourceGroup
 
 # Write an information log with the current time.
 Write-Host "PowerShell timer trigger function ran! TIME: $currentUTCtime"
@@ -142,6 +140,8 @@ Function Publish-Metric {
 $WVDResourceURI = "https://management.core.windows.net/"
 $AZMonResourceURI = "https://monitoring.azure.com/"
 
+$wvdapi = '2021-07-12'
+
 
 Write-Output ("Creating Access Tokens for Azure and Azure Monitor")
 $token = Create-AccessToken -resourceURI $WVDResourceURI
@@ -150,30 +150,33 @@ $azmontoken = Create-AccessToken -resourceURI $AZMonResourceURI
 
 Write-Output ("Working on '{0}' Subscription Resources" -f $subscriptionName)
 
-$logAnalyticsWorkspace = Get-AzOperationalInsightsWorkspace -Name $LAWName -ResourceGroupName $LAWRG
+Write-Output ("Getting Log Analytics Workspace '{0}' Information" -f $env:LogAnalyticsWorkSpaceName)
+$logAnalyticsWorkspaceQuery = ("/subscriptions/{0}/providers/Microsoft.OperationalInsights/workspaces?api-version=2021-12-01-preview" -f $subscriptionid)
+$logAnalyticsWorkspace = (Query-Azure $logAnalyticsWorkspaceQuery $token).Value.Where{$_.name -eq $LAWName}
 
-# Write-Host ("-------> Log Analytics Workspace: {0}" -f $logAnalyticsWorkspace.Name)
-# Write-Host ("-------> Log Query: {0}" -f $logAnalyticsQuery) 
 $workspaceId = $logAnalyticsWorkspace.CustomerId.Guid
 $workspaceRegion = $logAnalyticsWorkspace.Location
 $workspaceName = $logAnalyticsWorkspace.Name
 
-    
-  
+Write-Host ("Querying Host Pools in Subscription")
+$hostPoolsQuery = ("/subscriptions/{0}/providers/Microsoft.DesktopVirtualization/hostPools?api-version=2021-07-12" -f $subscriptionid)    
+$hostPools = (Query-Azure $hostPoolsQuery $token).Value
      
-foreach ($hostPoolName in  $hostPoolNames) {
-    Write-Output ("Working on '{0}' Resources" -f $hostPoolName)
-    # $workspaceRegion = $hostPool.Location
-    $resourceGroupName = (Get-azresource -Name $hostPoolName).ResourceGroupName           
-    
-
-    Write-Output ("Querying Azure for AVD Resource data (Virtual Machines, Session Hosts, Sessions)")
-    $sessionsquery = ("/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostPools/{2}/userSessions?api-version={3}" -f $subscriptionid, $resourceGroupName, $hostpool, $wvdapi)
-    $hostsquery = ("/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostPools/{2}/SessionHosts?api-version={3}" -f $subscriptionid, $resourceGroupName, $hostpool, $wvdapi)
+foreach ($hostPool in  $hostPools) {
+    Write-Output ("Working on Host Pool '{0}' Resources" -f $hostPool.Name)
+    Write-Output ("-------------------->{0}" -f $hostPool.id)
+    $resourceGroupName = $hostPool.id.split("/")[4]  # Extract Resource Group from full ID
+    Write-Output ("Querying Azure for AVD Resource data")
+    Write-Output ("---------->{0}" -f $resourceGroupName)
+    $sessionsquery = ("/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostPools/{2}/userSessions?api-version={3}" -f $subscriptionid, $resourceGroupName, $hostpool.name, $wvdapi)
+    $hostsquery = ("/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostPools/{2}/SessionHosts?api-version={3}" -f $subscriptionid, $resourceGroupName, $hostpool.name, $wvdapi)
     $vmquery = ("/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Compute/virtualMachines?api-version=2020-06-01" -f $subscriptionid, $resourceGroupName)
-
+    
+    Write-Output ("....Sessions")
     $sessions = (Query-Azure $sessionsquery $token).Value
+    Write-Output ("....Hosts")
     $hosts = (Query-Azure $hostsquery $token).Value
+    Write-Output ("....VMs")
     $vms = (Query-Azure $vmquery $token).Value
 
     Write-Output ("Creating Azure Monitor Metric Definitions")
