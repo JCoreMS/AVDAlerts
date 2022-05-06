@@ -11,7 +11,7 @@
         "LogAnalyticsWorkSpaceName": {
             "value": "law-eastus2-AVDVMs"
         },
-        "HostPoolResourceLocationRG": {
+        "HostPoolResourceGroupNames": {
             "value": [
                 "rg-eastus2-AVDLab-Resources"
             ]
