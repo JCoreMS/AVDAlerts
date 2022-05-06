@@ -15,7 +15,7 @@ if ($Timer.IsPastDue) {
 $subscriptionName = $env:SubscriptionName
 $subscriptionid = $env:subscriptionID
 $LAWName = $env:LogAnalyticsWorkSpaceName
-$resourceGroups = $env:HostPoolResourceLocationRG | convertto-json
+$resourceGroups = $env:HostPoolResourceLocationRG | convertfrom-json
 
 # Write an information log with the current time.
 Write-Host "PowerShell timer trigger function ran! TIME: $currentUTCtime"
@@ -45,7 +45,7 @@ Function Create-AccessToken {
 Function Query-Azure {
     param($query,$accesstoken)
 
-    $url = ("https://management.azure.com/{0}" -f $query)
+    $url = ("https://management.azure.com{0}" -f $query)
     $headers = @{'Authorization' = "Bearer $accessToken"}
     
     try {
@@ -181,9 +181,10 @@ $subscription = (Query-Azure $subscriptionQuery $token).Value.Where{$_.displayNa
     }
     
     foreach($resourceGroup in $resourceGroups) {
-        $resourceGroupQuery = ("/subscriptions/{0}/resourcegroups/?api-version=2019-10-01" -f $subscriptionid)  # Moved inside foreach
-        $resourceGroups = (Query-Azure $resourceGroupQuery $token).Value.Where{$_.Name -eq $resourceGroup}       # Moved inside foreach
-       
+        $resourceGroupQuery = ("/subscriptions/{0}/resourcegroups/{1}?api-version=2021-04-01" -f $subscriptionid,$resourceGroup)  # Moved inside foreach
+        $resourceGroup = Query-Azure $resourceGroupQuery $token       # Moved inside foreach
+
+
         Write-Output ("Working on '{0}' Resources" -f $resourceGroup.Name)
         $resourceGroupName = $resourceGroup.Name
         $wvdapi = '2019-12-10-preview'

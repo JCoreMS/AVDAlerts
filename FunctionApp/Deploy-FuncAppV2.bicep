@@ -47,6 +47,7 @@ module functionApp 'modules/functionAppV2.bicep' = {
   params: {
     Location: Location
     LogAnalyticsWorkspaceName: LogAnalyticsWorkSpaceName
+    HostPoolResourceLocationRG: HostPoolResourceLocationRG
   }
 }
 

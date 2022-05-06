@@ -12,9 +12,9 @@ if ($Timer.IsPastDue) {
 # USER DEFINED INFORMATION REQUIRED
 #    Initial Subscription for getting Authentication Token
 #    Tag used for LogAnalytics and HostPool Workspaces
-$subscriptionName = $env:SubscriptionName
-$tagName = $env:TagName
-$tagValue = $env:TagValue
+$subscriptionName = "FTA JCore - Azure CXP Internal"
+$tagName = "AVD-Function"
+$tagValue = "PROD"
 
 # Write an information log with the current time.
 Write-Host "PowerShell timer trigger function ran! TIME: $currentUTCtime"
@@ -147,8 +147,7 @@ $azmontoken = Create-AccessToken -resourceURI $AZMonResourceURI
 Write-Output ("Collecting AVD Azure Subscriptions")
 $subscriptionsQuery = "/subscriptions?api-version=2016-06-01"
 $subscriptions = (Query-Azure $subscriptionsQuery $token).Value.Where{$_.displayName -eq $subscriptionName}
-Write-Output ("Found '{0}' Subscriptions" -f $subscriptions.Count)
-if($subscriptions.count -eq 0){Write-Warning ("-----> No Subscrptions Found")}
+
 
 foreach ($subscription in $subscriptions) {
     Write-Output ("Working on '{0}' Subscription Resources" -f $subscription.displayName)
