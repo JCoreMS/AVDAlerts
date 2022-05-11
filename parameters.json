@@ -11,7 +11,7 @@
             ]
         },
         "Location": {
-            "value": "deployment().location"
+            "value": "eastus2"
         },
         "LogAnalyticsWorkspaceResourceId": {
             "value": "/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourcegroups/rg-eastus2-avdlab-manage/providers/microsoft.operationalinsights/workspaces/law-eastus2-avdvms"
@@ -31,10 +31,10 @@
             "value": "actgrp-eastus2-AVD"
         },
         "Tags": {
-            "value": [
-                "value"
-            ]
-        }
+            "value": {
+                "Environment": "AVD"
+            }
+          }
 
     }
 }

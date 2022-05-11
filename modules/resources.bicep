@@ -8,9 +8,10 @@ param LogAnalyticsWorkspaceResourceId string
 param MetricAlerts object
 param SessionHostResourceGroupId string
 param StorageAccountResourceIds array
+param ActionGroupName string
 param Tags object
 
-var LogAnalyticsWorkspaceName = split(LogAnalyticsWorkspaceResourceId, '/')[-1]
+var LogAnalyticsWorkspaceName = split(LogAnalyticsWorkspaceResourceId, '/')[8]
 
 resource hostingPlan 'Microsoft.Web/serverfarms@2021-03-01' = {
   name: HostingPlanName
@@ -116,10 +117,10 @@ resource function 'Microsoft.Web/sites/functions@2021-03-01' = {
 }
 
 resource actionGroup 'Microsoft.Insights/actionGroups@2019-06-01' = {
-  name: 'AvdEmail'
+  name: ActionGroupName
   location: 'global'
   properties: {
-    groupShortName: 'AvdEmail'
+    groupShortName: ActionGroupName
     enabled: true
     emailReceivers: [
       {

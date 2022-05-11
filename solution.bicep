@@ -21,6 +21,9 @@ param SessionHostResourceGroupId string
 @description('The Resource IDs for the Storage Accounts used for FSLogix profile storage.')
 param StorageAccountResourceIds array
 
+@description('The Action Group to be used for Alerts.')
+param ActionGroupName string
+
 param Tags object = {}
 
 var DataActions = [
@@ -205,6 +208,7 @@ module resources 'modules/resources.bicep' = {
     MetricAlerts: MetricAlerts
     SessionHostResourceGroupId: SessionHostResourceGroupId
     StorageAccountResourceIds: StorageAccountResourceIds
+    ActionGroupName: ActionGroupName
     Tags: Tags
   }
 }
