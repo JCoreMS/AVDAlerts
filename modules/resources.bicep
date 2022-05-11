@@ -110,7 +110,7 @@ resource function 'Microsoft.Web/sites/functions@2021-03-01' = {
     }
     files: {
       'run.ps1': loadTextContent('Get-AvdMetrics.ps1')
-      'requirements.psd1': loadTextContent('requirements.psd1')
+      '../requirements.psd1': loadTextContent('requirements.psd1')
     }
   }
 }
