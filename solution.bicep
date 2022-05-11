@@ -12,9 +12,6 @@ param Location string = deployment().location
 @description('The Resource ID for the Log Analytics Workspace.')
 param LogAnalyticsWorkspaceResourceId string
 
-@description('The Name for Log Analytics Workspace to store Metrics data')
-param LogAnalyticsWorkSpaceName string
-
 @description('The Name of the Resource Group to create resources in.')
 param ResourceGroupName string
 
@@ -25,7 +22,6 @@ param SessionHostResourceGroupId string
 param StorageAccountResourceIds array
 
 param Tags object = {}
-
 
 var DataActions = [
   'Microsoft.Insights/Telemetry/Write'
@@ -206,7 +202,6 @@ module resources 'modules/resources.bicep' = {
     Location: Location
     LogAlerts: LogAlerts
     LogAnalyticsWorkspaceResourceId: LogAnalyticsWorkspaceResourceId
-    LogAnalyticsWorkspaceName: LogAnalyticsWorkSpaceName
     MetricAlerts: MetricAlerts
     SessionHostResourceGroupId: SessionHostResourceGroupId
     StorageAccountResourceIds: StorageAccountResourceIds

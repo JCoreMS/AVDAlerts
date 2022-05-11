@@ -1,17 +1,16 @@
-param ActionGroupId string
 param DistributionGroup string
 param FunctionAppName string
 param HostingPlanName string
 param HostPoolResourceGroupNames array
 param Location string
 param LogAlerts array
-param LogAnalyticsWorkspaceName string
 param LogAnalyticsWorkspaceResourceId string
 param MetricAlerts object
 param SessionHostResourceGroupId string
 param StorageAccountResourceIds array
 param Tags object
 
+var LogAnalyticsWorkspaceName = split(LogAnalyticsWorkspaceResourceId, '/')[-1]
 
 resource hostingPlan 'Microsoft.Web/serverfarms@2021-03-01' = {
   name: HostingPlanName
@@ -196,7 +195,7 @@ resource metricAlerts_StorageAccounts 'microsoft.insights/metricAlerts@2018-03-0
     targetResourceRegion: Location
     actions: [
       {
-        actionGroupId: ActionGroupId
+        actionGroupId: actionGroup.id
       }
     ]
   }
