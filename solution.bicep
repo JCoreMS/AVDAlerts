@@ -1,39 +1,44 @@
 targetScope = 'subscription'
 
 @description('The Distribution Group that will receive email alerts for AVD.')
-param DistributionGroup string
+param DistributionGroup string = 'jamasten@microsoft.com'
+
+@allowed([
+  'd'
+  'p'
+  't'
+])
+@description('The environment is which these resources will be deployed, i.e. Development.')
+param Environment string = 'd'
 
 @description('Resource Group with Host Pool "type" Resources (may be different than RG with VMs)')
-param HostPoolResourceGroupNames array
+param HostPoolResourceGroupNames array = [
+  'hp-fs-peo-va-d-00'
+]
 
 @description('Azure Region for Resources')
 param Location string = deployment().location
 
 @description('The Resource ID for the Log Analytics Workspace.')
-param LogAnalyticsWorkspaceResourceId string
-
-@description('The Name of the Resource Group to create resources in.')
-param ResourceGroupName string
+param LogAnalyticsWorkspaceResourceId string = '/subscriptions/a7576b41-cb1a-4f34-9f18-0e0b0287a1a0/resourcegroups/rg-shd-svc-d-va/providers/microsoft.operationalinsights/workspaces/law-shd-net-d-va'
 
 @description('The Resource Group ID for the AVD session hosts.')
-param SessionHostResourceGroupId string
+param SessionHostResourceGroupId string = '/subscriptions/a7576b41-cb1a-4f34-9f18-0e0b0287a1a0/resourceGroups/rg-fs-peo-va-d-hosts-00'
 
 @description('The Resource IDs for the Storage Accounts used for FSLogix profile storage.')
-param StorageAccountResourceIds array
-
-@description('The Action Group to be used for Alerts.')
-param ActionGroupName string
+param StorageAccountResourceIds array = [
+  '/subscriptions/a7576b41-cb1a-4f34-9f18-0e0b0287a1a0/resourceGroups/rg-fs-peo-va-d-storage-00/providers/Microsoft.Storage/storageAccounts/stfspeovad0000'
+]
 
 param Tags object = {}
 
-var DataActions = [
-  'Microsoft.Insights/Telemetry/Write'
-]
-var FunctionAppName = 'fa-AVDMetrics-${Location}-autodeploy'
-var HostingPlanName = 'asp-${Location}-AVDMetricsFuncApp'
-var RoleName = 'AVDFunctionApp - Write to Metrics'
-var RoleDescription = 'This role allows the AVD Function App to write to a Log Analytics Metrics for additional AVD monitoring and alerting.'
-var RoleDefinitionName = guid(subscription().id, string(DataActions))
+
+var ActionGroupName = 'ag-avdmetrics-${Environment}-${Location}'
+var FunctionAppName = 'fa-avdmetrics-${Environment}-${Location}'
+var HostingPlanName = 'asp-avdmetrics-${Environment}-${Location}'
+var ResourceGroupName = 'rg-avdmetrics-${Environment}-${Location}'
+var RoleName = 'Log Analytics Workspace Metrics Contributor'
+var RoleDescription = 'This role allows a resource to write to Log Analytics Metrics.'
 var LogAlerts = [
   {
     name: 'AvdNoResourcesAvailable'
@@ -172,20 +177,22 @@ var MetricAlerts = {
 }
 
 
-resource resourceGroupAlerts 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: ResourceGroupName
   location: Location
 }
 
 resource roleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
-  name: RoleDefinitionName
+  name: guid(RoleName)
     properties: {
     roleName: RoleName
     description: RoleDescription
     type: 'customRole'
     permissions: [
       {
-        dataActions: DataActions
+        dataActions: [
+          'Microsoft.Insights/Telemetry/Write'
+        ]
       }
     ]
     assignableScopes: [
@@ -195,8 +202,8 @@ resource roleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-prev
 }
 
 module resources 'modules/resources.bicep' = {
-  scope: resourceGroupAlerts
   name: 'MonitoringResourcesDeployment'
+  scope: resourceGroup
   params: {
     DistributionGroup: DistributionGroup
     FunctionAppName: FunctionAppName
