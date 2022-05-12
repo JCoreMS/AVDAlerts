@@ -24,7 +24,7 @@ Function Create-AccessToken {
     param($resourceURI)
 
     If ($null -eq $env:MSI_ENDPOINT) {
-        Connect-AzAccount -Identity
+        # Connect-AzAccount -Identity
         $token = Get-AzAccessToken
         Return $token.Token
     }

@@ -110,7 +110,7 @@ resource function 'Microsoft.Web/sites/functions@2021-03-01' = {
       ]
     }
     files: {
-      'run.ps1': loadTextContent('Get-AvdMetrics.ps1')
+      'run.ps1': loadTextContent('run.ps1')
       '../requirements.psd1': loadTextContent('requirements.psd1')
     }
   }
@@ -120,7 +120,7 @@ resource actionGroup 'Microsoft.Insights/actionGroups@2019-06-01' = {
   name: ActionGroupName
   location: 'global'
   properties: {
-    groupShortName: ActionGroupName
+    groupShortName: 'EmailAlerts'
     enabled: true
     emailReceivers: [
       {
@@ -155,7 +155,7 @@ resource scheduledQueryRules 'Microsoft.Insights/scheduledQueryRules@2021-08-01'
   }
 }]
 
-resource metricAlerts_VirtualMachines 'microsoft.insights/metricAlerts@2018-03-01' = [for i in range(0, length(MetricAlerts)): {
+resource metricAlerts_VirtualMachines 'Microsoft.Insights/metricAlerts@2018-03-01' = [for i in range(0, length(MetricAlerts.virtualMachines)): {
   name: MetricAlerts.virtualMachines[i].name
   location: 'global'
   tags: Tags
@@ -180,7 +180,7 @@ resource metricAlerts_VirtualMachines 'microsoft.insights/metricAlerts@2018-03-0
   }
 }]
 
-resource metricAlerts_StorageAccounts 'microsoft.insights/metricAlerts@2018-03-01' = [for i in range(0, length(MetricAlerts)): {
+resource metricAlerts_StorageAccounts 'Microsoft.Insights/metricAlerts@2018-03-01' = [for i in range(0, length(MetricAlerts.storageAccounts)): {
   name: MetricAlerts.storageAccounts[i].name
   location: 'global'
   tags: Tags
