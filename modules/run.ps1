@@ -45,7 +45,7 @@ Function Create-AccessToken {
 Function Query-Azure {
     param($query,$accesstoken)
 
-    $url = ("https://management.azure.com{0}" -f $query)
+    $url = $ManageURL + $query
     $headers = @{'Authorization' = "Bearer $accessToken"}
     
     try {
@@ -137,18 +137,23 @@ Function Publish-Metric{
 }
 
 # URL(s) for creating access tokens
-$WVDResourceURI = "https://management.core.windows.net/"
+$Environment = (Get-AzContext).Environment.Name
+$ManageURL = (Get-AzEnvironment | Where-Object {$_.Name -eq $Environment}).ResourceManagerUrl
+$WVDResourceURI = $ManageURL
 $AZMonResourceURI = "https://monitoring.azure.com/"
 
+# $WVDResourceURI = "https://management.core.windows.net/"
+# $AZMonResourceURI = "https://monitoring.azure.com/"
 
-Write-Output ("Creating Access Tokens for Azure and Azure Monitor")
+
+Write-Output ("Creating Access Token for Azure Management ({0})" -f $WVDResourceURI)
 $token = Create-AccessToken -resourceURI $WVDResourceURI
+Write-Output ("Creating Access Token for Azure Monitor ({0})" -f $AZMonResourceURI)
 $azmontoken = Create-AccessToken -resourceURI $AZMonResourceURI
 
 Write-Output ("Collecting AVD Azure Subscriptions")
 $subscriptionQuery = "/subscriptions?api-version=2016-06-01"
 $subscription = (Query-Azure $subscriptionQuery $token).Value.Where{$_.displayName -eq $subscriptionName}
-
 
 # foreach ($subscription in $subscriptions) {
     Write-Output ("Working on '{0}' Subscription Resources" -f $subscription.displayName)
@@ -211,43 +216,43 @@ $subscription = (Query-Azure $subscriptionQuery $token).Value.Where{$_.displayNa
                 Write-Output ("Creating Azure Monitor Metric Definitions")
                 [System.Collections.Generic.List[System.Object]]$metricDefinitions = @(
                     [pscustomobject]@{
-                        NameSpace = "Virtual Desktop"
+                        NameSpace = "AVD - $poolName"
                         Metric = "Active Sessions"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = { ($sessions.properties | Where-Object {$_.sessionstate -eq "Active" -AND $_.userprincipalname -ne $null}).Count }
                     },
                     [pscustomobject]@{
-                        NameSpace = "Virtual Desktop"
+                        NameSpace = "AVD - $poolName"
                         Metric = "Disconnected Sessions"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = { ($sessions.properties | Where-Object {$_.sessionState -eq "Disconnected" -AND $_.userPrincipalName -ne $null}).Count }
                     },
                     [pscustomobject]@{
-                        NameSpace = "Virtual Desktop"
+                        NameSpace = "AVD - $poolName"
                         Metric = "Total Sessions"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = { ($sessions.properties | Where-Object {$_.userPrincipalName -ne $null}).Count }
                     },
                     [pscustomobject]@{
-                        NameSpace = "Virtual Desktop"
+                        NameSpace = "AVD - $poolName"
                         Metric = "Draining Hosts"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = { ($hosts.properties | Where-Object {$_.allowNewSession -eq $false}).Count }
                     },
                     [pscustomobject]@{
-                        NameSpace = "Virtual Desktop"
+                        NameSpace = "AVD - $poolName"
                         Metric = "Unhealthy Hosts"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = { ($hosts.properties | Where-Object {$_.allowNewSession -eq $true -AND $_.status -ne "Available"}).Count }
                     },
                     [pscustomobject]@{
-                        NameSpace = "Virtual Desktop"
+                        NameSpace = "AVD - $poolName"
                         Metric = "Healthy Hosts"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = { ($hosts.properties | Where-Object {$_.allowNewSession -eq $true -AND $_.status -eq "Available"}).Count }
                     },
                     [pscustomobject]@{
-                        NameSpace = "Virtual Desktop"
+                        NameSpace = "AVD - $poolName"
                         Metric = "Max Sessions in Pool"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = {
@@ -256,7 +261,7 @@ $subscription = (Query-Azure $subscriptionQuery $token).Value.Where{$_.displayNa
                         }
                     },
                     [pscustomobject]@{
-                        NameSpace = "Virtual Desktop"
+                        NameSpace = "AVD - $poolName"
                         Metric = "Available Sessions in Pool"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = {
@@ -267,7 +272,7 @@ $subscription = (Query-Azure $subscriptionQuery $token).Value.Where{$_.displayNa
                         }        
                     },
                     [pscustomobject]@{
-                        NameSpace = "Virtual Desktop"
+                        NameSpace = "AVD - $poolName"
                         Metric = "Session Load (%)"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = {
@@ -279,7 +284,7 @@ $subscription = (Query-Azure $subscriptionQuery $token).Value.Where{$_.displayNa
                         }
                     },
                     [pscustomobject]@{
-                        NameSpace = "Virtual Desktop"
+                        NameSpace = "AVD - $poolName"
                         Metric = "Session Hosts in Maintenance"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = { ($vms.Tags | Where-Object {$_.'WVD-Maintenance' -eq $true}).Count }

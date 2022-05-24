@@ -1,0 +1,37 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "DistributionGroup": {
+            "value": "jcore@microsoft.com"
+        },
+        "Environment": {
+            "value": "d"
+        },
+        "HostPoolResourceGroupNames": {
+            "value": [
+                "rg-eastus2-AVDLab-Resources"
+            ]
+        },
+        "Location": {
+            "value": "eastus2"
+        },
+        "LogAnalyticsWorkspaceResourceId": {
+            "value": "/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourcegroups/rg-eastus2-avdlab-manage/providers/microsoft.operationalinsights/workspaces/law-eastus2-avdvms"
+        },
+        "SessionHostResourceGroupId": {
+            "value": "/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Resources"
+        },
+        "StorageAccountResourceIds": {
+            "value": [
+                "/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Resources/providers/Microsoft.Storage/storageAccounts/storavdlabeus2"
+            ]
+        },
+        "Tags": {
+            "value": {
+                "Environment": "AVD"
+            }
+          }
+
+    }
+}

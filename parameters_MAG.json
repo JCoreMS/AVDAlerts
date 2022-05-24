@@ -3,32 +3,29 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "DistributionGroup": {
-            "value": ""
+            "value": "jcore@microsoft.com"
+        },
+        "Environment": {
+            "value": "d"
         },
         "HostPoolResourceGroupNames": {
             "value": [
-                "rg-eastus2-AVDLab"
+                "rg-va-avd-resources"
             ]
         },
         "Location": {
-            "value": "eastus2"
+            "value": "usgovvirginia"
         },
         "LogAnalyticsWorkspaceResourceId": {
-            "value": "/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourcegroups/rg-eastus2-avdlab-manage/providers/microsoft.operationalinsights/workspaces/law-eastus2-avdvms"
-        },
-        "ResourceGroupName": {
-            "value": "rg-eastus2-AVDAlerts"
+            "value": "/subscriptions/d5a3b431-5ad0-4a0d-bf86-8fffd2f84554/resourcegroups/rg-va-avd-manage/providers/microsoft.operationalinsights/workspaces/law-va-avd"
         },
         "SessionHostResourceGroupId": {
-            "value": "/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Resources"
+            "value": "/subscriptions/d5a3b431-5ad0-4a0d-bf86-8fffd2f84554/resourceGroups/rg-va-avd-resources"
         },
         "StorageAccountResourceIds": {
             "value": [
-                "value"
+                "/subscriptions/d5a3b431-5ad0-4a0d-bf86-8fffd2f84554/resourceGroups/rg-va-storage/providers/Microsoft.Storage/storageAccounts/storva1avd"
             ]
-        },
-        "ActionGroupName": {
-            "value": "actgrp-eastus2-AVD"
         },
         "Tags": {
             "value": {

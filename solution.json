@@ -1,0 +1,589 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.6.1.6515",
+      "templateHash": "5616549975656798888"
+    }
+  },
+  "parameters": {
+    "DistributionGroup": {
+      "type": "string",
+      "defaultValue": "jamasten@microsoft.com",
+      "metadata": {
+        "description": "The Distribution Group that will receive email alerts for AVD."
+      }
+    },
+    "Environment": {
+      "type": "string",
+      "defaultValue": "d",
+      "metadata": {
+        "description": "The environment is which these resources will be deployed, i.e. Development."
+      },
+      "allowedValues": [
+        "d",
+        "p",
+        "t"
+      ]
+    },
+    "HostPoolResourceGroupNames": {
+      "type": "array",
+      "defaultValue": [
+        "hp-fs-peo-va-d-00"
+      ],
+      "metadata": {
+        "description": "Resource Group with Host Pool \"type\" Resources (may be different than RG with VMs)"
+      }
+    },
+    "Location": {
+      "type": "string",
+      "defaultValue": "[deployment().location]",
+      "metadata": {
+        "description": "Azure Region for Resources"
+      }
+    },
+    "LogAnalyticsWorkspaceResourceId": {
+      "type": "string",
+      "defaultValue": "/subscriptions/a7576b41-cb1a-4f34-9f18-0e0b0287a1a0/resourcegroups/rg-shd-svc-d-va/providers/microsoft.operationalinsights/workspaces/law-shd-net-d-va",
+      "metadata": {
+        "description": "The Resource ID for the Log Analytics Workspace."
+      }
+    },
+    "SessionHostResourceGroupId": {
+      "type": "string",
+      "defaultValue": "/subscriptions/a7576b41-cb1a-4f34-9f18-0e0b0287a1a0/resourceGroups/rg-fs-peo-va-d-hosts-00",
+      "metadata": {
+        "description": "The Resource Group ID for the AVD session hosts."
+      }
+    },
+    "StorageAccountResourceIds": {
+      "type": "array",
+      "defaultValue": [
+        "/subscriptions/a7576b41-cb1a-4f34-9f18-0e0b0287a1a0/resourceGroups/rg-fs-peo-va-d-storage-00/providers/Microsoft.Storage/storageAccounts/stfspeovad0000"
+      ],
+      "metadata": {
+        "description": "The Resource IDs for the Storage Accounts used for FSLogix profile storage."
+      }
+    },
+    "Tags": {
+      "type": "object",
+      "defaultValue": {}
+    }
+  },
+  "variables": {
+    "ActionGroupName": "[format('ag-avdmetrics-{0}-{1}', parameters('Environment'), parameters('Location'))]",
+    "FunctionAppName": "[format('fa-avdmetrics-{0}-{1}', parameters('Environment'), parameters('Location'))]",
+    "HostingPlanName": "[format('asp-avdmetrics-{0}-{1}', parameters('Environment'), parameters('Location'))]",
+    "ResourceGroupName": "[format('rg-avdmetrics-{0}-{1}', parameters('Environment'), parameters('Location'))]",
+    "RoleName": "Log Analytics Workspace Metrics Contributor",
+    "RoleDescription": "This role allows a resource to write to Log Analytics Metrics.",
+    "LogAlerts": [
+      {
+        "name": "AvdNoResourcesAvailable",
+        "displayName": "AVD - No Resources Available",
+        "severity": 2,
+        "evaluationFrequency": "PT1H",
+        "windowSize": "PT1H",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "WVDConnections \n| where TimeGenerated > ago (1h) \n| project-away TenantId,SourceSystem  \n| summarize arg_max(TimeGenerated, *), StartTime =  min(iff(State== 'Started', TimeGenerated , datetime(null) )), ConnectTime = min(iff(State== 'Connected', TimeGenerated , datetime(null) ))   by CorrelationId  \n| join kind=leftouter (WVDErrors\n    |summarize Errors=makelist(pack('Code', Code, 'CodeSymbolic', CodeSymbolic, 'Time', TimeGenerated, 'Message', Message ,'ServiceError', ServiceError, 'Source', Source)) by CorrelationId  \n    ) on CorrelationId\n| join kind=leftouter (WVDCheckpoints\n    | summarize Checkpoints=makelist(pack('Time', TimeGenerated, 'Name', Name, 'Parameters', Parameters, 'Source', Source)) by CorrelationId  \n    | mv-apply Checkpoints on (  \n        order by todatetime(Checkpoints['Time']) asc\n        | summarize Checkpoints=makelist(Checkpoints)\n        )\n    ) on CorrelationId  \n| project-away CorrelationId1, CorrelationId2  \n| order by TimeGenerated desc\n| where Errors[0].CodeSymbolic == \"ConnectionFailedNoHealthyRdshAvailable\"\n\n",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "UserName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "SessionHostName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "resourceIdColumn": "_ResourceId",
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "LocalDiskFreeSpaceWarning90PercentFull",
+        "displayName": "Local Disk Free Space Warning - 90 Percent Full",
+        "severity": 2,
+        "evaluationFrequency": "PT15M",
+        "windowSize": "PT15M",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "InsightsMetrics\n| where Origin == \"vm.azm.ms\"\n| where Namespace == \"LogicalDisk\" and Name == \"FreeSpacePercentage\"\n| summarize AggregatedValue = avg(Val) by bin(TimeGenerated, 15m), Computer, _ResourceId\n",
+              "timeAggregation": "Average",
+              "metricMeasureColumn": "AggregatedValue",
+              "dimensions": [],
+              "resourceIdColumn": "_ResourceId",
+              "operator": "LessThan",
+              "threshold": 10,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "MetricAlerts": {
+      "storageAccounts": [
+        {
+          "name": "StorageAccountHighThreshold",
+          "severity": 2,
+          "scopes": [],
+          "evaluationFrequency": "PT5M",
+          "windowSize": "PT15M",
+          "criteria": {
+            "allOf": [
+              {
+                "threshold": 200,
+                "name": "Metric1",
+                "metricNamespace": "microsoft.storage/storageaccounts",
+                "metricName": "SuccessServerLatency",
+                "operator": "GreaterThan",
+                "timeAggregation": "Average",
+                "criterionType": "StaticThresholdCriterion"
+              }
+            ],
+            "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+          },
+          "targetResourceType": "Microsoft.Storage/storageAccounts"
+        }
+      ],
+      "virtualMachines": [
+        {
+          "name": "CPU Percentage",
+          "severity": 2,
+          "evaluationFrequency": "PT5M",
+          "windowSize": "PT5M",
+          "criteria": {
+            "allOf": [
+              {
+                "threshold": 90,
+                "name": "Metric1",
+                "metricNamespace": "microsoft.compute/virtualmachines",
+                "metricName": "Percentage CPU",
+                "operator": "GreaterThan",
+                "timeAggregation": "Average",
+                "criterionType": "StaticThresholdCriterion"
+              }
+            ],
+            "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria"
+          },
+          "targetResourceType": "microsoft.compute/virtualmachines"
+        }
+      ]
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2021-04-01",
+      "name": "[variables('ResourceGroupName')]",
+      "location": "[parameters('Location')]"
+    },
+    {
+      "type": "Microsoft.Authorization/roleDefinitions",
+      "apiVersion": "2018-01-01-preview",
+      "name": "[guid(variables('RoleName'))]",
+      "properties": {
+        "roleName": "[variables('RoleName')]",
+        "description": "[variables('RoleDescription')]",
+        "type": "customRole",
+        "permissions": [
+          {
+            "dataActions": [
+              "Microsoft.Insights/Telemetry/Write"
+            ]
+          }
+        ],
+        "assignableScopes": [
+          "[subscription().id]"
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2020-10-01-preview",
+      "name": "[guid(subscription().subscriptionId, variables('FunctionAppName'), guid(variables('RoleName')))]",
+      "properties": {
+        "principalId": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupName')), 'Microsoft.Resources/deployments', 'MonitoringResourcesDeployment')).outputs.functionAppPrincipalID.value]",
+        "principalType": "ServicePrincipal",
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', guid(variables('RoleName')))]"
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupName')), 'Microsoft.Resources/deployments', 'MonitoringResourcesDeployment')]",
+        "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', guid(variables('RoleName')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2020-10-01-preview",
+      "name": "[guid(subscription().subscriptionId, variables('FunctionAppName'), 'Reader')]",
+      "properties": {
+        "principalId": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupName')), 'Microsoft.Resources/deployments', 'MonitoringResourcesDeployment')).outputs.functionAppPrincipalID.value]",
+        "principalType": "ServicePrincipal",
+        "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]"
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupName')), 'Microsoft.Resources/deployments', 'MonitoringResourcesDeployment')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "MonitoringResourcesDeployment",
+      "resourceGroup": "[variables('ResourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "DistributionGroup": {
+            "value": "[parameters('DistributionGroup')]"
+          },
+          "FunctionAppName": {
+            "value": "[variables('FunctionAppName')]"
+          },
+          "HostingPlanName": {
+            "value": "[variables('HostingPlanName')]"
+          },
+          "HostPoolResourceGroupNames": {
+            "value": "[parameters('HostPoolResourceGroupNames')]"
+          },
+          "Location": {
+            "value": "[parameters('Location')]"
+          },
+          "LogAlerts": {
+            "value": "[variables('LogAlerts')]"
+          },
+          "LogAnalyticsWorkspaceResourceId": {
+            "value": "[parameters('LogAnalyticsWorkspaceResourceId')]"
+          },
+          "MetricAlerts": {
+            "value": "[variables('MetricAlerts')]"
+          },
+          "SessionHostResourceGroupId": {
+            "value": "[parameters('SessionHostResourceGroupId')]"
+          },
+          "StorageAccountResourceIds": {
+            "value": "[parameters('StorageAccountResourceIds')]"
+          },
+          "ActionGroupName": {
+            "value": "[variables('ActionGroupName')]"
+          },
+          "Tags": {
+            "value": "[parameters('Tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.6.1.6515",
+              "templateHash": "14034038047465787165"
+            }
+          },
+          "parameters": {
+            "DistributionGroup": {
+              "type": "string"
+            },
+            "FunctionAppName": {
+              "type": "string"
+            },
+            "HostingPlanName": {
+              "type": "string"
+            },
+            "HostPoolResourceGroupNames": {
+              "type": "array"
+            },
+            "Location": {
+              "type": "string"
+            },
+            "LogAlerts": {
+              "type": "array"
+            },
+            "LogAnalyticsWorkspaceResourceId": {
+              "type": "string"
+            },
+            "MetricAlerts": {
+              "type": "object"
+            },
+            "SessionHostResourceGroupId": {
+              "type": "string"
+            },
+            "StorageAccountResourceIds": {
+              "type": "array"
+            },
+            "ActionGroupName": {
+              "type": "string"
+            },
+            "Tags": {
+              "type": "object"
+            }
+          },
+          "variables": {
+            "$fxv#0": "# Input bindings are passed in via param block.\r\nparam($Timer)\r\n\r\n# Get the current universal time in the default string format.\r\n$currentUTCtime = (Get-Date).ToUniversalTime()\r\n\r\n# The 'IsPastDue' property is 'true' when the current function invocation is later than scheduled.\r\nif ($Timer.IsPastDue) {\r\n    Write-Host \"PowerShell timer is running late!\"\r\n}\r\n\r\n# USER DEFINED INFORMATION REQUIRED\r\n#    Initial Subscription for getting Authentication Token\r\n#    Tag used for LogAnalytics and HostPool Workspaces\r\n$subscriptionName = $env:SubscriptionName\r\n$subscriptionid = $env:subscriptionID\r\n$LAWName = $env:LogAnalyticsWorkSpaceName\r\n$resourceGroups = $env:HostPoolResourceGroupNames | convertfrom-json\r\n\r\n# Write an information log with the current time.\r\nWrite-Host \"PowerShell timer trigger function ran! TIME: $currentUTCtime\"\r\n\r\nFunction Create-AccessToken {\r\n    param($resourceURI)\r\n\r\n    If ($null -eq $env:MSI_ENDPOINT) {\r\n        # Connect-AzAccount -Identity\r\n        $token = Get-AzAccessToken\r\n        Return $token.Token\r\n    }\r\n    Else {\r\n        $tokenAuthURI = $env:MSI_ENDPOINT + \"?resource=$resourceURI&api-version=2017-09-01\"\r\n        $headers =  @{'Secret'=\"$env:MSI_SECRET\"}\r\n        try {\r\n            $tokenResponse = Invoke-RestMethod -Method Get -header $headers -Uri $tokenAuthURI -ErrorAction:stop\r\n            return $tokenResponse.access_token\r\n        }\r\n        catch {\r\n            write-error \"Unable to retrieve access token $error\"\r\n            exit 1\r\n        }\r\n    }\r\n}\r\n\r\nFunction Query-Azure {\r\n    param($query,$accesstoken)\r\n\r\n    $url = (\"https://management.azure.com{0}\" -f $query)\r\n    $headers = @{'Authorization' = \"Bearer $accessToken\"}\r\n    \r\n    try {\r\n        $response = Invoke-RestMethod -Method 'Get' -Uri $url -Headers $headers -ErrorAction:stop\r\n        Return $response\r\n    }\r\n    catch { write-error \"Unable to query Azure RestAPI: $error\" }\r\n}\r\n\r\nFunction DimensionSpliter {\r\n    param($dimensiongroup)\r\n\r\n    $dims = $dimensiongroup.split(\";\")\r\n    [System.Collections.Generic.List[System.Object]]$dimobject = @()\r\n    foreach ($dim in $dims) {\r\n        $obj = [pscustomobject]@{\r\n\t        name = $dim.split(\":\")[0]\r\n\t        value = $dim.split(\":\")[1]\r\n        }\r\n        $dimobject.Add($obj)\r\n    }\r\n    return $dimobject\r\n}\r\n\r\nFunction Calculate-Metric {\r\n    param($metric,$sessions,$hosts,$vms,$hostpool)\r\n\r\n    $dimvalues = DimensionSpliter $metric.Dimensions | Foreach-Object {$_.Value}\r\n\r\n    try { [int]$imetricresult = Invoke-Command -Scriptblock $metric.Query }\r\n    catch {\r\n        Write-Warning (\"Metric query failed for: [{0}] - {1}\" -f $metric.Namespace,$metric.Metric)\r\n        Write-Warning (\"{0}\" -f $_.exception.message)\r\n        return $False\r\n    }\r\n\r\n    $metricdata = [pscustomobject]@{\r\n        dimValues = $dimvalues\r\n        min = $imetricresult\r\n        max = $imetricresult\r\n        sum = $imetricresult\r\n        count = 1\r\n    }\r\n    return $metricdata\r\n}\r\n\r\nFunction POST-CustomMetric{\r\n    param($custommetricjson,$accesstoken,$targetresourceid,$region)\r\n\r\n    $url = \"https://$region.monitoring.azure.com$targetresourceid/metrics\"\r\n    # Write-Host \"--> URL: $url\"\r\n    $headers = @{'Authorization' = \"Bearer $accessToken\"\r\n    'Content-Type' = \"application/json\"}\r\n    try { $metricapiresponse = Invoke-RestMethod -Method 'Post' -Uri $url -Headers $headers -body $custommetricjson -ErrorAction:stop }\r\n    catch {\r\n        write-warning \"Unable POST metric $error\"\r\n        return $false\r\n    }\r\n    return $true\r\n}\r\n\r\nFunction Publish-Metric{\r\n    param($metric,$sessions,$hosts,$vms,$hostpool,$azmontoken,$targetresourceid,$region)\r\n    \r\n    $dimnames = DimensionSpliter $metric.Dimensions | Select-Object -ExpandProperty Name\r\n\r\n    $series = [System.Collections.Generic.List[System.Object]]@()\r\n    $metricresult = Calculate-Metric $metric $sessions $hosts $vms $hostpool\r\n    \r\n    If($metricresult -eq $False) { return $False }\r\n    Else { $series.Add($metricresult) }\r\n\r\n    $custommetric = [PSCustomObject]@{\r\n        time = (Get-Date -Format 'o')\r\n        data = [PSCustomObject]@{\r\n            baseData = [PSCustomObject]@{\r\n                metric = $metric.metric\r\n                namespace = $metric.namespace\r\n                dimNames = $dimnames\r\n                series = $series\r\n            }\r\n        }\r\n    }\r\n\r\n    $custommetricjson = $custommetric | convertto-json -depth 10 -compress\r\n    write-output (\"Publishing to Azure Monitor for Namespace:{0} Metric:{1}\" -f $metric.namespace,$metric.metric)\r\n    $Postresult = POST-CustomMetric $custommetricjson $azmontoken $targetresourceid $region \r\n    return $Postresult\r\n}\r\n\r\n# URL(s) for creating access tokens\r\n$WVDResourceURI = \"https://management.core.windows.net/\"\r\n$AZMonResourceURI = \"https://monitoring.azure.com/\"\r\n\r\n\r\nWrite-Output (\"Creating Access Tokens for Azure and Azure Monitor\")\r\n$token = Create-AccessToken -resourceURI $WVDResourceURI\r\n$azmontoken = Create-AccessToken -resourceURI $AZMonResourceURI\r\n\r\nWrite-Output (\"Collecting AVD Azure Subscriptions\")\r\n$subscriptionQuery = \"/subscriptions?api-version=2016-06-01\"\r\n$subscription = (Query-Azure $subscriptionQuery $token).Value.Where{$_.displayName -eq $subscriptionName}\r\n\r\n\r\n# foreach ($subscription in $subscriptions) {\r\n    Write-Output (\"Working on '{0}' Subscription Resources\" -f $subscription.displayName)\r\n    $subscriptionid = $subscription.subscriptionid \r\n    \r\n   # $resourceGroupQuery = (\"/subscriptions/{0}/resourcegroups/?api-version=2019-10-01\" -f $subscriptionid)\r\n   # $resourceGroups = (Query-Azure $resourceGroupQuery $token).Value.Where{$_.Tags.$tagName -eq $tagValue}\r\n   # Write-Output (\"Found {0} Host Pool Resource Groups in '{1}'\" -f $resourceGroups.Count,$subscription.displayName)\r\n\r\n    $logAnalyticsQuery = (\"/subscriptions/{0}/providers/Microsoft.OperationalInsights/workspaces?api-version=2015-11-01-preview\" -f $subscriptionid)\r\n    $logAnalyticsWorkspace = (Query-Azure $logAnalyticsQuery $token).Value.Where{$_.name -eq $LAWName}\r\n\r\n    <# $logAnalyticsWorkspace = (Query-Azure $logAnalyticsQuery $token).Value.Where{$_.Tags.$tagName -eq $tagValue}\r\n    If ($logAnalyticsWorkspace.Count -gt 1) {\r\n        Write-Warning (\"Found {0} Log Analytics Workspaces in the {1} Subscription\" -f $logAnalyticsWorkspace.Count,$subscription.displayName)\r\n        Write-Warning (\"Review the Azure Query and ensure only 1 Log Analytics Workspace is returned\")\r\n        Exit 1\r\n    }#>\r\n\r\n    If (!$logAnalyticsWorkspace) {\r\n        Write-Warning (\"Unable to find a Log Analytics Workspace: $LAWName\")\r\n        Exit 1\r\n    }\r\n    Else {\r\n       # Write-Host (\"-------> Log Analytics Workspace: {0}\" -f $logAnalyticsWorkspace.Name)\r\n       # Write-Host (\"-------> Log Query: {0}\" -f $logAnalyticsQuery) \r\n        $workspaceId = $logAnalyticsWorkspace.Id\r\n        $workspaceRegion = $logAnalyticsWorkspace.Location\r\n        $workspaceName = $logAnalyticsWorkspace.Name\r\n    }\r\n    \r\n    foreach($resourceGroup in $resourceGroups) {\r\n        $resourceGroupQuery = (\"/subscriptions/{0}/resourcegroups/{1}?api-version=2021-04-01\" -f $subscriptionid,$resourceGroup)  # Moved inside foreach\r\n        $resourceGroup = Query-Azure $resourceGroupQuery $token       # Moved inside foreach\r\n\r\n\r\n        Write-Output (\"Working on '{0}' Resources\" -f $resourceGroup.Name)\r\n        $resourceGroupName = $resourceGroup.Name\r\n        $wvdapi = '2019-12-10-preview'\r\n        $hostPoolsQuery = (\"/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostPools?api-version={2}\" -f $subscriptionid,$resourceGroupName,$wvdapi)\r\n        $hostPools = (Query-Azure $hostPoolsQuery $token).Value\r\n        \r\n        If ($hostPools.Count -gt 0) {\r\n            Write-Output (\"Found {0} Host Pool(s) in {1} Resource Group\" -f $hostPools.Count,$resourceGroupName)\r\n        \r\n            foreach ($hostPool in  $hostPools) {\r\n                Write-Output (\"Working on '{0}' Resources\" -f $hostPool.Name)\r\n                $poolName = $hostPool.Name\r\n                # $workspaceRegion = $hostPool.Location\r\n                \r\n                Write-Output (\"Querying Azure for AVD Resource data (Virtual Machines, Session Hosts, Sessions)\")\r\n                $sessionsquery = (\"/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostPools/{2}/userSessions?api-version={3}\" -f $subscriptionid,$resourceGroupName,$poolName,$wvdapi)\r\n                $hostsquery = (\"/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.DesktopVirtualization/hostPools/{2}/SessionHosts?api-version={3}\" -f $subscriptionid,$resourceGroupName,$poolName,$wvdapi)\r\n                $vmquery = (\"/subscriptions/{0}/resourceGroups/{1}/providers/Microsoft.Compute/virtualMachines?api-version=2020-06-01\" -f $subscriptionid,$resourceGroupName)\r\n\r\n                $sessions = (Query-Azure $sessionsquery $token).Value\r\n                $hosts = (Query-Azure $hostsquery $token).Value\r\n                $vms = (Query-Azure $vmquery $token).Value\r\n\r\n                Write-Output (\"Creating Azure Monitor Metric Definitions\")\r\n                [System.Collections.Generic.List[System.Object]]$metricDefinitions = @(\r\n                    [pscustomobject]@{\r\n                        NameSpace = \"Virtual Desktop\"\r\n                        Metric = \"Active Sessions\"\r\n                        Dimensions = \"Workspace:$workspacename;Pool:$poolname\"\r\n                        Query = { ($sessions.properties | Where-Object {$_.sessionstate -eq \"Active\" -AND $_.userprincipalname -ne $null}).Count }\r\n                    },\r\n                    [pscustomobject]@{\r\n                        NameSpace = \"Virtual Desktop\"\r\n                        Metric = \"Disconnected Sessions\"\r\n                        Dimensions = \"Workspace:$workspacename;Pool:$poolname\"\r\n                        Query = { ($sessions.properties | Where-Object {$_.sessionState -eq \"Disconnected\" -AND $_.userPrincipalName -ne $null}).Count }\r\n                    },\r\n                    [pscustomobject]@{\r\n                        NameSpace = \"Virtual Desktop\"\r\n                        Metric = \"Total Sessions\"\r\n                        Dimensions = \"Workspace:$workspacename;Pool:$poolname\"\r\n                        Query = { ($sessions.properties | Where-Object {$_.userPrincipalName -ne $null}).Count }\r\n                    },\r\n                    [pscustomobject]@{\r\n                        NameSpace = \"Virtual Desktop\"\r\n                        Metric = \"Draining Hosts\"\r\n                        Dimensions = \"Workspace:$workspacename;Pool:$poolname\"\r\n                        Query = { ($hosts.properties | Where-Object {$_.allowNewSession -eq $false}).Count }\r\n                    },\r\n                    [pscustomobject]@{\r\n                        NameSpace = \"Virtual Desktop\"\r\n                        Metric = \"Unhealthy Hosts\"\r\n                        Dimensions = \"Workspace:$workspacename;Pool:$poolname\"\r\n                        Query = { ($hosts.properties | Where-Object {$_.allowNewSession -eq $true -AND $_.status -ne \"Available\"}).Count }\r\n                    },\r\n                    [pscustomobject]@{\r\n                        NameSpace = \"Virtual Desktop\"\r\n                        Metric = \"Healthy Hosts\"\r\n                        Dimensions = \"Workspace:$workspacename;Pool:$poolname\"\r\n                        Query = { ($hosts.properties | Where-Object {$_.allowNewSession -eq $true -AND $_.status -eq \"Available\"}).Count }\r\n                    },\r\n                    [pscustomobject]@{\r\n                        NameSpace = \"Virtual Desktop\"\r\n                        Metric = \"Max Sessions in Pool\"\r\n                        Dimensions = \"Workspace:$workspacename;Pool:$poolname\"\r\n                        Query = {\r\n                            $healthyHosts = ($hosts.properties | Where-Object {$_.allowNewSession -eq $true -AND $_.status -eq \"Available\"}).Count\r\n                            $healthyHosts * $hostpool.properties.maxSessionLimit\r\n                        }\r\n                    },\r\n                    [pscustomobject]@{\r\n                        NameSpace = \"Virtual Desktop\"\r\n                        Metric = \"Available Sessions in Pool\"\r\n                        Dimensions = \"Workspace:$workspacename;Pool:$poolname\"\r\n                        Query = {\r\n                            $healthyHosts = ($hosts.properties | Where-Object {$_.allowNewSession -eq $true -AND $_.status -eq \"Available\"}).Count\r\n                            $totalSessions = ($hosts.properties | Where-Object {$_.allowNewSession -eq $true -AND $_.status -eq \"Available\"} | Measure-Object -Property Sessions -Sum).Sum\r\n                            $maxSessions = $healthyHosts * $hostpool.properties.maxSessionLimit\r\n                            $maxSessions - $totalSessions\r\n                        }        \r\n                    },\r\n                    [pscustomobject]@{\r\n                        NameSpace = \"Virtual Desktop\"\r\n                        Metric = \"Session Load (%)\"\r\n                        Dimensions = \"Workspace:$workspacename;Pool:$poolname\"\r\n                        Query = {\r\n                            $healthyHosts = ($hosts.properties | Where-Object {$_.allowNewSession -eq $true -AND $_.status -eq \"Available\"}).Count\r\n                            $totalSessions = ($hosts.properties | Where-Object {$_.allowNewSession -eq $true -AND $_.status -eq \"Available\"} | Measure-Object -Property Sessions -Sum).Sum\r\n                            $maxSessions = $healthyHosts * $hostpool.properties.maxSessionLimit\r\n                            If ($maxSessions -eq 0) { $maxSessions }\r\n                            Else { [math]::Ceiling($totalSessions / $maxSessions * 100) }\r\n                        }\r\n                    },\r\n                    [pscustomobject]@{\r\n                        NameSpace = \"Virtual Desktop\"\r\n                        Metric = \"Session Hosts in Maintenance\"\r\n                        Dimensions = \"Workspace:$workspacename;Pool:$poolname\"\r\n                        Query = { ($vms.Tags | Where-Object {$_.'WVD-Maintenance' -eq $true}).Count }\r\n                    }\r\n                )\r\n\r\n                Foreach ($metric in $metricDefinitions) {\r\n                    Write-Output (\"Publishing Metric: [{0}] - {1} ({2})\" -f $metric.Namespace,$metric.Metric,$workspaceRegion)\r\n                    $metricPosted = Publish-Metric $metric $sessions $hosts $vms $poolName $azmontoken $workspaceId $workspaceRegion\r\n                    If ($metricPosted -eq $false) { Write-Warning (\"Failed to Publish Metric: [{0}] - {1}\" -f $metric.Namespace,$metric.Metric) }\r\n                }\r\n            }\r\n        }\r\n        Else { Write-Warning (\"No Host Pools found in {0} Resource Group\" -f $resourceGroupName) }\r\n    }\r\n# }",
+            "$fxv#1": "# This file enables modules to be automatically managed by the Functions service.\r\n# See https://aka.ms/functionsmanageddependency for additional information.\r\n#\r\n@{\r\n    # For latest supported version, go to 'https://www.powershellgallery.com/packages/Az'. \r\n    # To use the Az module in your function app, please uncomment the line below.\r\n    # 'Az' = '7.*'\r\n    'Az.Accounts' = '2.*'\r\n}",
+            "LogAnalyticsWorkspaceName": "[split(parameters('LogAnalyticsWorkspaceResourceId'), '/')[8]]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Web/serverfarms",
+              "apiVersion": "2021-03-01",
+              "name": "[parameters('HostingPlanName')]",
+              "location": "[parameters('Location')]",
+              "sku": {
+                "name": "Y1",
+                "tier": "Dynamic",
+                "size": "Y1",
+                "family": "Y"
+              },
+              "properties": {}
+            },
+            {
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2021-08-01",
+              "name": "storavdmetricsfuncapp",
+              "location": "[parameters('Location')]",
+              "sku": {
+                "name": "Standard_LRS"
+              },
+              "kind": "StorageV2"
+            },
+            {
+              "type": "Microsoft.Web/sites",
+              "apiVersion": "2021-03-01",
+              "name": "[parameters('FunctionAppName')]",
+              "location": "[parameters('Location')]",
+              "kind": "functionapp",
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "enabled": true,
+                "siteConfig": {
+                  "powerShellVersion": "~7",
+                  "appSettings": [
+                    {
+                      "name": "AzureWebJobs.AVDMetrics-Every5Min.Disabled",
+                      "value": "0"
+                    },
+                    {
+                      "name": "SubscriptionName",
+                      "value": "[subscription().displayName]"
+                    },
+                    {
+                      "name": "subscriptionID",
+                      "value": "[subscription().subscriptionId]"
+                    },
+                    {
+                      "name": "LogAnalyticsWorkSpaceName",
+                      "value": "[variables('LogAnalyticsWorkspaceName')]"
+                    },
+                    {
+                      "name": "HostPoolResourceGroupNames",
+                      "value": "[string(parameters('HostPoolResourceGroupNames'))]"
+                    },
+                    {
+                      "name": "AzureWebJobsStorage",
+                      "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', 'storavdmetricsfuncapp', environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', 'storavdmetricsfuncapp'), '2019-06-01').keys[0].value)]"
+                    },
+                    {
+                      "name": "FUNCTIONS_EXTENSION_VERSION",
+                      "value": "~4"
+                    },
+                    {
+                      "name": "FUNCTIONS_WORKER_RUNTIME",
+                      "value": "powershell"
+                    },
+                    {
+                      "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                      "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', 'storavdmetricsfuncapp', environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', 'storavdmetricsfuncapp'), '2019-06-01').keys[0].value)]"
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('HostingPlanName'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', 'storavdmetricsfuncapp')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Web/sites/functions",
+              "apiVersion": "2021-03-01",
+              "name": "[format('{0}/{1}', parameters('FunctionAppName'), 'AVDMetrics-Every5Min')]",
+              "kind": "functionapp",
+              "properties": {
+                "config": {
+                  "disabled": false,
+                  "language": "powershell",
+                  "bindings": [
+                    {
+                      "name": "Timer",
+                      "type": "timerTrigger",
+                      "direction": "in",
+                      "schedule": "0 */5 * * * *"
+                    }
+                  ]
+                },
+                "files": {
+                  "run.ps1": "[variables('$fxv#0')]",
+                  "../requirements.psd1": "[variables('$fxv#1')]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('FunctionAppName'))]"
+              ]
+            },
+            {
+              "type": "microsoft.insights/actionGroups",
+              "apiVersion": "2019-06-01",
+              "name": "[parameters('ActionGroupName')]",
+              "location": "global",
+              "properties": {
+                "groupShortName": "EmailAlerts",
+                "enabled": true,
+                "emailReceivers": [
+                  {
+                    "name": "[parameters('DistributionGroup')]",
+                    "emailAddress": "[parameters('DistributionGroup')]",
+                    "useCommonAlertSchema": true
+                  }
+                ]
+              }
+            },
+            {
+              "copy": {
+                "name": "scheduledQueryRules",
+                "count": "[length(range(0, length(parameters('LogAlerts'))))]"
+              },
+              "type": "Microsoft.Insights/scheduledQueryRules",
+              "apiVersion": "2021-08-01",
+              "name": "[parameters('LogAlerts')[range(0, length(parameters('LogAlerts')))[copyIndex()]].name]",
+              "location": "[parameters('Location')]",
+              "tags": "[parameters('Tags')]",
+              "properties": {
+                "actions": {
+                  "actionGroups": [
+                    "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+                  ],
+                  "customProperties": {}
+                },
+                "criteria": "[parameters('LogAlerts')[range(0, length(parameters('LogAlerts')))[copyIndex()]].criteria]",
+                "displayName": "[parameters('LogAlerts')[range(0, length(parameters('LogAlerts')))[copyIndex()]].displayName]",
+                "enabled": false,
+                "evaluationFrequency": "[parameters('LogAlerts')[range(0, length(parameters('LogAlerts')))[copyIndex()]].evaluationFrequency]",
+                "scopes": [
+                  "[parameters('LogAnalyticsWorkspaceResourceId')]"
+                ],
+                "severity": "[parameters('LogAlerts')[range(0, length(parameters('LogAlerts')))[copyIndex()]].severity]",
+                "windowSize": "[parameters('LogAlerts')[range(0, length(parameters('LogAlerts')))[copyIndex()]].windowSize]"
+              },
+              "dependsOn": [
+                "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+              ]
+            },
+            {
+              "copy": {
+                "name": "metricAlerts_VirtualMachines",
+                "count": "[length(range(0, length(parameters('MetricAlerts').virtualMachines)))]"
+              },
+              "type": "Microsoft.Insights/metricAlerts",
+              "apiVersion": "2018-03-01",
+              "name": "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name]",
+              "location": "global",
+              "tags": "[parameters('Tags')]",
+              "properties": {
+                "severity": "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].severity]",
+                "enabled": false,
+                "scopes": [
+                  "[parameters('SessionHostResourceGroupId')]"
+                ],
+                "evaluationFrequency": "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].evaluationFrequency]",
+                "windowSize": "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].windowSize]",
+                "criteria": "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].criteria]",
+                "autoMitigate": false,
+                "targetResourceType": "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].targetResourceType]",
+                "targetResourceRegion": "[parameters('Location')]",
+                "actions": [
+                  {
+                    "actionGroupId": "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]",
+                    "webHookProperties": {}
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+              ]
+            },
+            {
+              "copy": {
+                "name": "metricAlerts_StorageAccounts",
+                "count": "[length(range(0, length(parameters('MetricAlerts').storageAccounts)))]"
+              },
+              "type": "Microsoft.Insights/metricAlerts",
+              "apiVersion": "2018-03-01",
+              "name": "[parameters('MetricAlerts').storageAccounts[range(0, length(parameters('MetricAlerts').storageAccounts))[copyIndex()]].name]",
+              "location": "global",
+              "tags": "[parameters('Tags')]",
+              "properties": {
+                "severity": "[parameters('MetricAlerts').storageAccounts[range(0, length(parameters('MetricAlerts').storageAccounts))[copyIndex()]].severity]",
+                "enabled": false,
+                "scopes": "[parameters('StorageAccountResourceIds')]",
+                "evaluationFrequency": "[parameters('MetricAlerts').storageAccounts[range(0, length(parameters('MetricAlerts').storageAccounts))[copyIndex()]].evaluationFrequency]",
+                "windowSize": "[parameters('MetricAlerts').storageAccounts[range(0, length(parameters('MetricAlerts').storageAccounts))[copyIndex()]].windowSize]",
+                "criteria": "[parameters('MetricAlerts').storageAccounts[range(0, length(parameters('MetricAlerts').storageAccounts))[copyIndex()]].criteria]",
+                "autoMitigate": false,
+                "targetResourceType": "[parameters('MetricAlerts').storageAccounts[range(0, length(parameters('MetricAlerts').storageAccounts))[copyIndex()]].targetResourceType]",
+                "targetResourceRegion": "[parameters('Location')]",
+                "actions": [
+                  {
+                    "actionGroupId": "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "functionAppName": {
+              "type": "string",
+              "value": "[parameters('FunctionAppName')]"
+            },
+            "functionAppPrincipalID": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Web/sites', parameters('FunctionAppName')), '2021-03-01', 'full').identity.principalId]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('ResourceGroupName'))]"
+      ]
+    }
+  ]
+}
