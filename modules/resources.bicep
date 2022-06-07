@@ -3,15 +3,16 @@ param FunctionAppName string
 param HostingPlanName string
 param HostPoolResourceGroupNames array
 param Location string
-param LogAlerts array
-param LogAnalyticsWorkspaceResourceId string
 param MetricAlerts object
+param LogAnalyticsWorkspaceResourceID string
+param LogAlerts array
+param LogAnalyticsWorkspaceName string
 param SessionHostResourceGroupId string
 param StorageAccountResourceIds array
 param ActionGroupName string
 param Tags object
 
-var LogAnalyticsWorkspaceName = split(LogAnalyticsWorkspaceResourceId, '/')[8]
+var LogAnalyticsRG = split(LogAnalyticsWorkspaceResourceID, '/')[4]
 
 resource hostingPlan 'Microsoft.Web/serverfarms@2021-03-01' = {
   name: HostingPlanName
@@ -132,29 +133,6 @@ resource actionGroup 'Microsoft.Insights/actionGroups@2019-06-01' = {
   }
 }
 
-resource scheduledQueryRules 'Microsoft.Insights/scheduledQueryRules@2021-08-01' = [for i in range(0, length(LogAlerts)): {
-  name: LogAlerts[i].name
-  location: Location
-  tags: Tags
-  properties: {
-    actions: {
-      actionGroups: [
-        actionGroup.id
-      ]
-      customProperties: {}
-    }
-    criteria: LogAlerts[i].criteria
-    displayName: LogAlerts[i].displayName
-    enabled: false
-    evaluationFrequency: LogAlerts[i].evaluationFrequency
-    scopes: [
-      LogAnalyticsWorkspaceResourceId
-    ]
-    severity: LogAlerts[i].severity
-    windowSize: LogAlerts[i].windowSize
-  }
-}]
-
 resource metricAlerts_VirtualMachines 'Microsoft.Insights/metricAlerts@2018-03-01' = [for i in range(0, length(MetricAlerts.virtualMachines)): {
   name: MetricAlerts.virtualMachines[i].name
   location: 'global'
@@ -180,6 +158,7 @@ resource metricAlerts_VirtualMachines 'Microsoft.Insights/metricAlerts@2018-03-0
   }
 }]
 
+// If Metric Namespace contains file services ; change scopes to append default
 resource metricAlerts_StorageAccounts 'Microsoft.Insights/metricAlerts@2018-03-01' = [for i in range(0, length(MetricAlerts.storageAccounts)): {
   name: MetricAlerts.storageAccounts[i].name
   location: 'global'
@@ -202,6 +181,40 @@ resource metricAlerts_StorageAccounts 'Microsoft.Insights/metricAlerts@2018-03-0
   }
 }]
 
+/* resource metricAlerts_avdCustomMetrics 'Microsoft.Insights/metricAlerts@2018-03-01' = [for i in range(0, length(MetricAlerts.avdCustomMetrics)): {
+  name: MetricAlerts.avdCustomMetrics[i].name
+  location: 'global'
+  tags: Tags
+  properties: {
+    severity: MetricAlerts.avdCustomMetrics[i].severity
+    enabled: false
+    scopes: LogAnalyticsWorkspaceResourceID
+    evaluationFrequency: MetricAlerts.avdCustomMetrics[i].evaluationFrequency
+    windowSize: MetricAlerts.avdCustomMetrics[i].windowSize
+    criteria: MetricAlerts.avdCustomMetrics[i].criteria
+    autoMitigate: false
+    targetResourceType: MetricAlerts.avdCustomMetrics[i].targetResourceType
+    targetResourceRegion: Location
+    actions: [
+      {
+        actionGroupId: actionGroup.id
+      }
+    ]
+  }
+}] */
+
+module LAWresource 'LAWresource.bicep' = {
+  name: 'UpdateLogAnalyticsWorkspace'
+  scope: resourceGroup(LogAnalyticsRG)
+  params: {
+    LogAnalyticsWorkspaceResourceID: LogAnalyticsWorkspaceResourceID
+    LogAlerts: LogAlerts
+    Location: Location
+    ActionGroupID: actionGroup.id
+    Tags: Tags
+  }
+}
 
 output functionAppName string = functionApp.name
 output functionAppPrincipalID string = functionApp.identity.principalId
+

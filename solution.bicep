@@ -20,7 +20,7 @@ param HostPoolResourceGroupNames array = [
 param Location string = deployment().location
 
 @description('The Resource ID for the Log Analytics Workspace.')
-param LogAnalyticsWorkspaceResourceId string = '/subscriptions/a7576b41-cb1a-4f34-9f18-0e0b0287a1a0/resourcegroups/rg-shd-svc-d-va/providers/microsoft.operationalinsights/workspaces/law-shd-net-d-va'
+param LogAnalyticsWorkspaceResourceID string = 'law-shd-net-d-va'
 
 @description('The Resource Group ID for the AVD session hosts.')
 param SessionHostResourceGroupId string = '/subscriptions/a7576b41-cb1a-4f34-9f18-0e0b0287a1a0/resourceGroups/rg-fs-peo-va-d-hosts-00'
@@ -32,13 +32,13 @@ param StorageAccountResourceIds array = [
 
 param Tags object = {}
 
-
 var ActionGroupName = 'ag-avdmetrics-${Environment}-${Location}'
 var FunctionAppName = 'fa-avdmetrics-${Environment}-${Location}'
 var HostingPlanName = 'asp-avdmetrics-${Environment}-${Location}'
 var ResourceGroupName = 'rg-avdmetrics-${Environment}-${Location}'
 var RoleName = 'Log Analytics Workspace Metrics Contributor'
 var RoleDescription = 'This role allows a resource to write to Log Analytics Metrics.'
+var LogAnalyticsWorkspaceName = split(LogAnalyticsWorkspaceResourceID, '/')[8]
 var LogAlerts = [
   {
     name: 'AvdNoResourcesAvailable'
@@ -102,15 +102,51 @@ var LogAlerts = [
       ]
     }
   }
+  {
+    name: 'AVD-VM-FSLogixProfileFailed'
+    displayName: 'AVD VM FSLogix Profile Failed'
+    severity: 1
+    evaluationFrequency: 'PT5M'
+    windowSize: 'PT5M'
+    criteria: {
+      allOf: [
+        {
+          query: 'Event\n| where EventLog == "Microsoft-FSLogix-Apps/Admin"\n| where EventLevelName == "Error"\n\n'
+          timeAggregation: 'Count'
+          dimensions: [
+            {
+              name: 'Computer'
+              operator: 'Include'
+              values: [
+                  '*'
+              ]
+          }
+          {
+              name: 'RenderedDescription'
+              operator: 'Include'
+              values: [
+                  '*'
+              ]
+          }
+          ]
+          //resourceIdColumn: '_ResourceId'
+          operator: 'GreaterThanOrEqual'
+          threshold: 1
+          failingPeriods: {
+            numberOfEvaluationPeriods: 1
+            minFailingPeriodsToAlert: 1
+          }
+        }
+      ]
+    }
+  }
 ]
 var MetricAlerts = {
   storageAccounts: [
     {
       name: 'StorageAccountHighThreshold'
       severity: 2
-      scopes: [
-  
-      ]
+      scopes: []
       evaluationFrequency: 'PT5M'
       windowSize: 'PT15M'
       criteria: {
@@ -129,7 +165,7 @@ var MetricAlerts = {
       }
       targetResourceType: 'Microsoft.Storage/storageAccounts'
     }
-  /*   {
+/*     {
       name: 'Storage Low Space'
       severity: 2
       evaluationFrequency: 'PT30M'
@@ -173,18 +209,62 @@ var MetricAlerts = {
       }
       targetResourceType: 'microsoft.compute/virtualmachines'
     }
+    {
+      name: 'AVD-VM-AvailableMemoryLessThan2GB'
+      severity: 2
+      evaluationFrequency: 'PT5M'
+      windowSize: 'PT5M'
+      criteria: {
+        allOf: [
+          {
+            threshold: 2147483648
+            name: 'Metric1'
+            metricNamespace: 'microsoft.compute/virtualmachines'
+            metricName: 'Available Memory Bytes'
+            operator: 'LessThanOrEqual'
+            timeAggregation: 'Average'
+            criterionType: 'StaticThresholdCriterion'
+          }
+        ]
+        'odata.type': 'Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria'
+      }
+      targetResourceType: 'microsoft.compute/virtualmachines'
+    }
+  ]
+  avdCustomMetrics: [
+    {
+      name: 'AVDPool-UsageAbove80percent'
+      severity: 2
+      evaluationFrequency: 'PT5M'
+      windowSize: 'PT5M'
+      criteria: {
+        allOf: [
+          {
+            threshold: 80
+            name: 'Metric1'
+            metricNamespace: 'avd'
+            metricName: 'Session Load (%)'
+            operator: 'GreaterThanOrEqual'
+            timeAggregation: 'Count'
+            criterionType: 'StaticThresholdCriterion'
+          }
+        ]
+        'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+      }
+      targetResourceType: 'Microsoft.OperationalInsights/workspaces'
+    }
   ]
 }
 
-
-resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+resource resourceGroupFuncApp 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: ResourceGroupName
   location: Location
 }
 
+
 resource roleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
   name: guid(RoleName)
-    properties: {
+  properties: {
     roleName: RoleName
     description: RoleDescription
     type: 'customRole'
@@ -203,15 +283,16 @@ resource roleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-prev
 
 module resources 'modules/resources.bicep' = {
   name: 'MonitoringResourcesDeployment'
-  scope: resourceGroup
+  scope: resourceGroupFuncApp
   params: {
     DistributionGroup: DistributionGroup
     FunctionAppName: FunctionAppName
     HostingPlanName: HostingPlanName
     HostPoolResourceGroupNames: HostPoolResourceGroupNames
     Location: Location
+    LogAnalyticsWorkspaceResourceID: LogAnalyticsWorkspaceResourceID
+    LogAnalyticsWorkspaceName: LogAnalyticsWorkspaceName
     LogAlerts: LogAlerts
-    LogAnalyticsWorkspaceResourceId: LogAnalyticsWorkspaceResourceId
     MetricAlerts: MetricAlerts
     SessionHostResourceGroupId: SessionHostResourceGroupId
     StorageAccountResourceIds: StorageAccountResourceIds
@@ -235,5 +316,14 @@ resource roleReaderAssignment 'Microsoft.Authorization/roleAssignments@2020-10-0
     principalId: resources.outputs.functionAppPrincipalID
     principalType: 'ServicePrincipal'
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7') // Reader
+  }
+}
+
+resource roleLAWContributorAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
+  name: guid(subscription().subscriptionId, FunctionAppName, 'Log Analytics Contributor')
+  properties: {
+    principalId: resources.outputs.functionAppPrincipalID
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '92aaf0da-9dab-42b6-94a3-d43ce8d16293') // Log Analytics Contributor
   }
 }

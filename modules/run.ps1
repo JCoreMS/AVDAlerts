@@ -216,43 +216,43 @@ $subscription = (Query-Azure $subscriptionQuery $token).Value.Where{$_.displayNa
                 Write-Output ("Creating Azure Monitor Metric Definitions")
                 [System.Collections.Generic.List[System.Object]]$metricDefinitions = @(
                     [pscustomobject]@{
-                        NameSpace = "AVD - $poolName"
+                        NameSpace = "AVD"
                         Metric = "Active Sessions"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = { ($sessions.properties | Where-Object {$_.sessionstate -eq "Active" -AND $_.userprincipalname -ne $null}).Count }
                     },
                     [pscustomobject]@{
-                        NameSpace = "AVD - $poolName"
+                        NameSpace = "AVD"
                         Metric = "Disconnected Sessions"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = { ($sessions.properties | Where-Object {$_.sessionState -eq "Disconnected" -AND $_.userPrincipalName -ne $null}).Count }
                     },
                     [pscustomobject]@{
-                        NameSpace = "AVD - $poolName"
+                        NameSpace = "AVD"
                         Metric = "Total Sessions"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = { ($sessions.properties | Where-Object {$_.userPrincipalName -ne $null}).Count }
                     },
                     [pscustomobject]@{
-                        NameSpace = "AVD - $poolName"
+                        NameSpace = "AVD"
                         Metric = "Draining Hosts"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = { ($hosts.properties | Where-Object {$_.allowNewSession -eq $false}).Count }
                     },
                     [pscustomobject]@{
-                        NameSpace = "AVD - $poolName"
+                        NameSpace = "AVD"
                         Metric = "Unhealthy Hosts"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = { ($hosts.properties | Where-Object {$_.allowNewSession -eq $true -AND $_.status -ne "Available"}).Count }
                     },
                     [pscustomobject]@{
-                        NameSpace = "AVD - $poolName"
+                        NameSpace = "AVD"
                         Metric = "Healthy Hosts"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = { ($hosts.properties | Where-Object {$_.allowNewSession -eq $true -AND $_.status -eq "Available"}).Count }
                     },
                     [pscustomobject]@{
-                        NameSpace = "AVD - $poolName"
+                        NameSpace = "AVD"
                         Metric = "Max Sessions in Pool"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = {
@@ -261,7 +261,7 @@ $subscription = (Query-Azure $subscriptionQuery $token).Value.Where{$_.displayNa
                         }
                     },
                     [pscustomobject]@{
-                        NameSpace = "AVD - $poolName"
+                        NameSpace = "AVD"
                         Metric = "Available Sessions in Pool"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = {
@@ -272,7 +272,7 @@ $subscription = (Query-Azure $subscriptionQuery $token).Value.Where{$_.displayNa
                         }        
                     },
                     [pscustomobject]@{
-                        NameSpace = "AVD - $poolName"
+                        NameSpace = "AVD"
                         Metric = "Session Load (%)"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = {
@@ -284,7 +284,7 @@ $subscription = (Query-Azure $subscriptionQuery $token).Value.Where{$_.displayNa
                         }
                     },
                     [pscustomobject]@{
-                        NameSpace = "AVD - $poolName"
+                        NameSpace = "AVD"
                         Metric = "Session Hosts in Maintenance"
                         Dimensions = "Workspace:$workspacename;Pool:$poolname"
                         Query = { ($vms.Tags | Where-Object {$_.'WVD-Maintenance' -eq $true}).Count }
