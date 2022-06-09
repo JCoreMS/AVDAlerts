@@ -11,34 +11,47 @@ param DistributionGroup string = 'jamasten@microsoft.com'
 @description('The environment is which these resources will be deployed, i.e. Development.')
 param Environment string = 'd'
 
-@description('Resource Group with Host Pool "type" Resources (may be different than RG with VMs)')
-param HostPoolResourceGroupNames array = [
-  'hp-fs-peo-va-d-00'
-]
+// @description('Resource Group with Host Pool "type" Resources (may be different than RG with VMs)')
+// param HostPoolResourceGroupNames array = [
+//   'hp-fs-peo-va-d-00'
+// ]
 
 @description('Azure Region for Resources')
 param Location string = deployment().location
 
 @description('The Resource ID for the Log Analytics Workspace.')
-param LogAnalyticsWorkspaceResourceID string = 'law-shd-net-d-va'
+param LogAnalyticsWorkspaceResourceId string = 'law-shd-net-d-va'
+
+@secure()
+@description('The SAS token if using a storage account for the repository.')
+param ScriptsRepositorySasToken string = ''
+
+@description('The repository URI hosting the scripts for this solution.')
+param ScriptsRepositoryUri string = ''
 
 @description('The Resource Group ID for the AVD session hosts.')
-param SessionHostResourceGroupId string = '/subscriptions/a7576b41-cb1a-4f34-9f18-0e0b0287a1a0/resourceGroups/rg-fs-peo-va-d-hosts-00'
+param SessionHostsResourceGroupIds array = [
+  '/subscriptions/a7576b41-cb1a-4f34-9f18-0e0b0287a1a0/resourceGroups/rg-fs-peo-va-d-hosts-00'
+]
 
-@description('The Resource IDs for the Storage Accounts used for FSLogix profile storage.')
+@description('The Resource IDs for the Storage Accounts or NetApp Account used for FSLogix profile storage.')
 param StorageAccountResourceIds array = [
   '/subscriptions/a7576b41-cb1a-4f34-9f18-0e0b0287a1a0/resourceGroups/rg-fs-peo-va-d-storage-00/providers/Microsoft.Storage/storageAccounts/stfspeovad0000'
 ]
 
 param Tags object = {}
 
+var AutomationAccountName = 'aa-avdmetrics-${Environment}-${Location}'
 var ActionGroupName = 'ag-avdmetrics-${Environment}-${Location}'
-var FunctionAppName = 'fa-avdmetrics-${Environment}-${Location}'
-var HostingPlanName = 'asp-avdmetrics-${Environment}-${Location}'
+//var FunctionAppName = 'fa-avdmetrics-${Environment}-${Location}'
+//var HostingPlanName = 'asp-avdmetrics-${Environment}-${Location}'
+var LogicAppName = 'la-avdmetrics-${Environment}-${Location}'
 var ResourceGroupName = 'rg-avdmetrics-${Environment}-${Location}'
 var RoleName = 'Log Analytics Workspace Metrics Contributor'
 var RoleDescription = 'This role allows a resource to write to Log Analytics Metrics.'
-var LogAnalyticsWorkspaceName = split(LogAnalyticsWorkspaceResourceID, '/')[8]
+var RunbookName = 'AvdLogGenerator'
+var RunbookScript = 'Get-AzureAvdLogs.ps1'
+//var LogAnalyticsWorkspaceName = split(LogAnalyticsWorkspaceResourceId, '/')[8]
 var LogAlerts = [
   {
     name: 'AvdNoResourcesAvailable'
@@ -285,23 +298,39 @@ module resources 'modules/resources.bicep' = {
   name: 'MonitoringResourcesDeployment'
   scope: resourceGroupFuncApp
   params: {
+    AutomationAccountName: AutomationAccountName
     DistributionGroup: DistributionGroup
-    FunctionAppName: FunctionAppName
-    HostingPlanName: HostingPlanName
-    HostPoolResourceGroupNames: HostPoolResourceGroupNames
+    //FunctionAppName: FunctionAppName
+    //HostingPlanName: HostingPlanName
+    //HostPoolResourceGroupNames: HostPoolResourceGroupNames
     Location: Location
-    LogAnalyticsWorkspaceResourceID: LogAnalyticsWorkspaceResourceID
-    LogAnalyticsWorkspaceName: LogAnalyticsWorkspaceName
+    LogAnalyticsWorkspaceResourceId: LogAnalyticsWorkspaceResourceId
+    //LogAnalyticsWorkspaceName: LogAnalyticsWorkspaceName
     LogAlerts: LogAlerts
+    LogicAppName: LogicAppName
     MetricAlerts: MetricAlerts
-    SessionHostResourceGroupId: SessionHostResourceGroupId
+    RunbookName: RunbookName
+    RunbookScript: RunbookScript
+    ScriptsRepositorySasToken: ScriptsRepositorySasToken
+    ScriptsRepositoryUri: ScriptsRepositoryUri
+    SessionHostsResourceGroupIds: SessionHostsResourceGroupIds
     StorageAccountResourceIds: StorageAccountResourceIds
     ActionGroupName: ActionGroupName
     Tags: Tags
   }
 }
 
-resource roleCustomAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
+resource roleAssignment_ResourceGroup 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = {
+  name: guid(subscription().id, AutomationAccountName, 'Reader')
+  properties: {
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7') // Reader
+    principalId: resources.outputs.automationAccountPrincipalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Commenting out Function App resources until Custom Metrics / Logs is supported in Azure US Government
+/* resource roleCustomAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
   name: guid(subscription().subscriptionId, FunctionAppName, roleDefinition.name)
   properties: {
     principalId: resources.outputs.functionAppPrincipalID
@@ -326,4 +355,4 @@ resource roleLAWContributorAssignment 'Microsoft.Authorization/roleAssignments@2
     principalType: 'ServicePrincipal'
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', '92aaf0da-9dab-42b6-94a3-d43ce8d16293') // Log Analytics Contributor
   }
-}
+} */
