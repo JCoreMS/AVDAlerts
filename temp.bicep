@@ -14,5 +14,12 @@ RG
 Storage Acct
 Share Name
 
+Alert Naming Standard
+AVD-Storage-VolumeAt80Percent-
+AVD-VM
+AVD-Network
+AVD-HostPool
+
 
 */
+
