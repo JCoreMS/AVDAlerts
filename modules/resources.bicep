@@ -214,17 +214,28 @@ resource metricAlerts_StorageAccounts 'Microsoft.Insights/metricAlerts@2018-03-0
   }
 }] */
 
-module lawResourceId 'lawResourceId.bicep' = {
-  name: 'UpdateLogAnalyticsWorkspace'
-  scope: resourceGroup(LogAnalyticsRG)
-  params: {
-    LogAnalyticsWorkspaceResourceId: LogAnalyticsWorkspaceResourceId
-    LogAlerts: LogAlerts
-    Location: Location
-    ActionGroupID: actionGroup.id
-    Tags: Tags
+resource scheduledQueryRules 'Microsoft.Insights/scheduledQueryRules@2021-08-01' = [for i in range(0, length(LogAlerts)): {
+  name: LogAlerts[i].name
+  location: Location
+  tags: Tags
+  properties: {
+    actions: {
+      actionGroups: [
+        actionGroup.id
+      ]
+      customProperties: {}
+    }
+    criteria: LogAlerts[i].criteria
+    displayName: LogAlerts[i].displayName
+    enabled: false
+    evaluationFrequency: LogAlerts[i].evaluationFrequency
+    scopes: [
+      LogAnalyticsWorkspaceResourceId
+    ]
+    severity: LogAlerts[i].severity
+    windowSize: LogAlerts[i].windowSize
   }
-}
+}]
 
 resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' = {
   name: AutomationAccountName
