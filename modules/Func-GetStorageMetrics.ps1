@@ -36,7 +36,7 @@ Foreach($storageAcct in $storageAccts){
         #Write-Host "..." $RemainingPercent "% Available"
         
         # Compile results 
-        # AzFiles / Subscription / RG / StorAcct / Share / Quota / Used / %Available
+        # AzFiles / Subscription / RG / StorAcct / Share / Quota / GB Used / %Available
         $Data = @('AzFiles',$SubName,$resourceGroup,$storageAcctName,$shareName,$shareQuota.ToString(),$shareUsageInGB.ToString(),$RemainingPercent.ToString())
         $i = 0
         ForEach($Item in $Data){
@@ -53,3 +53,13 @@ Foreach($storageAcct in $storageAccts){
     } # end for each share
 
 } # end for each storage acct
+
+
+
+<#
+//Kusto Query for Log Analtyics
+AzureDiagnostics 
+| where Category has "JobStreams"
+| where StreamType_s has "Output"
+| extend Results=split(ResultDescription,',')
+#>
