@@ -54,7 +54,7 @@ var RunbookScript = 'Get-AzureAvdLogs.ps1'
 //var LogAnalyticsWorkspaceName = split(LogAnalyticsWorkspaceResourceId, '/')[8]
 var LogAlerts = [
   {
-    name: 'AvdNoResourcesAvailable'
+    name: 'AVD-HostPool-NoResourcesAvailable'
     displayName: 'AVD - No Resources Available'
     severity: 2
     evaluationFrequency: 'PT1H'
@@ -92,7 +92,7 @@ var LogAlerts = [
     }
   }
   {
-    name: 'LocalDiskFreeSpaceWarning90PercentFull'
+    name: 'AVD-VM-LocalDiskFreeSpaceWarning90PercentFull'
     displayName: 'Local Disk Free Space Warning - 90 Percent Full'
     severity: 2
     evaluationFrequency: 'PT15M'
@@ -117,7 +117,7 @@ var LogAlerts = [
   }
   {
     name: 'AVD-VM-FSLogixProfileFailed'
-    displayName: 'AVD VM FSLogix Profile Failed'
+    displayName: 'AVD VM FSLogix Profile Failed (Event Log Indicated Failure)'
     severity: 1
     evaluationFrequency: 'PT5M'
     windowSize: 'PT5M'
@@ -189,7 +189,7 @@ var LogAlerts = [
 var MetricAlerts = {
   storageAccounts: [
     {
-      name: 'StorageAccountHighThreshold'
+      name: 'AVD-Storage-StorageAcctOver200msLatency'
       severity: 2
       scopes: []
       evaluationFrequency: 'PT5M'
@@ -234,7 +234,7 @@ var MetricAlerts = {
   ]
   virtualMachines: [
     {
-      name: 'CPU Percentage'
+      name: 'AVD-VM-HighCPUPercentage'
       severity: 2
       evaluationFrequency: 'PT5M'
       windowSize: 'PT5M'
@@ -276,9 +276,10 @@ var MetricAlerts = {
       targetResourceType: 'microsoft.compute/virtualmachines'
     }
   ]
-  avdCustomMetrics: [
+  // Commenting out below until custom metrics are available in US Gov Cloud
+  /* avdCustomMetrics: [
     {
-      name: 'AVDPool-UsageAbove80percent'
+      name: 'AVD-HostPool-UsageAbove80percent'
       severity: 2
       evaluationFrequency: 'PT5M'
       windowSize: 'PT5M'
@@ -298,7 +299,7 @@ var MetricAlerts = {
       }
       targetResourceType: 'Microsoft.OperationalInsights/workspaces'
     }
-  ]
+  ] */
 }
 
 resource resourceGroupFuncApp 'Microsoft.Resources/resourceGroups@2021-04-01' = {
