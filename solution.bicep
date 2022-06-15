@@ -54,8 +54,8 @@ var RunbookScript = 'Get-AzureAvdLogs.ps1'
 //var LogAnalyticsWorkspaceName = split(LogAnalyticsWorkspaceResourceId, '/')[8]
 var LogAlerts = [
   {
-    name: 'AVD-HostPool-NoResourcesAvailable'
-    displayName: 'AVD - No Resources Available'
+    name: 'AVD-HostPool-No Resources Available'
+    displayName: 'AVD-HostPool-No Resources Available'
     severity: 2
     evaluationFrequency: 'PT1H'
     windowSize: 'PT1H'
@@ -92,8 +92,8 @@ var LogAlerts = [
     }
   }
   {
-    name: 'AVD-VM-LocalDiskFreeSpaceWarning90PercentFull'
-    displayName: 'Local Disk Free Space Warning - 90 Percent Full'
+    name: 'AVD-VM-Local Disk Free Space Warning 90 Percent'
+    displayName: 'AVD-VM-Local Disk Free Space Warning 90 Percent'
     severity: 2
     evaluationFrequency: 'PT15M'
     windowSize: 'PT15M'
@@ -116,8 +116,8 @@ var LogAlerts = [
     }
   }
   {
-    name: 'AVD-VM-FSLogixProfileFailed'
-    displayName: 'AVD VM FSLogix Profile Failed (Event Log Indicated Failure)'
+    name: 'AVD-VM-FSLogix Profile Failed'
+    displayName: 'AVD-VM-FSLogix Profile Failed (Event Log Indicated Failure)'
     severity: 1
     evaluationFrequency: 'PT5M'
     windowSize: 'PT5M'
@@ -154,8 +154,32 @@ var LogAlerts = [
     }
   }
   {
-    name: 'AVD-VM-HealthCheckFailure'
-    displayName: 'AVD - VM - Health Check Failure'
+    name: 'AVD-VM-Local Disk Free Space Warning 95 Percent'
+    displayName: 'AVD-VM-Local Disk Free Space Warning 95 Percent'
+    severity: 1
+    evaluationFrequency: 'PT15M'
+    windowSize: 'PT15M'
+    criteria: {
+      allOf: [
+        {
+          query: 'InsightsMetrics\n| where Origin == "vm.azm.ms"\n| where Namespace == "LogicalDisk" and Name == "FreeSpacePercentage"\n| summarize AggregatedValue = avg(Val) by bin(TimeGenerated, 15m), Computer, _ResourceId\n'
+          timeAggregation: 'Average'
+          metricMeasureColumn: 'AggregatedValue'
+          dimensions: []
+          resourceIdColumn: '_ResourceId'
+          operator: 'LessThan'
+          threshold: 5
+          failingPeriods: {
+            numberOfEvaluationPeriods: 1
+            minFailingPeriodsToAlert: 1
+          }
+        }
+      ]
+    }
+  }
+  {
+    name: 'AVD-VM-Health Check Failure'
+    displayName: 'AVD-VM-Health Check Failure'
     description: 'VM is available for use but one of the dependent resources is in a failed state'
     severity: 1
     evaluationFrequency: 'PT5M'
@@ -189,7 +213,8 @@ var LogAlerts = [
 var MetricAlerts = {
   storageAccounts: [
     {
-      name: 'AVD-Storage-StorageAcctOver200msLatency'
+      name: 'AVD-Storage-Over 200ms Latency for Storage Acct'
+      displayName: 'AVD-Storage-Over 200ms Latency for Storage Acct'
       severity: 2
       scopes: []
       evaluationFrequency: 'PT5M'
@@ -234,14 +259,15 @@ var MetricAlerts = {
   ]
   virtualMachines: [
     {
-      name: 'AVD-VM-HighCPUPercentage'
+      name: 'AVD-VM-High CPU 85 Percent'
+      displayName: 'AVD-VM-High CPU 85 Percent'
       severity: 2
       evaluationFrequency: 'PT5M'
       windowSize: 'PT5M'
       criteria: {
         allOf: [
           {
-            threshold: 90
+            threshold: 85
             name: 'Metric1'
             metricNamespace: 'microsoft.compute/virtualmachines'
             metricName: 'Percentage CPU'
@@ -255,7 +281,30 @@ var MetricAlerts = {
       targetResourceType: 'microsoft.compute/virtualmachines'
     }
     {
-      name: 'AVD-VM-AvailableMemoryLessThan2GB'
+      name: 'AVD-VM-High CPU 95 Percent'
+      displayName: 'AVD-VM-High CPU 95 Percent'
+      severity: 1
+      evaluationFrequency: 'PT5M'
+      windowSize: 'PT5M'
+      criteria: {
+        allOf: [
+          {
+            threshold: 95
+            name: 'Metric1'
+            metricNamespace: 'microsoft.compute/virtualmachines'
+            metricName: 'Percentage CPU'
+            operator: 'GreaterThan'
+            timeAggregation: 'Average'
+            criterionType: 'StaticThresholdCriterion'
+          }
+        ]
+        'odata.type': 'Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria'
+      }
+      targetResourceType: 'microsoft.compute/virtualmachines'
+    }
+    {
+      name: 'AVD-VM-Available Memory Less Than 2GB'
+      displayName: 'AVD-VM-Available Memory Less Than 2GB'
       severity: 2
       evaluationFrequency: 'PT5M'
       windowSize: 'PT5M'
@@ -263,6 +312,28 @@ var MetricAlerts = {
         allOf: [
           {
             threshold: 2147483648
+            name: 'Metric1'
+            metricNamespace: 'microsoft.compute/virtualmachines'
+            metricName: 'Available Memory Bytes'
+            operator: 'LessThanOrEqual'
+            timeAggregation: 'Average'
+            criterionType: 'StaticThresholdCriterion'
+          }
+        ]
+        'odata.type': 'Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria'
+      }
+      targetResourceType: 'microsoft.compute/virtualmachines'
+    }
+    {
+      name: 'AVD-VM-Available Memory Less Than 1GB'
+      displayName: 'AVD-VM-Available Memory Less Than 1GB'
+      severity: 1
+      evaluationFrequency: 'PT5M'
+      windowSize: 'PT5M'
+      criteria: {
+        allOf: [
+          {
+            threshold: 1073741824
             name: 'Metric1'
             metricNamespace: 'microsoft.compute/virtualmachines'
             metricName: 'Available Memory Bytes'
