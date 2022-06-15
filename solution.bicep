@@ -20,7 +20,7 @@ param Environment string = 'd'
 param Location string = deployment().location
 
 @description('The Resource ID for the Log Analytics Workspace.')
-param LogAnalyticsWorkspaceResourceId string = 'law-shd-net-d-va'
+param LogAnalyticsWorkspaceResourceId string = 'law-eastus2-avdlab'
 
 @secure()
 @description('The SAS token if using a storage account for the repository.')
@@ -31,12 +31,12 @@ param ScriptsRepositoryUri string = ''
 
 @description('The Resource Group ID for the AVD session hosts.')
 param SessionHostsResourceGroupIds array = [
-  '/subscriptions/a7576b41-cb1a-4f34-9f18-0e0b0287a1a0/resourceGroups/rg-fs-peo-va-d-hosts-00'
+  '/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Resources'
 ]
 
 @description('The Resource IDs for the Storage Accounts or NetApp Account used for FSLogix profile storage.')
 param StorageAccountResourceIds array = [
-  '/subscriptions/a7576b41-cb1a-4f34-9f18-0e0b0287a1a0/resourceGroups/rg-fs-peo-va-d-storage-00/providers/Microsoft.Storage/storageAccounts/stfspeovad0000'
+  '/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Resources/providers/Microsoft.Storage/storageAccounts/storavdlabeus2'
 ]
 
 param Tags object = {}

@@ -13,9 +13,9 @@ Function UpdateParamsFile ($item,$value){
     $File | ConvertTo-Json -Depth 20 | Out-File -FilePath $TemplateParametersFile -Force
 }
 
-
+## COMMENT OUT DUE TO SUPPORT IN Other Clouds
 # Connect To Azure
-Write-Host "Connect to Azure Soveriegn Cloud? (US Gov or China)"
+<# Write-Host "Connect to Azure Soveriegn Cloud? (US Gov or China)"
 $response = Read-Host "Y or N"
 $response.ToUpper()
 If($response -eq 'Y'){ 
@@ -25,21 +25,18 @@ If($response -eq 'Y'){
     If($response -eq 1){$Environment = "AzureUSGovernment"}
     If($response -eq 2){$Environment = "AzureChina"}
 }
-else{$Environment = "AzureCloud"}
+else{$Environment = "AzureCloud"} #>
 
-Connect-AzAccount -Environment $Environment
-
+Connect-AzAccount # -Environment $Environment
+Write-Host "Getting subscriptions..."
 $Subs = Get-AzSubscription
 Foreach($Sub in $Subs){
     Write-Host ($Subs.Indexof($Sub)+1) "-" $Sub.Name
  }
 
-$Selection = Read-Host "Subscription"
+$Selection = Read-Host "Select Subscription number desired"
 $Selection = $Subs[$Selection-1]
 Select-AzSubscription -SubscriptionObject $Selection
-
-UpdateParamsFile 'Environment' $Environment
-
 
 
 # =================================================================================================
@@ -49,6 +46,21 @@ CLS
 $DistributionGroup = Read-Host "Provide the email address of the user or distribuition list for AVD Alerts (Disabled by default)"
 UpdateParamsFile 'DistributionGroup' $DistributionGroup
 
+# =================================================================================================
+# Environment to deploy (Prod, Dev, Test)
+# =================================================================================================
+Write-Host "What type of Environment Type is this being deployed to?"
+Write-Host "P - Production"
+Write-Host "D - Development"
+Write-Host "T - Test"
+$EnvType = Read-Host "Select the corresponding letter"
+$EnvType = $EnvType.ToLower() 
+If(($EnvType -ne "p") -and ($EnvType -ne "d") -and ($EnvType -ne "t"))
+    {
+        Write-Host "You must select one of the above! Exiting!" -foregroundcolor Red
+        Break
+    }
+UpdateParamsFile 'Environment' $EnvType
 
 # =================================================================================================
 # AVD Host Pool RG Names
@@ -64,7 +76,7 @@ Foreach($RG in $RGs){
     }
 $response = Read-Host "Select the number corresponding to the Resource Group containing your AVD HostPool Resources"
 
-UpdateParamsFile 'HostPoolResourceGroupNames' $AVDHostPools[$response-1].ResourceId
+UpdateParamsFile 'SessionHostsResourceGroupIds' $AVDHostPools[$response-1].ResourceId
 
 # =================================================================================================
 #Log Analytics
@@ -78,7 +90,7 @@ Foreach($LAW in $LogAnalyticsWorkspaces){
     }
 $response = Read-Host "Select the number corresponding to the Log Analytics Workspace containing AVD Metrics"
 $LogAnalyticsWorkspace = $LogAnalyticsWorkspaces[$response-1]
-UpdateParamsFile 'LogAnalyticsWorkspaceResourceID' $LogAnalyticsWorkspace.ResourceId
+UpdateParamsFile 'LogAnalyticsWorkspaceResourceID' $LogAnalyticsWorkspace
 
 # =================================================================================================
 #Azure Storage Accounts
@@ -97,7 +109,7 @@ UpdateParamsFile 'StorageAccountResourceIds' $StorageAcct.Id
 # =================================================================================================
 #ANF Volumes
 # =================================================================================================
-Write-Host "Getting Azure NetApp Filer Pools\Volumes..."
+<# Write-Host "Getting Azure NetApp Filer Pools\Volumes..."
      # Need RG, AccountName and Pool Name
 $ANFVolumeResources = Get-AzResource -ResourceType 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes'
 $i=1
@@ -111,15 +123,13 @@ Write-Host "(** If you need multiple please select only 1 and review/ edit the p
 $response = Read-Host "Select the number corresponding to the ANF Volume containing AVD related file shares"
 
 $ANFVolumeResource = $ANFVolumeResources[$response-1]
-UpdateParamsFile 'ANFPoolResourceIds' $ANFVolumeResource.Id
+UpdateParamsFile 'ANFPoolResourceIds' $ANFVolumeResource.Id #>
+
 
 
 # Write Output for awareness
+Write-Host "Parameters file updated with input values. Please review and add additional items where desired. (i.e. Tags)" -foregroundcolor Green
 
-Write-Host "Parameters ResouceIDs needed:`n"
-Write-Host "LogAnalytics: " $LogAnalyticsWorkspace.ResourceId
-Write-Host "StorageAccount: "$StorageAcct.Id
-Write-Host "ANF Volume: "$ANFVolumeResource.Id
 
 
 

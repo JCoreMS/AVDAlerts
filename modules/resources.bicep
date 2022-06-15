@@ -24,7 +24,7 @@ param Timestamp string = utcNow('u')
 var Environment = environment().name
 var SubscriptionId = subscription().subscriptionId
 
-var LogAnalyticsRG = split(LogAnalyticsWorkspaceResourceId, '/')[4]
+//var LogAnalyticsRG = split(LogAnalyticsWorkspaceResourceId, '/')[4]
 
 // Commenting out the Function App resources until Custom Metrics / Logs is supported in Azure US Government
 /* resource hostingPlan 'Microsoft.Web/serverfarms@2021-03-01' = {
