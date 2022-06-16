@@ -1,0 +1,27 @@
+{
+    "WebhookName": "AvdLogGenerator_20220616034459",
+    "RequestBody": "{\"Environment\":\"AzureCloud\",\"SubscriptionId\":\"8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9\"}",
+    "RequestHeader": {
+        "x-ms-workflow-id": "7fd19c1d84fa412fb407bdcc215e6c36",
+        "x-ms-workflow-version": "08585462125741118008",
+        "x-ms-workflow-name": "la-avdmetrics-d-eastus2",
+        "x-ms-workflow-system-id": "/locations/eastus2/scaleunits/prod-07/workflows/7fd19c1d84fa412fb407bdcc215e6c36",
+        "x-ms-workflow-run-id": "08585462110675020516957420234CU41",
+        "x-ms-workflow-run-tracking-id": "2eb62470-e623-4423-988d-3336d3e27a86",
+        "x-ms-workflow-operation-name": "HTTP",
+        "x-ms-execution-location": "eastus2",
+        "x-ms-workflow-subscription-id": "8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9",
+        "x-ms-workflow-resourcegroup-name": "rg-avdmetrics-d-eastus2",
+        "x-ms-tracking-id": "fb7697bd-bea6-49cc-8a21-8d0985b009ad",
+        "x-ms-correlation-id": "fb7697bd-bea6-49cc-8a21-8d0985b009ad",
+        "x-ms-client-request-id": "fb7697bd-bea6-49cc-8a21-8d0985b009ad",
+        "x-ms-client-tracking-id": "08585462110675020516957420234CU41",
+        "x-ms-action-tracking-id": "46c9dcad-7f12-43e7-9d62-c1654dca6a04",
+        "x-ms-activity-vector": "IN.0O.IN.0U.IN.0Z.IN.18",
+        "Connection": "Keep-Alive",
+        "Accept-Encoding": "gzip",
+        "Accept-Language": "en-US",
+        "Host": "26cea1d9-11d6-4b76-bd2d-f0760b33c5a1.webhook.eus2.azure-automation.net",
+        "User-Agent": "azure-logic-apps/1.0"
+    }
+}

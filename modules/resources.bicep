@@ -21,8 +21,8 @@ param Tags object
 param Timestamp string = utcNow('u')
 
 
-var Environment = environment().name
-var SubscriptionId = subscription().subscriptionId
+// var Environment = environment().name
+// var SubscriptionId = subscription().subscriptionId
 
 //var LogAnalyticsRG = split(LogAnalyticsWorkspaceResourceId, '/')[4]
 
@@ -320,8 +320,9 @@ resource logicApp 'Microsoft.Logic/workflows@2016-06-01' = {
             uri: replace(variable.properties.value, '"', '')
             body: {
               // Examples of values to pass to the runbook
-              Environment: Environment
-              SubscriptionId: SubscriptionId
+              // Environment: Environment
+              // SubscriptionId: SubscriptionId
+              StorageAccountResourceIDs: StorageAccountResourceIds
             }
           }
         }
