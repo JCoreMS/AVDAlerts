@@ -11,11 +11,6 @@ param DistributionGroup string = 'jamasten@microsoft.com'
 @description('The environment is which these resources will be deployed, i.e. Development.')
 param Environment string = 'd'
 
-// @description('Resource Group with Host Pool "type" Resources (may be different than RG with VMs)')
-// param HostPoolResourceGroupNames array = [
-//   'hp-fs-peo-va-d-00'
-// ]
-
 @description('Azure Region for Resources')
 param Location string = deployment().location
 
@@ -38,6 +33,8 @@ param SessionHostsResourceGroupIds array = [
 param StorageAccountResourceIds array = [
   '/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Resources/providers/Microsoft.Storage/storageAccounts/storavdlabeus2'
 ]
+
+param Timestamp string = utcNow('yyyyMMddhhmmss')
 
 param Tags object = {}
 
@@ -213,10 +210,55 @@ var LogAlerts = [
 var MetricAlerts = {
   storageAccounts: [
     {
+      name: 'AVD-Storage-Possible Throttling Due to High IOPs'
+      displayName: 'AVD-Storage-Possible Throttling Due to High IOPs'
+      description: 'This indicates you may be maxing out the allowed IOPs.\nhttps://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled'
+      severity: 2
+      evaluationFrequency: 'PT5M'
+      windowSize: 'PT5M'
+      criteria: {
+        allOf: [
+          {
+            threshold: 1
+            name: 'Metric1'
+            metricNamespace: 'microsoft.storage/storageaccounts/fileservices'
+            metricName: 'Transactions'
+            dimensions: [
+              {
+                name: 'ResponseType'
+                operator: 'Include'
+                values: [
+                  'SuccessWithThrottling'
+                  'SuccessWithShareIopsThrottling'
+                  'ClientShareIopsThrottlingError'
+                ]
+              }
+              {
+                name: 'FileShare'
+                operator: 'Include'
+                values: [
+                  'SuccessWithShareEgressThrottling'
+                  'SuccessWithShareIngressThrottling'
+                  'SuccessWithShareIopsThrottling'
+                  'ClientShareEgressThrottlingError'
+                  'ClientShareIngressThrottlingError'
+                  'ClientShareIopsThrottlingError'
+                ]
+              }
+            ]
+            operator: 'GreaterThanOrEqual'
+            timeAggregation: 'Total'
+            criterionType: 'StaticThresholdCriterion'
+          }
+        ]
+        'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+      }
+      targetResourceType: 'Microsoft.Storage/storageAccounts/fileServices'
+    }
+    {
       name: 'AVD-Storage-Over 200ms Latency for Storage Acct'
       displayName: 'AVD-Storage-Over 200ms Latency for Storage Acct'
       severity: 2
-      scopes: []
       evaluationFrequency: 'PT5M'
       windowSize: 'PT15M'
       criteria: {
@@ -236,7 +278,7 @@ var MetricAlerts = {
       targetResourceType: 'Microsoft.Storage/storageAccounts'
     }
 /*     {
-      name: 'Storage Low Space'
+      name: 'Storage Low Space'           //  Will Investigate if this is still needed
       severity: 2
       evaluationFrequency: 'PT30M'
       windowSize: 'PT6H'
@@ -373,6 +415,16 @@ var MetricAlerts = {
   ] */
 }
 
+module deploymentScript 'modules/deploymentScript.bicep' = {
+  name: 'ds_deployment'
+  scope: resourceGroup(ResourceGroupName)
+  params: {
+    StorageAccountResourceIds: StorageAccountResourceIds
+    Location: Location
+    Timestamp: Timestamp
+  }
+}
+
 resource resourceGroupFuncApp 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: ResourceGroupName
   location: Location
@@ -420,6 +472,7 @@ module resources 'modules/resources.bicep' = {
     SessionHostsResourceGroupIds: SessionHostsResourceGroupIds
     StorageAccountResourceIds: StorageAccountResourceIds
     ActionGroupName: ActionGroupName
+    FileServicesResourceIDs: deploymentScript.outputs.fileServicesResourceIDs
     Tags: Tags
   }
 }

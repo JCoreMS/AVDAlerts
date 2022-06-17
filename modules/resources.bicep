@@ -19,6 +19,7 @@ param SessionHostsResourceGroupIds array
 param StorageAccountResourceIds array
 param Tags object
 param Timestamp string = utcNow('u')
+param FileServicesResourceIDs array
 
 
 // var Environment = environment().name
@@ -177,7 +178,7 @@ resource metricAlerts_StorageAccounts 'Microsoft.Insights/metricAlerts@2018-03-0
   properties: {
     severity: MetricAlerts.storageAccounts[i].severity
     enabled: false
-    scopes: StorageAccountResourceIds
+    scopes: MetricAlerts.storageaccounts[i].metricNamespace == 'microsoft.storage/storageaccounts/fileservices' ? FileServicesResourceIDs : StorageAccountResourceIds
     evaluationFrequency: MetricAlerts.storageAccounts[i].evaluationFrequency
     windowSize: MetricAlerts.storageAccounts[i].windowSize
     criteria: MetricAlerts.storageAccounts[i].criteria
