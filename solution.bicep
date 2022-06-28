@@ -139,7 +139,6 @@ var LogAlerts = [
               ]
           }
           ]
-          //resourceIdColumn: '_ResourceId'
           operator: 'GreaterThanOrEqual'
           threshold: 1
           failingPeriods: {
@@ -415,6 +414,13 @@ var MetricAlerts = {
   ] */
 }
 
+
+
+resource resourceGroupAVDMetrics 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+  name: ResourceGroupName
+  location: Location
+}
+
 module deploymentScript 'modules/deploymentScript.bicep' = {
   name: 'ds_deployment'
   scope: resourceGroup(ResourceGroupName)
@@ -424,12 +430,6 @@ module deploymentScript 'modules/deploymentScript.bicep' = {
     Timestamp: Timestamp
   }
 }
-
-resource resourceGroupFuncApp 'Microsoft.Resources/resourceGroups@2021-04-01' = {
-  name: ResourceGroupName
-  location: Location
-}
-
 
 resource roleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
   name: guid(RoleName)
@@ -452,7 +452,7 @@ resource roleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-prev
 
 module resources 'modules/resources.bicep' = {
   name: 'MonitoringResourcesDeployment'
-  scope: resourceGroupFuncApp
+  scope: resourceGroupAVDMetrics
   params: {
     AutomationAccountName: AutomationAccountName
     DistributionGroup: DistributionGroup
@@ -477,6 +477,8 @@ module resources 'modules/resources.bicep' = {
   }
 }
 
+
+
 resource roleAssignment_ResourceGroup 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = {
   name: guid(subscription().id, AutomationAccountName, 'Reader')
   properties: {
@@ -485,6 +487,9 @@ resource roleAssignment_ResourceGroup 'Microsoft.Authorization/roleAssignments@2
     principalType: 'ServicePrincipal'
   }
 }
+
+
+
 
 // Commenting out Function App resources until Custom Metrics / Logs is supported in Azure US Government
 /* resource roleCustomAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
