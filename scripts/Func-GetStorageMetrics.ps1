@@ -31,7 +31,7 @@ Foreach($storageAcct in $storageAccts){
         $stats = $client.GetStatistics()
         $shareUsageInGB = $stats.Value.ShareUsageInBytes/1073741824 # Bytes to GB
         
-        $RemainingPercent = 100-($shareUsageInGB/$shareQuota)
+        $RemainingPercent = 100-(($shareUsageInGB / $shareQuota)*100)  # If negative we are OVER quota
         #Write-Host "..." $shareUsageInGB "of" $shareQuota "GB used"
         #Write-Host "..." $RemainingPercent "% Available"
         
