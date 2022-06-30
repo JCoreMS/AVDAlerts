@@ -53,7 +53,7 @@ var LogAlerts = [
   {
     name: 'AVD-HostPool-No Resources Available'
     displayName: 'AVD-HostPool-No Resources Available'
-    severity: 2
+    severity: 1
     evaluationFrequency: 'PT1H'
     windowSize: 'PT1H'
     criteria: {
@@ -209,6 +209,29 @@ var LogAlerts = [
 var MetricAlerts = {
   storageAccounts: [
     {
+      name: 'AVD-Storage-Over 200ms Latency for Storage Acct'
+      displayName: 'AVD-Storage-Over 200ms Latency for Storage Acct'
+      severity: 2
+      evaluationFrequency: 'PT5M'
+      windowSize: 'PT15M'
+      criteria: {
+        allOf: [
+          {
+            threshold: 200
+            name: 'Metric1'
+            metricName: 'SuccessServerLatency'
+            operator: 'GreaterThan'
+            timeAggregation: 'Average'
+            criterionType: 'StaticThresholdCriterion'
+          }
+        ]
+        'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+      }
+      targetResourceType: 'Microsoft.Storage/storageAccounts'
+    }
+  ]
+  fileShares: [
+    {
       name: 'AVD-Storage-Possible Throttling Due to High IOPs'
       displayName: 'AVD-Storage-Possible Throttling Due to High IOPs'
       description: 'This indicates you may be maxing out the allowed IOPs.\nhttps://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled'
@@ -220,7 +243,6 @@ var MetricAlerts = {
           {
             threshold: 1
             name: 'Metric1'
-            metricNamespace: 'microsoft.storage/storageaccounts/fileservices'
             metricName: 'Transactions'
             dimensions: [
               {
@@ -253,28 +275,6 @@ var MetricAlerts = {
         'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
       }
       targetResourceType: 'Microsoft.Storage/storageAccounts/fileServices'
-    }
-    {
-      name: 'AVD-Storage-Over 200ms Latency for Storage Acct'
-      displayName: 'AVD-Storage-Over 200ms Latency for Storage Acct'
-      severity: 2
-      evaluationFrequency: 'PT5M'
-      windowSize: 'PT15M'
-      criteria: {
-        allOf: [
-          {
-            threshold: 200
-            name: 'Metric1'
-            metricNamespace: 'microsoft.storage/storageaccounts'
-            metricName: 'SuccessServerLatency'
-            operator: 'GreaterThan'
-            timeAggregation: 'Average'
-            criterionType: 'StaticThresholdCriterion'
-          }
-        ]
-        'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
-      }
-      targetResourceType: 'Microsoft.Storage/storageAccounts'
     }
 /*     {
       name: 'Storage Low Space'           //  Will Investigate if this is still needed

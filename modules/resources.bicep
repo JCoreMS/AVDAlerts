@@ -170,15 +170,15 @@ resource metricAlerts_VirtualMachines 'Microsoft.Insights/metricAlerts@2018-03-0
   }
 }]
 
-// If Metric Namespace contains file services ; change scopes to append default
-resource metricAlerts_StorageAccounts 'Microsoft.Insights/metricAlerts@2018-03-01' = [for i in range(0, length(MetricAlerts.storageAccounts)): {
-  name: MetricAlerts.storageAccounts[i].name
+
+/* resource metricAlerts_StorageAccounts 'Microsoft.Insights/metricAlerts@2018-03-01' = [for i in range(0, length(MetricAlerts.storageAccounts)): {
+  name: '${MetricAlerts.storageAccounts[i].name}-${i}'
   location: 'global'
   tags: Tags
   properties: {
     severity: MetricAlerts.storageAccounts[i].severity
     enabled: false
-    scopes: MetricAlerts.storageaccounts[i].metricNamespace == 'microsoft.storage/storageaccounts/fileservices' ? FileServicesResourceIDs : StorageAccountResourceIds
+    scopes: StorageAccountResourceIds
     evaluationFrequency: MetricAlerts.storageAccounts[i].evaluationFrequency
     windowSize: MetricAlerts.storageAccounts[i].windowSize
     criteria: MetricAlerts.storageAccounts[i].criteria
@@ -191,7 +191,34 @@ resource metricAlerts_StorageAccounts 'Microsoft.Insights/metricAlerts@2018-03-0
       }
     ]
   }
+}] */
+
+module storAccountMetric 'storAccountMetric.bicep' = [for i in range(0, length(StorageAccountResourceIds)): {
+  name: 'MetricAlert_StorageAccount_${i}'
+  params: {
+    Location: Location
+    StorageAccountResourceID: StorageAccountResourceIds[i]
+    MetricAlertsStorageAcct: MetricAlerts.storageAccounts
+    ActionGroupID: actionGroup.id
+    Tags: Tags
+  }
 }]
+
+// If Metric Namespace contains file services ; change scopes to append default
+// Consider moving this to a module to loop through each scope time as it MUST be a single Resource ID
+// ... Module: FileServices Metric
+module fileServicesMetric 'fileservicsmetric.bicep' = [for i in range(0, length(FileServicesResourceIDs)): {
+  name: 'MetricAlert_FileServices_${i}'
+  params: {
+    Location: Location
+    FileServicesResourceID: FileServicesResourceIDs[i]
+    MetricAlertsFileShares: MetricAlerts.fileShares
+    ActionGroupID: actionGroup.id
+    Tags: Tags
+  }
+}]
+
+
 
 /* resource metricAlerts_avdCustomMetrics 'Microsoft.Insights/metricAlerts@2018-03-01' = [for i in range(0, length(MetricAlerts.avdCustomMetrics)): {
   name: MetricAlerts.avdCustomMetrics[i].name

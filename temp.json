@@ -1,0 +1,160 @@
+{
+    "storageAccounts": [
+        {
+            "name": "AVD-Storage-Possible Throttling Due to High IOPs",
+            "displayName": "AVD-Storage-Possible Throttling Due to High IOPs",
+            "description": "This indicates you may be maxing out the allowed IOPs.\nhttps://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled",
+            "severity": 2,
+            "evaluationFrequency": "PT5M",
+            "windowSize": "PT5M",
+            "criteria": {
+                "allOf": [
+                    {
+                        "threshold": 1,
+                        "name": "Metric1",
+                        "metricName": "Transactions",
+                        "dimensions": [
+                            {
+                                "name": "ResponseType",
+                                "operator": "Include",
+                                "values": [
+                                    "SuccessWithThrottling",
+                                    "SuccessWithShareIopsThrottling",
+                                    "ClientShareIopsThrottlingError"
+                                ]
+                            },
+                            {
+                                "name": "FileShare",
+                                "operator": "Include",
+                                "values": [
+                                    "SuccessWithShareEgressThrottling",
+                                    "SuccessWithShareIngressThrottling",
+                                    "SuccessWithShareIopsThrottling",
+                                    "ClientShareEgressThrottlingError",
+                                    "ClientShareIngressThrottlingError",
+                                    "ClientShareIopsThrottlingError"
+                                ]
+                            }
+                        ],
+                        "operator": "GreaterThanOrEqual",
+                        "timeAggregation": "Total",
+                        "criterionType": "StaticThresholdCriterion"
+                    }
+                ],
+                "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+            },
+            "targetResourceType": "Microsoft.Storage/storageAccounts/fileServices"
+        },
+        {
+            "name": "AVD-Storage-Over 200ms Latency for Storage Acct",
+            "displayName": "AVD-Storage-Over 200ms Latency for Storage Acct",
+            "severity": 2,
+            "evaluationFrequency": "PT5M",
+            "windowSize": "PT15M",
+            "criteria": {
+                "allOf": [
+                    {
+                        "threshold": 200,
+                        "name": "Metric1",
+                        "metricName": "SuccessServerLatency",
+                        "operator": "GreaterThan",
+                        "timeAggregation": "Average",
+                        "criterionType": "StaticThresholdCriterion"
+                    }
+                ],
+                "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+            },
+            "targetResourceType": "Microsoft.Storage/storageAccounts"
+        }
+    ],
+    "virtualMachines": [
+        {
+            "name": "AVD-VM-High CPU 85 Percent",
+            "displayName": "AVD-VM-High CPU 85 Percent",
+            "severity": 2,
+            "evaluationFrequency": "PT5M",
+            "windowSize": "PT5M",
+            "criteria": {
+                "allOf": [
+                    {
+                        "threshold": 85,
+                        "name": "Metric1",
+                        "metricNamespace": "microsoft.compute/virtualmachines",
+                        "metricName": "Percentage CPU",
+                        "operator": "GreaterThan",
+                        "timeAggregation": "Average",
+                        "criterionType": "StaticThresholdCriterion"
+                    }
+                ],
+                "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria"
+            },
+            "targetResourceType": "microsoft.compute/virtualmachines"
+        },
+        {
+            "name": "AVD-VM-High CPU 95 Percent",
+            "displayName": "AVD-VM-High CPU 95 Percent",
+            "severity": 1,
+            "evaluationFrequency": "PT5M",
+            "windowSize": "PT5M",
+            "criteria": {
+                "allOf": [
+                    {
+                        "threshold": 95,
+                        "name": "Metric1",
+                        "metricNamespace": "microsoft.compute/virtualmachines",
+                        "metricName": "Percentage CPU",
+                        "operator": "GreaterThan",
+                        "timeAggregation": "Average",
+                        "criterionType": "StaticThresholdCriterion"
+                    }
+                ],
+                "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria"
+            },
+            "targetResourceType": "microsoft.compute/virtualmachines"
+        },
+        {
+            "name": "AVD-VM-Available Memory Less Than 2GB",
+            "displayName": "AVD-VM-Available Memory Less Than 2GB",
+            "severity": 2,
+            "evaluationFrequency": "PT5M",
+            "windowSize": "PT5M",
+            "criteria": {
+                "allOf": [
+                    {
+                        "threshold": 2147483648,
+                        "name": "Metric1",
+                        "metricNamespace": "microsoft.compute/virtualmachines",
+                        "metricName": "Available Memory Bytes",
+                        "operator": "LessThanOrEqual",
+                        "timeAggregation": "Average",
+                        "criterionType": "StaticThresholdCriterion"
+                    }
+                ],
+                "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria"
+            },
+            "targetResourceType": "microsoft.compute/virtualmachines"
+        },
+        {
+            "name": "AVD-VM-Available Memory Less Than 1GB",
+            "displayName": "AVD-VM-Available Memory Less Than 1GB",
+            "severity": 1,
+            "evaluationFrequency": "PT5M",
+            "windowSize": "PT5M",
+            "criteria": {
+                "allOf": [
+                    {
+                        "threshold": 1073741824,
+                        "name": "Metric1",
+                        "metricNamespace": "microsoft.compute/virtualmachines",
+                        "metricName": "Available Memory Bytes",
+                        "operator": "LessThanOrEqual",
+                        "timeAggregation": "Average",
+                        "criterionType": "StaticThresholdCriterion"
+                    }
+                ],
+                "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria"
+            },
+            "targetResourceType": "microsoft.compute/virtualmachines"
+        }
+    ]
+}
