@@ -205,6 +205,102 @@ var LogAlerts = [
       ]
     }
   }
+  {  // Based on Runbook script Output to LAW
+    name: 'AVD-Storage-Low Space on File Share-15 Percent Remaining'
+    displayName: 'AVD-Storage-Low Space on File Share-15 Percent Remaining'
+    description: 'This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining'
+    severity: 2
+    evaluationFrequency: 'PT10M'
+    windowSize: 'PT10M'
+    overrideQueryTimeRange: 'P2D'
+    criteria: {
+      allOf: [
+        {
+          query: '''
+          AzureDiagnostics 
+          | where Category has "JobStreams"
+          | where StreamType_s has "Output"
+          | sort by TimeGenerated
+          //  StorageType / Subscription / RG / StorAcct / Share / Quota / GB Used / %Available
+          | extend StorageType=split(ResultDescription, ',')[0]
+          | extend Subscription=split(ResultDescription, ',')[1]
+          | extend ResourceGroup=split(ResultDescription, ',')[2]
+          | extend StorageAccount=split(ResultDescription, ',')[3]
+          | extend Share=split(ResultDescription, ',')[4]
+          | extend GBShareQuota=split(ResultDescription, ',')[5]
+          | extend GBUsed=split(ResultDescription, ',')[6]
+          | extend PercentAvailable=split(ResultDescription, ',')[7]
+          | where PercentAvailable <= 15.00 and PercentAvailable < 5.00          
+           '''
+          timeAggregation: 'Count'
+          dimensions: [
+            {
+              name: 'ResultDescription'
+              operator: 'Include'
+              values: [
+                  '*'
+              ]
+            }
+          ]
+          resourceIdColumng: '_ResourceId'
+          operator: 'GreaterThanOrEqual'
+          threshold: 1
+          failingPeriods: {
+            numberOfEvaluationPeriods: 1
+            minFailingPeriodsToAlert: 1
+          }
+        }
+      ]
+    }
+  }
+  {  // Based on Runbook script Output to LAW
+    name: 'AVD-Storage-Low Space on File Share-5 Percent Remaining'
+    displayName: 'AVD-Storage-Low Space on File Share-5 Percent Remaining'
+    description: 'This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining'
+    severity: 1
+    evaluationFrequency: 'PT10M'
+    windowSize: 'PT10M'
+    overrideQueryTimeRange: 'P2D'
+    criteria: {
+      allOf: [
+        {
+          query: '''
+          AzureDiagnostics 
+          | where Category has "JobStreams"
+          | where StreamType_s has "Output"
+          | sort by TimeGenerated
+          //  StorageType / Subscription / RG / StorAcct / Share / Quota / GB Used / %Available
+          | extend StorageType=split(ResultDescription, ',')[0]
+          | extend Subscription=split(ResultDescription, ',')[1]
+          | extend ResourceGroup=split(ResultDescription, ',')[2]
+          | extend StorageAccount=split(ResultDescription, ',')[3]
+          | extend Share=split(ResultDescription, ',')[4]
+          | extend GBShareQuota=split(ResultDescription, ',')[5]
+          | extend GBUsed=split(ResultDescription, ',')[6]
+          | extend PercentAvailable=split(ResultDescription, ',')[7]
+          | where PercentAvailable <= 5.00          
+           '''
+          timeAggregation: 'Count'
+          dimensions: [
+            {
+              name: 'ResultDescription'
+              operator: 'Include'
+              values: [
+                  '*'
+              ]
+            }
+          ]
+          resourceIdColumng: '_ResourceId'
+          operator: 'GreaterThanOrEqual'
+          threshold: 1
+          failingPeriods: {
+            numberOfEvaluationPeriods: 1
+            minFailingPeriodsToAlert: 1
+          }
+        }
+      ]
+    }
+  }
 ]
 var MetricAlerts = {
   storageAccounts: [
@@ -276,27 +372,6 @@ var MetricAlerts = {
       }
       targetResourceType: 'Microsoft.Storage/storageAccounts/fileServices'
     }
-/*     {
-      name: 'Storage Low Space'           //  Will Investigate if this is still needed
-      severity: 2
-      evaluationFrequency: 'PT30M'
-      windowSize: 'PT6H'
-      criteria: {
-        allOf: [
-          {
-            threshold: 96636764160
-            name: 'Metric1'
-            metricNamespace: 'microsoft.storage/storageaccounts/fileservices'
-            metricName: 'FileCapacity'
-            operator: 'GreaterThan'
-            timeAggregation: 'Average'
-            criterionType: 'StaticThresholdCriterion'
-          }
-        ]
-        'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
-      }
-      targetResourceType: 'Microsoft.Storage/storageAccounts/fileServices'
-    } */
   ]
   virtualMachines: [
     {
@@ -478,8 +553,7 @@ module resources 'modules/resources.bicep' = {
 }
 
 
-
-resource roleAssignment_ResourceGroup 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = {
+resource roleAssignment_Subscription 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = {
   name: guid(subscription().id, AutomationAccountName, 'Reader')
   properties: {
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', 'c12c1c16-33a1-487b-954d-41c89c60f349') // Reader and Data Access
@@ -487,7 +561,6 @@ resource roleAssignment_ResourceGroup 'Microsoft.Authorization/roleAssignments@2
     principalType: 'ServicePrincipal'
   }
 }
-
 
 
 
