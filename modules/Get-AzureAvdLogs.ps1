@@ -27,7 +27,6 @@ $SubscriptionId = $Parameters.PSObject.Properties['SubscriptionId'].Value
 #>
 
 $StorageAccts = $Parameters.PSObject.Properties['StorageAccountResourceIds'].Value
-# $StorageAccts = @('/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Resources/providers/Microsoft.Storage/storageAccounts/storavdlabeus2')
 
 Connect-AzAccount -Identity | Out-Null
 
@@ -79,5 +78,4 @@ Foreach ($storageAcct in $storageAccts) {
     } # end for each share
 
 } # end for each storage acct
-
 

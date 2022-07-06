@@ -27,6 +27,11 @@
                 "/subscriptions/d5a3b431-5ad0-4a0d-bf86-8fffd2f84554/resourceGroups/rg-va-storage/providers/Microsoft.Storage/storageAccounts/storva1avd"
             ]
         },
+        "ANFVolumeResourceIds": {
+            "value": [
+                "/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Servers/providers/Microsoft.NetApp/netAppAccounts/anf-eastus2-avdlab/capacityPools/avd-profiles-std/volumes/avdeus2"
+            ]
+        },
         "Tags": {
             "value": {
                 "Environment": "AVD"

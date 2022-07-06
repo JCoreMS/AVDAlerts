@@ -1,24 +1,11 @@
 # VARIABLES
 $filetimestamp = Get-Date -Format "MM.dd.yyyy_THH.mm" 
 $TemplateParametersFile = './Parameters_template.json'
-$ParametersFile = './Parameters_' + $filetimestamp + '.json'
-Copy-Item -Path $TemplateParametersFile -Destination $ParametersFile -Force
+$OutputFile = './Parameters_' + $filetimestamp + '.txt'
 
 # Get data from parameters file created from template
 $Json = Get-Content -Path $ParametersFile
 $Parameters = ($Json | ConvertFrom-Json).parameters
-
-
-
-# Update parameters file
-Function UpdateParamsFile ($item,$value){
-    $Parameters | Add-Member -MemberType NoteProperty -Name $Item -Value @{'value' = $Value} -Force
-    Write-Host $Parameters
-    $File = $Json | ConvertFrom-Json
-    $File.parameters = $Parameters
-    # Regex to remove single quote translation issue with Timestamp parameter (single quote ends up as /u0027)
-    $([System.Text.RegularExpressions.Regex]::Unescape($($File | ConvertTo-Json -Depth 100))) | Out-File -FilePath $ParametersFile -Force
-}
 
 # Connect To Azure
 Write-Host "Connect to Azure Soveriegn Cloud? (US Gov or China)"
@@ -50,7 +37,7 @@ CLS
 # Get distro email address
 # =================================================================================================
 $DistributionGroup = Read-Host "Provide the email address of the user or distribuition list for AVD Alerts (Disabled by default)"
-UpdateParamsFile 'DistributionGroup' $DistributionGroup
+Out-File -FilePath $OutputFile
 
 # =================================================================================================
 # Environment to deploy (Prod, Dev, Test)
@@ -139,7 +126,7 @@ UpdateParamsFile 'ANFPoolResourceIds' $ANFVolumeResource.Id #>
 # =================================================================================================
 # Desired Tags   -------- Works but adds extra double quotes before and after { } for list of values
 # =================================================================================================
-<# Write-Host "Azure Tags are in a key pair format. Please input the Tag you would like to add to the resources."
+Write-Host "Azure Tags are in a key pair format. Please input the Tag you would like to add to the resources."
 Write-Host "Simply hit ENTER to contine adding mulitple tag key pairs and type X, to exit input!"
 Write-Host "(i.e Name:Value or Environment:Lab)"
 $Tags = @()
@@ -162,12 +149,11 @@ If($null -ne $Tags){
         $i ++
     }
     $String += '}'
-    UpdateParamsFile 'Tags' $String
 }
- #>
+# Output Tags in JSON format
 
 # Write Output for awareness
-Write-Host "Parameters file updated with input values. Please review and add additional items where desired. (i.e. Tags)" -foregroundcolor Green
+Write-Host "Azure Parameters information is now output in text format." -foregroundcolor Green
 
 
 

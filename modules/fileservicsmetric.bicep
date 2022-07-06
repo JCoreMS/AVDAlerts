@@ -11,6 +11,7 @@ resource metricAlerts_FileShares 'Microsoft.Insights/metricAlerts@2018-03-01' = 
   location: 'global'
   tags: Tags
   properties: {
+    description: MetricAlertsFileShares[i].description
     severity: MetricAlertsFileShares[i].severity
     enabled: false
     scopes: [

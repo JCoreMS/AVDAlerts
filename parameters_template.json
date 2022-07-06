@@ -3,16 +3,16 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "DistributionGroup": {
-            "value": "jcore@microsoft.com"
+            "value": ""
         },
         "Environment": {
-            "value": "d"
+            "value": ""
         },
         "Location": {
-            "value": "eastus2"
+            "value": ""
         },
         "LogAnalyticsWorkspaceResourceId": {
-            "value": "/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourcegroups/rg-eastus2-avdlab-manage/providers/microsoft.operationalinsights/workspaces/law-eastus2-avdlab"
+            "value": ""
         },
         "ScriptsRepositorySasToken": {
             "value": ""
@@ -22,18 +22,17 @@
         },
         "SessionHostsResourceGroupIds": {
             "value": [
-                "/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Resources"
+                ""
             ]
         },
         "StorageAccountResourceIds": {
             "value": [
-                "/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Resources/providers/Microsoft.Storage/storageAccounts/storavdlabeus2",
-                "/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Resources/providers/Microsoft.Storage/storageAccounts/storeus2avdmsix"
+                ""
             ]
         },
         "ANFVolumeResourceIds": {
             "value": [
-                "/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Servers/providers/Microsoft.NetApp/netAppAccounts/anf-eastus2-avdlab/capacityPools/avd-profiles-std/volumes/avdeus2"
+                ""
             ]
         },
         "Timestamp": {

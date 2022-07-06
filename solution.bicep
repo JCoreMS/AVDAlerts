@@ -1,6 +1,14 @@
 targetScope = 'subscription'
 
-@description('The Distribution Group that will receive email alerts for AVD.')
+/*   TO BE ADDED
+@description('Determine if you would like to set all deployed alerts to auto-resolve.')
+param SetAutoResolve bool = true
+
+@description('Determine if you would like to enable all the alerts after deployment.')
+param SetEnabled bool = false
+ */
+
+ @description('The Distribution Group that will receive email alerts for AVD.')
 param DistributionGroup string = 'jamasten@microsoft.com'
 
 @allowed([
@@ -29,9 +37,14 @@ param SessionHostsResourceGroupIds array = [
   '/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Resources'
 ]
 
-@description('The Resource IDs for the Storage Accounts or NetApp Account used for FSLogix profile storage.')
+@description('The Resource IDs for the Azure Files Storage Accounts used for FSLogix profile storage.')
 param StorageAccountResourceIds array = [
   '/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Resources/providers/Microsoft.Storage/storageAccounts/storavdlabeus2'
+]
+
+@description('The Resource IDs for the Azure NetApp Volumes used for FSLogix profile storage.')
+param ANFVolumeResourceIds array = [
+  '/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-avdlab-servers/providers/Microsoft.NetApp/netAppAccounts/anf-eastus2-avdlab/capacityPools/avd-profiles-std/volumes/avdeus2'
 ]
 
 param Timestamp string = utcNow('yyyyMMddhhmmss')
@@ -49,10 +62,12 @@ var RoleDescription = 'This role allows a resource to write to Log Analytics Met
 var RunbookName = 'AvdLogGenerator'
 var RunbookScript = 'Get-AzureAvdLogs.ps1'
 //var LogAnalyticsWorkspaceName = split(LogAnalyticsWorkspaceResourceId, '/')[8]
+var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v0.1)'
 var LogAlerts = [
   {
     name: 'AVD-HostPool-No Resources Available'
     displayName: 'AVD-HostPool-No Resources Available'
+    description: '${AlertDescriptionHeader}Based on the AVD Healthcheck Agent'
     severity: 1
     evaluationFrequency: 'PT1H'
     windowSize: 'PT1H'
@@ -91,6 +106,7 @@ var LogAlerts = [
   {
     name: 'AVD-VM-Local Disk Free Space Warning 90 Percent'
     displayName: 'AVD-VM-Local Disk Free Space Warning 90 Percent'
+    description: AlertDescriptionHeader
     severity: 2
     evaluationFrequency: 'PT15M'
     windowSize: 'PT15M'
@@ -115,6 +131,7 @@ var LogAlerts = [
   {
     name: 'AVD-VM-FSLogix Profile Failed'
     displayName: 'AVD-VM-FSLogix Profile Failed (Event Log Indicated Failure)'
+    description: AlertDescriptionHeader
     severity: 1
     evaluationFrequency: 'PT5M'
     windowSize: 'PT5M'
@@ -152,6 +169,7 @@ var LogAlerts = [
   {
     name: 'AVD-VM-Local Disk Free Space Warning 95 Percent'
     displayName: 'AVD-VM-Local Disk Free Space Warning 95 Percent'
+    description: AlertDescriptionHeader
     severity: 1
     evaluationFrequency: 'PT15M'
     windowSize: 'PT15M'
@@ -176,7 +194,7 @@ var LogAlerts = [
   {
     name: 'AVD-VM-Health Check Failure'
     displayName: 'AVD-VM-Health Check Failure'
-    description: 'VM is available for use but one of the dependent resources is in a failed state'
+    description: '${AlertDescriptionHeader}VM is available for use but one of the dependent resources is in a failed state'
     severity: 1
     evaluationFrequency: 'PT5M'
     windowSize: 'PT5M'
@@ -206,9 +224,9 @@ var LogAlerts = [
     }
   }
   {  // Based on Runbook script Output to LAW
-    name: 'AVD-Storage-Low Space on File Share-15 Percent Remaining'
-    displayName: 'AVD-Storage-Low Space on File Share-15 Percent Remaining'
-    description: 'This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining'
+    name: 'AVD-Storage-Low Space on Azure File Share-15 Percent Remaining'
+    displayName: 'AVD-Storage-Low Space on Azure File Share-15 Percent Remaining'
+    description: '${AlertDescriptionHeader}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining'
     severity: 2
     evaluationFrequency: 'PT10M'
     windowSize: 'PT10M'
@@ -254,9 +272,9 @@ var LogAlerts = [
     }
   }
   {  // Based on Runbook script Output to LAW
-    name: 'AVD-Storage-Low Space on File Share-5 Percent Remaining'
-    displayName: 'AVD-Storage-Low Space on File Share-5 Percent Remaining'
-    description: 'This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining'
+    name: 'AVD-Storage-Low Space on Azure File Share-5 Percent Remaining'
+    displayName: 'AVD-Storage-Low Space on Azure File Share-5 Percent Remaining'
+    description: '${AlertDescriptionHeader}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining'
     severity: 1
     evaluationFrequency: 'PT10M'
     windowSize: 'PT10M'
@@ -307,6 +325,7 @@ var MetricAlerts = {
     {
       name: 'AVD-Storage-Over 200ms Latency for Storage Acct'
       displayName: 'AVD-Storage-Over 200ms Latency for Storage Acct'
+      description: AlertDescriptionHeader
       severity: 2
       evaluationFrequency: 'PT5M'
       windowSize: 'PT15M'
@@ -330,7 +349,7 @@ var MetricAlerts = {
     {
       name: 'AVD-Storage-Possible Throttling Due to High IOPs'
       displayName: 'AVD-Storage-Possible Throttling Due to High IOPs'
-      description: 'This indicates you may be maxing out the allowed IOPs.\nhttps://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled'
+      description: '${AlertDescriptionHeader}This indicates you may be maxing out the allowed IOPs.\nhttps://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled'
       severity: 2
       evaluationFrequency: 'PT5M'
       windowSize: 'PT5M'
@@ -373,10 +392,59 @@ var MetricAlerts = {
       targetResourceType: 'Microsoft.Storage/storageAccounts/fileServices'
     }
   ]
+  anf: [ 
+    {
+      name: 'AVD-Storage-Low Space on ANF Share-15 Percent Remaining'
+      displayName: 'AVD-Storage-Low Space on ANF Share-15 Percent Remaining'
+      description: AlertDescriptionHeader
+      severity: 2
+      evaluationFrequency: 'PT1H'
+      windowSize: 'PT1H'
+      criteria: {
+        allOf: [
+          {
+            threshold: 85
+            name: 'Metric1'
+            metricNamespace: 'microsoft.netapp/netappaccounts/capacitypools/volumes'
+            metricName: 'VolumeConsumedSizePercentage'
+            operator: 'GreaterThanOrEqual'
+            timeAggregation: 'Average'
+            criterionType: 'StaticThresholdCriterion'
+          }
+        ]
+        'odata.type': 'Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria'
+      }
+      targetResourceType: 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes'
+    }
+    {
+      name: 'AVD-Storage-Low Space on ANF Share-5 Percent Remaining'
+      displayName: 'AVD-Storage-Low Space on ANF Share-5 Percent Remaining'
+      description: AlertDescriptionHeader
+      severity: 1
+      evaluationFrequency: 'PT1H'
+      windowSize: 'PT1H'
+      criteria: {
+        allOf: [
+          {
+            threshold: 95
+            name: 'Metric1'
+            metricNamespace: 'microsoft.netapp/netappaccounts/capacitypools/volumes'
+            metricName: 'VolumeConsumedSizePercentage'
+            operator: 'GreaterThanOrEqual'
+            timeAggregation: 'Average'
+            criterionType: 'StaticThresholdCriterion'
+          }
+        ]
+        'odata.type': 'Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria'
+      }
+      targetResourceType: 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes'
+    }
+  ]
   virtualMachines: [
     {
       name: 'AVD-VM-High CPU 85 Percent'
       displayName: 'AVD-VM-High CPU 85 Percent'
+      description: AlertDescriptionHeader
       severity: 2
       evaluationFrequency: 'PT5M'
       windowSize: 'PT5M'
@@ -399,6 +467,7 @@ var MetricAlerts = {
     {
       name: 'AVD-VM-High CPU 95 Percent'
       displayName: 'AVD-VM-High CPU 95 Percent'
+      description: AlertDescriptionHeader
       severity: 1
       evaluationFrequency: 'PT5M'
       windowSize: 'PT5M'
@@ -421,6 +490,7 @@ var MetricAlerts = {
     {
       name: 'AVD-VM-Available Memory Less Than 2GB'
       displayName: 'AVD-VM-Available Memory Less Than 2GB'
+      description: AlertDescriptionHeader
       severity: 2
       evaluationFrequency: 'PT5M'
       windowSize: 'PT5M'
@@ -443,6 +513,7 @@ var MetricAlerts = {
     {
       name: 'AVD-VM-Available Memory Less Than 1GB'
       displayName: 'AVD-VM-Available Memory Less Than 1GB'
+      description: AlertDescriptionHeader
       severity: 1
       evaluationFrequency: 'PT5M'
       windowSize: 'PT5M'
@@ -498,6 +569,9 @@ resource resourceGroupAVDMetrics 'Microsoft.Resources/resourceGroups@2021-04-01'
 
 module deploymentScript 'modules/deploymentScript.bicep' = {
   name: 'ds_deployment'
+  dependsOn: [
+    resourceGroupAVDMetrics
+  ]
   scope: resourceGroup(ResourceGroupName)
   params: {
     StorageAccountResourceIds: StorageAccountResourceIds
@@ -548,6 +622,7 @@ module resources 'modules/resources.bicep' = {
     StorageAccountResourceIds: StorageAccountResourceIds
     ActionGroupName: ActionGroupName
     FileServicesResourceIDs: deploymentScript.outputs.fileServicesResourceIDs
+    ANFVolumeResourceIds: ANFVolumeResourceIds
     Tags: Tags
   }
 }

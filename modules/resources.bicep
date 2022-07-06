@@ -20,6 +20,7 @@ param StorageAccountResourceIds array
 param Tags object
 param Timestamp string = utcNow('u')
 param FileServicesResourceIDs array
+param ANFVolumeResourceIds array
 
 
 // var Environment = environment().name
@@ -152,6 +153,7 @@ resource metricAlerts_VirtualMachines 'Microsoft.Insights/metricAlerts@2018-03-0
   location: 'global'
   tags: Tags
   properties: {
+    description: MetricAlerts.virtualMachines[i].description
     severity: MetricAlerts.virtualMachines[i].severity
     enabled: false
     scopes: SessionHostsResourceGroupIds
@@ -204,9 +206,19 @@ module storAccountMetric 'storAccountMetric.bicep' = [for i in range(0, length(S
   }
 }]
 
+module azureNetAppFilesMetric 'anfMetric.bicep' = [for i in range(0, length(ANFVolumeResourceIds)): {
+  name: 'MetricAlert_ANF_${i}'
+  params: {
+    Location: Location
+    ANFVolumeResourceID: ANFVolumeResourceIds[i]
+    MetricAlertsANF: MetricAlerts.anf
+    ActionGroupID: actionGroup.id
+    Tags: Tags
+  }
+}]
+
 // If Metric Namespace contains file services ; change scopes to append default
-// Consider moving this to a module to loop through each scope time as it MUST be a single Resource ID
-// ... Module: FileServices Metric
+// module to loop through each scope time as it MUST be a single Resource ID
 module fileServicesMetric 'fileservicsmetric.bicep' = [for i in range(0, length(FileServicesResourceIDs)): {
   name: 'MetricAlert_FileServices_${i}'
   params: {
