@@ -12,7 +12,7 @@
             "value": "usgovvirginia"
         },
         "LogAnalyticsWorkspaceResourceId": {
-            "value": "/subscriptions/d5a3b431-5ad0-4a0d-bf86-8fffd2f84554/resourcegroups/rg-va-avd-manage/providers/microsoft.operationalinsights/workspaces/law-avdlab"
+            "value": "/subscriptions/d5a3b431-5ad0-4a0d-bf86-8fffd2f84554/resourcegroups/rg-avdlab-infra/providers/microsoft.operationalinsights/workspaces/law-avdlab"
         },
         "ScriptsRepositorySasToken": {
             "value": ""

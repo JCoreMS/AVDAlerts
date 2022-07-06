@@ -267,6 +267,7 @@ resource scheduledQueryRules 'Microsoft.Insights/scheduledQueryRules@2021-08-01'
     }
     criteria: LogAlerts[i].criteria
     displayName: LogAlerts[i].displayName
+    description: LogAlerts[i].description
     enabled: false
     evaluationFrequency: LogAlerts[i].evaluationFrequency
     scopes: [

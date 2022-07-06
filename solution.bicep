@@ -67,7 +67,7 @@ var LogAlerts = [
   {
     name: 'AVD-HostPool-No Resources Available'
     displayName: 'AVD-HostPool-No Resources Available'
-    description: '${AlertDescriptionHeader}Based on the AVD Healthcheck Agent'
+    description: 'Based on the AVD Healthcheck Agent'
     severity: 1
     evaluationFrequency: 'PT1H'
     windowSize: 'PT1H'
@@ -349,7 +349,7 @@ var MetricAlerts = {
     {
       name: 'AVD-Storage-Possible Throttling Due to High IOPs'
       displayName: 'AVD-Storage-Possible Throttling Due to High IOPs'
-      description: '${AlertDescriptionHeader}This indicates you may be maxing out the allowed IOPs.\nhttps://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled'
+      description: '${AlertDescriptionHeader}\nThis indicates you may be maxing out the allowed IOPs.\nhttps://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled'
       severity: 2
       evaluationFrequency: 'PT5M'
       windowSize: 'PT5M'
