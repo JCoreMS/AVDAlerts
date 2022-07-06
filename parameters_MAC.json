@@ -36,9 +36,6 @@
                 "/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Servers/providers/Microsoft.NetApp/netAppAccounts/anf-eastus2-avdlab/capacityPools/avd-profiles-std/volumes/avdeus2"
             ]
         },
-        "Timestamp": {
-            "value": "[utcNow('yyyyMMddhhmmss')]"
-        },
         "Tags": {
             "value": {
                 "Environment": "AVDMetricsTest"
