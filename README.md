@@ -46,5 +46,5 @@ Consider using the script to build out your parameters file in the ./scripts fol
 
 You will need the appropriate PowerShell modules installed and connected to Azure.  Then you can run the following from PowerShell:  
 ```PowerShell
-New-AzResourceGroupDeployment -Name "AVD-Alerts-Solution" -TemplateFile https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/solution.json -TemplateParameterFile <YourParametersFile> -Location <region>
+New-AzDeployment -Name "AVD-Alerts-Solution" -TemplateUri https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/solution.json -TemplateParameterFile <YourParametersFile> -Location <region>
 ```

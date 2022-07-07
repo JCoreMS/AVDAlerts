@@ -71,8 +71,8 @@ If ($RGs.count -gt 1){
         $i++
         }
     Write-Host "Select the number corresponding to the Resource Group containing your AVD HostPool Resources."
-    Write-Host "(For multiples type the number separated by a comma or 1,3,5 as an example)"
-    $response = Read-Host "RG(s)"
+    #Write-Host "(For multiples type the number separated by a comma or 1,3,5 as an example)"  #### TO HANDLE MULTIPLE LATER
+    $response = Read-Host "RG"
     Foreach($selection in $response){
         Write-Host $AVDHostPools[$Selection-1]
     }
