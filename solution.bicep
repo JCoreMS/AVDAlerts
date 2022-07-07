@@ -9,7 +9,7 @@ param SetEnabled bool = false
  */
 
  @description('The Distribution Group that will receive email alerts for AVD.')
-param DistributionGroup string = 'jamasten@microsoft.com'
+param DistributionGroup string = ''
 
 @allowed([
   'd'
@@ -17,13 +17,13 @@ param DistributionGroup string = 'jamasten@microsoft.com'
   't'
 ])
 @description('The environment is which these resources will be deployed, i.e. Development.')
-param Environment string = 'd'
+param Environment string = 't'
 
 @description('Azure Region for Resources')
 param Location string = deployment().location
 
 @description('The Resource ID for the Log Analytics Workspace.')
-param LogAnalyticsWorkspaceResourceId string = 'law-eastus2-avdlab'
+param LogAnalyticsWorkspaceResourceId string = ''
 
 @secure()
 @description('The SAS token if using a storage account for the repository.')
@@ -34,17 +34,17 @@ param ScriptsRepositoryUri string = ''
 
 @description('The Resource Group ID for the AVD session hosts.')
 param SessionHostsResourceGroupIds array = [
-  '/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Resources'
+  ''
 ]
 
 @description('The Resource IDs for the Azure Files Storage Accounts used for FSLogix profile storage.')
 param StorageAccountResourceIds array = [
-  '/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Resources/providers/Microsoft.Storage/storageAccounts/storavdlabeus2'
+  ''
 ]
 
 @description('The Resource IDs for the Azure NetApp Volumes used for FSLogix profile storage.')
 param ANFVolumeResourceIds array = [
-  '/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-avdlab-servers/providers/Microsoft.NetApp/netAppAccounts/anf-eastus2-avdlab/capacityPools/avd-profiles-std/volumes/avdeus2'
+  ''
 ]
 
 param Timestamp string = utcNow('yyyyMMddhhmmss')

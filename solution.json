@@ -5,20 +5,20 @@
     "_generator": {
       "name": "bicep",
       "version": "0.8.2.30886",
-      "templateHash": "14474725476206673411"
+      "templateHash": "15900075752484826316"
     }
   },
   "parameters": {
     "DistributionGroup": {
       "type": "string",
-      "defaultValue": "jamasten@microsoft.com",
+      "defaultValue": "",
       "metadata": {
         "description": "The Distribution Group that will receive email alerts for AVD."
       }
     },
     "Environment": {
       "type": "string",
-      "defaultValue": "d",
+      "defaultValue": "t",
       "metadata": {
         "description": "The environment is which these resources will be deployed, i.e. Development."
       },
@@ -37,7 +37,7 @@
     },
     "LogAnalyticsWorkspaceResourceId": {
       "type": "string",
-      "defaultValue": "law-eastus2-avdlab",
+      "defaultValue": "",
       "metadata": {
         "description": "The Resource ID for the Log Analytics Workspace."
       }
@@ -59,7 +59,7 @@
     "SessionHostsResourceGroupIds": {
       "type": "array",
       "defaultValue": [
-        "/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Resources"
+        ""
       ],
       "metadata": {
         "description": "The Resource Group ID for the AVD session hosts."
@@ -68,7 +68,7 @@
     "StorageAccountResourceIds": {
       "type": "array",
       "defaultValue": [
-        "/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Resources/providers/Microsoft.Storage/storageAccounts/storavdlabeus2"
+        ""
       ],
       "metadata": {
         "description": "The Resource IDs for the Azure Files Storage Accounts used for FSLogix profile storage."
@@ -77,7 +77,7 @@
     "ANFVolumeResourceIds": {
       "type": "array",
       "defaultValue": [
-        "/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-avdlab-servers/providers/Microsoft.NetApp/netAppAccounts/anf-eastus2-avdlab/capacityPools/avd-profiles-std/volumes/avdeus2"
+        ""
       ],
       "metadata": {
         "description": "The Resource IDs for the Azure NetApp Volumes used for FSLogix profile storage."
@@ -108,12 +108,12 @@
         "displayName": "AVD-HostPool-No Resources Available",
         "description": "Based on the AVD Healthcheck Agent",
         "severity": 1,
-        "evaluationFrequency": "PT1H",
-        "windowSize": "PT1H",
+        "evaluationFrequency": "PT15M",
+        "windowSize": "PT15M",
         "criteria": {
           "allOf": [
             {
-              "query": "WVDConnections \n| where TimeGenerated > ago (1h) \n| project-away TenantId,SourceSystem  \n| summarize arg_max(TimeGenerated, *), StartTime =  min(iff(State== 'Started', TimeGenerated , datetime(null) )), ConnectTime = min(iff(State== 'Connected', TimeGenerated , datetime(null) ))   by CorrelationId  \n| join kind=leftouter (WVDErrors\n    |summarize Errors=makelist(pack('Code', Code, 'CodeSymbolic', CodeSymbolic, 'Time', TimeGenerated, 'Message', Message ,'ServiceError', ServiceError, 'Source', Source)) by CorrelationId  \n    ) on CorrelationId\n| join kind=leftouter (WVDCheckpoints\n    | summarize Checkpoints=makelist(pack('Time', TimeGenerated, 'Name', Name, 'Parameters', Parameters, 'Source', Source)) by CorrelationId  \n    | mv-apply Checkpoints on (  \n        order by todatetime(Checkpoints['Time']) asc\n        | summarize Checkpoints=makelist(Checkpoints)\n        )\n    ) on CorrelationId  \n| project-away CorrelationId1, CorrelationId2  \n| order by TimeGenerated desc\n| where Errors[0].CodeSymbolic == \"ConnectionFailedNoHealthyRdshAvailable\"\n\n",
+              "query": "WVDConnections \n| where TimeGenerated > ago (15m) \n| project-away TenantId,SourceSystem  \n| summarize arg_max(TimeGenerated, *), StartTime =  min(iff(State== 'Started', TimeGenerated , datetime(null) )), ConnectTime = min(iff(State== 'Connected', TimeGenerated , datetime(null) ))   by CorrelationId  \n| join kind=leftouter (WVDErrors\n    |summarize Errors=makelist(pack('Code', Code, 'CodeSymbolic', CodeSymbolic, 'Time', TimeGenerated, 'Message', Message ,'ServiceError', ServiceError, 'Source', Source)) by CorrelationId  \n    ) on CorrelationId\n| join kind=leftouter (WVDCheckpoints\n    | summarize Checkpoints=makelist(pack('Time', TimeGenerated, 'Name', Name, 'Parameters', Parameters, 'Source', Source)) by CorrelationId  \n    | mv-apply Checkpoints on (  \n        order by todatetime(Checkpoints['Time']) asc\n        | summarize Checkpoints=makelist(Checkpoints)\n        )\n    ) on CorrelationId  \n| project-away CorrelationId1, CorrelationId2  \n| order by TimeGenerated desc\n| where Errors[0].CodeSymbolic == \"ConnectionFailedNoHealthyRdshAvailable\"\n\n",
               "timeAggregation": "Count",
               "dimensions": [
                 {
