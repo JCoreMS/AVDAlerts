@@ -51,7 +51,7 @@
     },
     "ScriptsRepositoryUri": {
       "type": "string",
-      "defaultValue": "",
+      "defaultValue": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/scripts/",
       "metadata": {
         "description": "The repository URI hosting the scripts for this solution."
       }
