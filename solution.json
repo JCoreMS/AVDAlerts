@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.7.4.23292",
-      "templateHash": "10195536134382698317"
+      "version": "0.8.2.30886",
+      "templateHash": "14474725476206673411"
     }
   },
   "parameters": {
@@ -71,7 +71,16 @@
         "/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-AVDLab-Resources/providers/Microsoft.Storage/storageAccounts/storavdlabeus2"
       ],
       "metadata": {
-        "description": "The Resource IDs for the Storage Accounts or NetApp Account used for FSLogix profile storage."
+        "description": "The Resource IDs for the Azure Files Storage Accounts used for FSLogix profile storage."
+      }
+    },
+    "ANFVolumeResourceIds": {
+      "type": "array",
+      "defaultValue": [
+        "/subscriptions/8a0ecebc-0e1d-4e8f-8cb8-8a92f49455b9/resourceGroups/rg-eastus2-avdlab-servers/providers/Microsoft.NetApp/netAppAccounts/anf-eastus2-avdlab/capacityPools/avd-profiles-std/volumes/avdeus2"
+      ],
+      "metadata": {
+        "description": "The Resource IDs for the Azure NetApp Volumes used for FSLogix profile storage."
       }
     },
     "Timestamp": {
@@ -92,10 +101,12 @@
     "RoleDescription": "This role allows a resource to write to Log Analytics Metrics.",
     "RunbookName": "AvdLogGenerator",
     "RunbookScript": "Get-AzureAvdLogs.ps1",
+    "AlertDescriptionHeader": "Automated AVD Alert Deployment Solution (v0.1)",
     "LogAlerts": [
       {
         "name": "AVD-HostPool-No Resources Available",
         "displayName": "AVD-HostPool-No Resources Available",
+        "description": "Based on the AVD Healthcheck Agent",
         "severity": 1,
         "evaluationFrequency": "PT1H",
         "windowSize": "PT1H",
@@ -134,6 +145,7 @@
       {
         "name": "AVD-VM-Local Disk Free Space Warning 90 Percent",
         "displayName": "AVD-VM-Local Disk Free Space Warning 90 Percent",
+        "description": "[variables('AlertDescriptionHeader')]",
         "severity": 2,
         "evaluationFrequency": "PT15M",
         "windowSize": "PT15M",
@@ -158,6 +170,7 @@
       {
         "name": "AVD-VM-FSLogix Profile Failed",
         "displayName": "AVD-VM-FSLogix Profile Failed (Event Log Indicated Failure)",
+        "description": "[variables('AlertDescriptionHeader')]",
         "severity": 1,
         "evaluationFrequency": "PT5M",
         "windowSize": "PT5M",
@@ -195,6 +208,7 @@
       {
         "name": "AVD-VM-Local Disk Free Space Warning 95 Percent",
         "displayName": "AVD-VM-Local Disk Free Space Warning 95 Percent",
+        "description": "[variables('AlertDescriptionHeader')]",
         "severity": 1,
         "evaluationFrequency": "PT15M",
         "windowSize": "PT15M",
@@ -219,7 +233,7 @@
       {
         "name": "AVD-VM-Health Check Failure",
         "displayName": "AVD-VM-Health Check Failure",
-        "description": "VM is available for use but one of the dependent resources is in a failed state",
+        "description": "[format('{0}VM is available for use but one of the dependent resources is in a failed state', variables('AlertDescriptionHeader'))]",
         "severity": 1,
         "evaluationFrequency": "PT5M",
         "windowSize": "PT5M",
@@ -249,9 +263,9 @@
         }
       },
       {
-        "name": "AVD-Storage-Low Space on File Share-15 Percent Remaining",
-        "displayName": "AVD-Storage-Low Space on File Share-15 Percent Remaining",
-        "description": "This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining",
+        "name": "AVD-Storage-Low Space on Azure File Share-15 Percent Remaining",
+        "displayName": "AVD-Storage-Low Space on Azure File Share-15 Percent Remaining",
+        "description": "[format('{0}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining', variables('AlertDescriptionHeader'))]",
         "severity": 2,
         "evaluationFrequency": "PT10M",
         "windowSize": "PT10M",
@@ -282,9 +296,9 @@
         }
       },
       {
-        "name": "AVD-Storage-Low Space on File Share-5 Percent Remaining",
-        "displayName": "AVD-Storage-Low Space on File Share-5 Percent Remaining",
-        "description": "This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining",
+        "name": "AVD-Storage-Low Space on Azure File Share-5 Percent Remaining",
+        "displayName": "AVD-Storage-Low Space on Azure File Share-5 Percent Remaining",
+        "description": "[format('{0}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining', variables('AlertDescriptionHeader'))]",
         "severity": 1,
         "evaluationFrequency": "PT10M",
         "windowSize": "PT10M",
@@ -320,6 +334,7 @@
         {
           "name": "AVD-Storage-Over 200ms Latency for Storage Acct",
           "displayName": "AVD-Storage-Over 200ms Latency for Storage Acct",
+          "description": "[variables('AlertDescriptionHeader')]",
           "severity": 2,
           "evaluationFrequency": "PT5M",
           "windowSize": "PT15M",
@@ -343,7 +358,7 @@
         {
           "name": "AVD-Storage-Possible Throttling Due to High IOPs",
           "displayName": "AVD-Storage-Possible Throttling Due to High IOPs",
-          "description": "This indicates you may be maxing out the allowed IOPs.\nhttps://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled",
+          "description": "[format('{0}\nThis indicates you may be maxing out the allowed IOPs.\nhttps://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled', variables('AlertDescriptionHeader'))]",
           "severity": 2,
           "evaluationFrequency": "PT5M",
           "windowSize": "PT5M",
@@ -386,10 +401,59 @@
           "targetResourceType": "Microsoft.Storage/storageAccounts/fileServices"
         }
       ],
+      "anf": [
+        {
+          "name": "AVD-Storage-Low Space on ANF Share-15 Percent Remaining",
+          "displayName": "AVD-Storage-Low Space on ANF Share-15 Percent Remaining",
+          "description": "[variables('AlertDescriptionHeader')]",
+          "severity": 2,
+          "evaluationFrequency": "PT1H",
+          "windowSize": "PT1H",
+          "criteria": {
+            "allOf": [
+              {
+                "threshold": 85,
+                "name": "Metric1",
+                "metricNamespace": "microsoft.netapp/netappaccounts/capacitypools/volumes",
+                "metricName": "VolumeConsumedSizePercentage",
+                "operator": "GreaterThanOrEqual",
+                "timeAggregation": "Average",
+                "criterionType": "StaticThresholdCriterion"
+              }
+            ],
+            "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria"
+          },
+          "targetResourceType": "Microsoft.NetApp/netAppAccounts/capacityPools/volumes"
+        },
+        {
+          "name": "AVD-Storage-Low Space on ANF Share-5 Percent Remaining",
+          "displayName": "AVD-Storage-Low Space on ANF Share-5 Percent Remaining",
+          "description": "[variables('AlertDescriptionHeader')]",
+          "severity": 1,
+          "evaluationFrequency": "PT1H",
+          "windowSize": "PT1H",
+          "criteria": {
+            "allOf": [
+              {
+                "threshold": 95,
+                "name": "Metric1",
+                "metricNamespace": "microsoft.netapp/netappaccounts/capacitypools/volumes",
+                "metricName": "VolumeConsumedSizePercentage",
+                "operator": "GreaterThanOrEqual",
+                "timeAggregation": "Average",
+                "criterionType": "StaticThresholdCriterion"
+              }
+            ],
+            "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria"
+          },
+          "targetResourceType": "Microsoft.NetApp/netAppAccounts/capacityPools/volumes"
+        }
+      ],
       "virtualMachines": [
         {
           "name": "AVD-VM-High CPU 85 Percent",
           "displayName": "AVD-VM-High CPU 85 Percent",
+          "description": "[variables('AlertDescriptionHeader')]",
           "severity": 2,
           "evaluationFrequency": "PT5M",
           "windowSize": "PT5M",
@@ -412,6 +476,7 @@
         {
           "name": "AVD-VM-High CPU 95 Percent",
           "displayName": "AVD-VM-High CPU 95 Percent",
+          "description": "[variables('AlertDescriptionHeader')]",
           "severity": 1,
           "evaluationFrequency": "PT5M",
           "windowSize": "PT5M",
@@ -434,6 +499,7 @@
         {
           "name": "AVD-VM-Available Memory Less Than 2GB",
           "displayName": "AVD-VM-Available Memory Less Than 2GB",
+          "description": "[variables('AlertDescriptionHeader')]",
           "severity": 2,
           "evaluationFrequency": "PT5M",
           "windowSize": "PT5M",
@@ -456,6 +522,7 @@
         {
           "name": "AVD-VM-Available Memory Less Than 1GB",
           "displayName": "AVD-VM-Available Memory Less Than 1GB",
+          "description": "[variables('AlertDescriptionHeader')]",
           "severity": 1,
           "evaluationFrequency": "PT5M",
           "windowSize": "PT5M",
@@ -545,8 +612,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.7.4.23292",
-              "templateHash": "5875430278430079092"
+              "version": "0.8.2.30886",
+              "templateHash": "11342579275844170906"
             }
           },
           "parameters": {
@@ -585,7 +652,10 @@
             }
           }
         }
-      }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('ResourceGroupName'))]"
+      ]
     },
     {
       "type": "Microsoft.Resources/deployments",
@@ -643,6 +713,9 @@
           "FileServicesResourceIDs": {
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupName')), 'Microsoft.Resources/deployments', 'ds_deployment')).outputs.fileServicesResourceIDs.value]"
           },
+          "ANFVolumeResourceIds": {
+            "value": "[parameters('ANFVolumeResourceIds')]"
+          },
           "Tags": {
             "value": "[parameters('Tags')]"
           }
@@ -653,8 +726,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.7.4.23292",
-              "templateHash": "16662674980280185873"
+              "version": "0.8.2.30886",
+              "templateHash": "13330448286676876053"
             }
           },
           "parameters": {
@@ -709,6 +782,9 @@
             },
             "FileServicesResourceIDs": {
               "type": "array"
+            },
+            "ANFVolumeResourceIds": {
+              "type": "array"
             }
           },
           "resources": [
@@ -740,6 +816,7 @@
               "location": "global",
               "tags": "[parameters('Tags')]",
               "properties": {
+                "description": "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].description]",
                 "severity": "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].severity]",
                 "enabled": false,
                 "scopes": "[parameters('SessionHostsResourceGroupIds')]",
@@ -779,6 +856,7 @@
                 },
                 "criteria": "[parameters('LogAlerts')[range(0, length(parameters('LogAlerts')))[copyIndex()]].criteria]",
                 "displayName": "[parameters('LogAlerts')[range(0, length(parameters('LogAlerts')))[copyIndex()]].displayName]",
+                "description": "[parameters('LogAlerts')[range(0, length(parameters('LogAlerts')))[copyIndex()]].description]",
                 "enabled": false,
                 "evaluationFrequency": "[parameters('LogAlerts')[range(0, length(parameters('LogAlerts')))[copyIndex()]].evaluationFrequency]",
                 "scopes": [
@@ -948,8 +1026,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.7.4.23292",
-                      "templateHash": "18415908559173891209"
+                      "version": "0.8.2.30886",
+                      "templateHash": "84218881374938302"
                     }
                   },
                   "parameters": {
@@ -1008,6 +1086,101 @@
             },
             {
               "copy": {
+                "name": "azureNetAppFilesMetric",
+                "count": "[length(range(0, length(parameters('ANFVolumeResourceIds'))))]"
+              },
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "[format('MetricAlert_ANF_{0}', range(0, length(parameters('ANFVolumeResourceIds')))[copyIndex()])]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "ANFVolumeResourceID": {
+                    "value": "[parameters('ANFVolumeResourceIds')[range(0, length(parameters('ANFVolumeResourceIds')))[copyIndex()]]]"
+                  },
+                  "MetricAlertsANF": {
+                    "value": "[parameters('MetricAlerts').anf]"
+                  },
+                  "ActionGroupID": {
+                    "value": "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+                  },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.8.2.30886",
+                      "templateHash": "2443213688948489754"
+                    }
+                  },
+                  "parameters": {
+                    "Location": {
+                      "type": "string"
+                    },
+                    "MetricAlertsANF": {
+                      "type": "array"
+                    },
+                    "ANFVolumeResourceID": {
+                      "type": "string"
+                    },
+                    "ActionGroupID": {
+                      "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "copy": {
+                        "name": "metricAlerts_ANFVolume",
+                        "count": "[length(range(0, length(parameters('MetricAlertsANF'))))]"
+                      },
+                      "type": "Microsoft.Insights/metricAlerts",
+                      "apiVersion": "2018-03-01",
+                      "name": "[format('{0}-{1}', parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].name, split(parameters('ANFVolumeResourceID'), '/')[12])]",
+                      "location": "global",
+                      "tags": "[parameters('Tags')]",
+                      "properties": {
+                        "description": "[parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].description]",
+                        "severity": "[parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].severity]",
+                        "enabled": false,
+                        "scopes": [
+                          "[parameters('ANFVolumeResourceID')]"
+                        ],
+                        "evaluationFrequency": "[parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].evaluationFrequency]",
+                        "windowSize": "[parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].windowSize]",
+                        "criteria": "[parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].criteria]",
+                        "autoMitigate": false,
+                        "targetResourceType": "[parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].targetResourceType]",
+                        "targetResourceRegion": "[parameters('Location')]",
+                        "actions": [
+                          {
+                            "actionGroupId": "[parameters('ActionGroupID')]"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+              ]
+            },
+            {
+              "copy": {
                 "name": "fileServicesMetric",
                 "count": "[length(range(0, length(parameters('FileServicesResourceIDs'))))]"
               },
@@ -1042,8 +1215,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.7.4.23292",
-                      "templateHash": "15383822911911898535"
+                      "version": "0.8.2.30886",
+                      "templateHash": "15530281013382322507"
                     }
                   },
                   "parameters": {
@@ -1075,6 +1248,7 @@
                       "location": "global",
                       "tags": "[parameters('Tags')]",
                       "properties": {
+                        "description": "[parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].description]",
                         "severity": "[parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].severity]",
                         "enabled": false,
                         "scopes": [

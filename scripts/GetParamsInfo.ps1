@@ -1,24 +1,9 @@
 # VARIABLES
 $filetimestamp = Get-Date -Format "MM.dd.yyyy_THH.mm" 
-$TemplateParametersFile = './Parameters_template.json'
-$ParametersFile = './Parameters_' + $filetimestamp + '.json'
-Copy-Item -Path $TemplateParametersFile -Destination $ParametersFile -Force
+$OutputFile = './Parameters_' + $filetimestamp + '.json'
 
-# Get data from parameters file created from template
-$Json = Get-Content -Path $ParametersFile
-$Parameters = ($Json | ConvertFrom-Json).parameters
-
-
-
-# Update parameters file
-Function UpdateParamsFile ($item,$value){
-    $Parameters | Add-Member -MemberType NoteProperty -Name $Item -Value @{'value' = $Value} -Force
-    Write-Host $Parameters
-    $File = $Json | ConvertFrom-Json
-    $File.parameters = $Parameters
-    # Regex to remove single quote translation issue with Timestamp parameter (single quote ends up as /u0027)
-    $([System.Text.RegularExpressions.Regex]::Unescape($($File | ConvertTo-Json -Depth 100))) | Out-File -FilePath $ParametersFile -Force
-}
+Write-Host "This script will help you collect the following information and build out your parameters file for deployment."
+Write-Host "While mulitple storage resouces can be defined, you will only be prompted for a single option via this script" -ForegroundColor Yellow
 
 # Connect To Azure
 Write-Host "Connect to Azure Soveriegn Cloud? (US Gov or China)"
@@ -50,7 +35,13 @@ CLS
 # Get distro email address
 # =================================================================================================
 $DistributionGroup = Read-Host "Provide the email address of the user or distribuition list for AVD Alerts (Disabled by default)"
-UpdateParamsFile 'DistributionGroup' $DistributionGroup
+
+# =================================================================================================
+# Get Location to be used
+# =================================================================================================
+Write-Host "If you need a list of Locations you can also run the following at a PowerShell prompt:"
+Write-Host "Connect-AzAccount; get-AzLocation | fl Location"
+$Location = Read-Host "Type the Location for the resources to be deployed to."
 
 # =================================================================================================
 # Environment to deploy (Prod, Dev, Test)
@@ -66,8 +57,6 @@ If(($EnvType -ne "p") -and ($EnvType -ne "d") -and ($EnvType -ne "t"))
         Write-Host "You must select one of the above! Exiting!" -foregroundcolor Red
         Break
     }
-UpdateParamsFile 'Environment' $EnvType
-
 # =================================================================================================
 # AVD Host Pool RG Names
 # =================================================================================================
@@ -81,12 +70,17 @@ If ($RGs.count -gt 1){
         Write-Host $i" - "$RG
         $i++
         }
-    $response = Read-Host "Select the number corresponding to the Resource Group containing your AVD HostPool Resources"
-    UpdateParamsFile 'SessionHostsResourceGroupIds' $AVDHostPools[$response-1].ResourceId
+    Write-Host "Select the number corresponding to the Resource Group containing your AVD HostPool Resources."
+    Write-Host "(For multiples type the number separated by a comma or 1,3,5 as an example)"
+    $response = Read-Host "RG(s)"
+    Foreach($selection in $response){
+        Write-Host $AVDHostPools[$Selection-1]
+    }
+    $AVDHostPool = $AVDHostPools[$response-1].ResourceId
 }
 Else {
     Write-Host "Adding the only SINGLE Resource Group found with Host Pool resources:" $RGs[0].Name
-    UpdateParamsFile 'SessionHostsResourceGroupIds' $AVDHostPools[0].ResourceId
+    $AVDHostPool = $AVDHostPools[0].ResourceId
 }
 
 # =================================================================================================
@@ -100,8 +94,8 @@ Foreach($LAW in $LogAnalyticsWorkspaces){
     $i++
     }
 $response = Read-Host "Select the number corresponding to the Log Analytics Workspace containing AVD Metrics"
-$LogAnalyticsWorkspace = $LogAnalyticsWorkspaces[$response-1]
-UpdateParamsFile 'LogAnalyticsWorkspaceResourceID' $LogAnalyticsWorkspace.ResourceId
+$LogAnalyticsWorkspace = $LogAnalyticsWorkspaces[$response-1].ResourceId
+
 
 # =================================================================================================
 #Azure Storage Accounts
@@ -114,13 +108,13 @@ Foreach($StorAcct in $StorageAccts){
     $i++
     }
 $response = Read-Host "Select the number corresponding to the Storage Account containing AVD related file shares"
-$StorageAcct = $StorageAccts[$response-1]
-UpdateParamsFile 'StorageAccountResourceIds' $StorageAcct.Id
+$StorageAcct = $StorageAccts[$response-1].Id
+
 
 # =================================================================================================
 #ANF Volumes
 # =================================================================================================
-<# Write-Host "Getting Azure NetApp Filer Pools\Volumes..."
+Write-Host "Getting Azure NetApp Filer Pools\Volumes..."
      # Need RG, AccountName and Pool Name
 $ANFVolumeResources = Get-AzResource -ResourceType 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes'
 $i=1
@@ -133,13 +127,13 @@ Foreach($ANFVolRes in $ANFVolumeResources){
 Write-Host "(** If you need multiple please select only 1 and review/ edit the paramters file **)" -foregroundcolor Yellow
 $response = Read-Host "Select the number corresponding to the ANF Volume containing AVD related file shares"
 
-$ANFVolumeResource = $ANFVolumeResources[$response-1]
-UpdateParamsFile 'ANFPoolResourceIds' $ANFVolumeResource.Id #>
+$ANFVolumeResource = $ANFVolumeResources[$response-1].ResourceId
+
 
 # =================================================================================================
 # Desired Tags   -------- Works but adds extra double quotes before and after { } for list of values
 # =================================================================================================
-<# Write-Host "Azure Tags are in a key pair format. Please input the Tag you would like to add to the resources."
+Write-Host "Azure Tags are in a key pair format. Please input the Tag you would like to add to the resources."
 Write-Host "Simply hit ENTER to contine adding mulitple tag key pairs and type X, to exit input!"
 Write-Host "(i.e Name:Value or Environment:Lab)"
 $Tags = @()
@@ -152,22 +146,74 @@ do {
 If($null -ne $Tags){
     #Reformat for syntax in params file
     $String = '{' + "`n`t`t`t"
-    $i = 0
+    $i = 1
     Foreach($Tag in $Tags){
         $TagUpdate = $Tag -replace ':', '":"'
         Foreach ($element in $TagUpdate){
-            If($element.count -ne $i){$String += """" + $element + """," + "`n`t`t`t"}
+            If($Tags.count -ne $i){$String += """" + $element + """," + "`n`t`t`t"}
             Else{$String += """" + $element + """" + "`n`t`t`t"}
+            $i++
         }
-        $i ++
     }
     $String += '}'
-    UpdateParamsFile 'Tags' $String
 }
- #>
+# Output Tags in JSON format
+
+$OutputHeader = @'
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+'@
+
+$OutputBody = @"
+
+        "DistributionGroup": {
+            "value": "$DistributionGroup"
+        },
+        "Environment": {
+            "value": "$EnvType"
+        },
+        "Location": {
+            "value": "$Location"
+        },
+        "LogAnalyticsWorkspaceResourceId": {
+            "value": "$LogAnalyticsWorkspace"
+        },
+        "ScriptsRepositorySasToken": {
+            "value": ""
+        },
+        "ScriptsRepositoryUri": {
+            "value": "https://storeus2avdalerts.blob.core.windows.net/deployment/"
+        },
+        "SessionHostsResourceGroupIds": {
+            "value": [
+                "$AVDHostPool"
+            ]
+        },
+        "StorageAccountResourceIds": {
+            "value": [
+                "$StorageAcct"
+            ]
+        },
+        "ANFVolumeResourceIds": {
+            "value": [
+                "$ANFVolumeResource"
+            ]
+        },
+        "Tags": {
+            "value": $String
+        }
+    }
+}
+
+"@
+
+$OutputHeader + $OutputBody | Out-File $OutputFile
 
 # Write Output for awareness
-Write-Host "Parameters file updated with input values. Please review and add additional items where desired. (i.e. Tags)" -foregroundcolor Green
+Write-Host "Azure Parameters information saved as... `n$OutputFile" -foregroundcolor Green
+
 
 
 
