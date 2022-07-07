@@ -19,7 +19,7 @@ You'll need a Log Analytics Workspace already configured via AVD Insights for mo
 
 | Name                                                              | Condition                              | Severity  |  Signal Type |  Frequency  |  
 |---                                                                |---                                     |---        |---          |---           |  
-|  AVD-HostPool-No Resources Available                              | Host Pool has NO available hosts  | 1             | Log Analytics Query  |  Hourly  |  
+|  AVD-HostPool-No Resources Available                              | Host Pool has NO available hosts  | 1             | Log Analytics Query  |  15 Minutes  |  
 |  AVD-Storage-Low Space on ANF Share-15 Percent Remaining-profiles | VolumeConsumedSizePercentage >= 85  | 2               |Metric Alerts  |  Hourly |  
 |  AVD-Storage-Low Space on ANF Share-5 Percent Remaining-profiles  | VolumeConsumedSizePercentage >= 95  | 1               | Metric Alerts  |  Hourly |  
 |  AVD-Storage-Low Space on Azure File Share-15 Percent Remaining   | 15% remaining (Value in Runbook output)  | 2          | Log Analytics Query  |  10 Minutes |  
@@ -38,11 +38,11 @@ You'll need a Log Analytics Workspace already configured via AVD Insights for mo
 ## Deploy via Portal
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FJCoreMS%2FAVDAlerts%2Fmain%2Fsolution.json)
-[![Deploy to Azure Gov](https://aka.ms/deploytoazuregovbutton)](https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FJCoreMS%2FDeployMSIXVM%2Fmain%2FDeployMSIX_VM.json)
+[![Deploy to Azure Gov](https://aka.ms/deploytoazuregovbutton)](https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FJCoreMS%2FAVDAlerts%2Fmain%2Fsolution.json)
 
 ## Deploy from PowerShell
 
 You will need the appropriate PowerShell modules installed and connected to Azure.  Then you can run the following from PowerShell:  
 ```PowerShell
-New-AzResourceGroupDeployment -ResourceGroupName <resource-group-name> -TemplateFile https://raw.githubusercontent.com/JCoreMS/DeployMSIXVM/main/DeployMSIX_VM.json
+New-AzResourceGroupDeployment -Name "AVD-Alerts-Solution" -TemplateFile https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/solution.json -TemplateParameterFile <YourParametersFile> -Location <region>
 ```
