@@ -41,6 +41,8 @@ You'll need a Log Analytics Workspace already configured via AVD Insights for mo
 [![Deploy to Azure Gov](https://aka.ms/deploytoazuregovbutton)](https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FJCoreMS%2FAVDAlerts%2Fmain%2Fsolution.json)
 
 ## Deploy from PowerShell
+Consider using the script to build out your parameters file in the ./scripts folder. This will prompt for information and retrieve the needed resource IDs as well as create a timestamped pararmeters JSON file.  
+[GetParamsInfo.PS1](./scripts/GetParamsInfo.ps1)
 
 You will need the appropriate PowerShell modules installed and connected to Azure.  Then you can run the following from PowerShell:  
 ```PowerShell
