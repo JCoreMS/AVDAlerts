@@ -141,18 +141,22 @@ $StorageAcct = $StorageAccts[$response-1].Id
 Write-Host "Getting Azure NetApp Filer Pools\Volumes..."
      # Need RG, AccountName and Pool Name
 $ANFVolumeResources = Get-AzResource -ResourceType 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes'
-$i=1
-Foreach($ANFVolRes in $ANFVolumeResources){
-    $ANFVolName = ($ANFVolRes.Name -split '/')[2]
-    $ANFPool = ($ANFVolRes.Name -split '/')[1]
-    Write-Host $i" - "$ANFPool"\"$ANFVolName
-    $i++
-    }
-Write-Host "(** If you need multiple please select only 1 and review/ edit the paramters file **)" -foregroundcolor Yellow
-$response = Read-Host "Select the number corresponding to the ANF Volume containing AVD related file shares"
+IF($ANFVolumeResources.count -eq 1){
+    Write-Host "Only found a single ANF Volume and capturing:`n`t" ($ANFVolumeResources.Name -split '/')[1]"\"($ANFVolumeResources.Name -split '/')[2]
+    $ANFVolumeResource = $ANFVolumeResources[0].ResourceId}
+Else{
+    $i=1
+    Foreach($ANFVolRes in $ANFVolumeResources){
+        $ANFVolName = ($ANFVolRes.Name -split '/')[2]
+        $ANFPool = ($ANFVolRes.Name -split '/')[1]
+        Write-Host $i" - "$ANFPool"\"$ANFVolName
+        $i++
+        }
+    Write-Host "(** If you need multiple please select only 1 and review/ edit the paramters file **)" -foregroundcolor Yellow
+    $response = Read-Host "Select the number corresponding to the ANF Volume containing AVD related file shares"
 
-$ANFVolumeResource = $ANFVolumeResources[$response-1].ResourceId
-
+    $ANFVolumeResource = $ANFVolumeResources[$response-1].ResourceId
+}
 
 # =================================================================================================
 # Desired Tags   -------- Works but adds extra double quotes before and after { } for list of values
