@@ -71,17 +71,41 @@ If ($RGs.count -gt 1){
         $i++
         }
     Write-Host "Select the number corresponding to the Resource Group containing your AVD HostPool Resources."
+    Write-Host "  The script will find the Resource Groups with the corresponding VMs!" -ForegroundColor Yellow
     #Write-Host "(For multiples type the number separated by a comma or 1,3,5 as an example)"  #### TO HANDLE MULTIPLE LATER
-    $response = Read-Host "RG"
-    Foreach($selection in $response){
-        Write-Host $AVDHostPools[$Selection-1]
-    }
-    $AVDHostPool = $AVDHostPools[$response-1].ResourceId
+    $response = Read-Host
+    $AVDResourceRG = $RGs[$response-1]
 }
 Else {
     Write-Host "Adding the only SINGLE Resource Group found with Host Pool resources:" $RGs[0].Name
-    $AVDHostPool = $AVDHostPools[0].ResourceId
+    $AVDResourceRG = $RGs[0]
 }
+Write-Host "..Getting Resource Groups with associated VMs... PLEASE WAIT!" -ForegroundColor Yellow
+$HostPools = Get-AzWvdHostPool -ResourceGroupName $AVDResourceRG
+$SessionHosts = @()
+$AVDVMRGs = @()
+Foreach($HostPool in $HostPools){
+    $CurrSessionHost = ((Get-AzWvdSessionHost -SubscriptionId $Sub.Id -ResourceGroupName $AVDResourceRG -HostPoolName $HostPool.Name).Name -split '/')[1]
+    If($null -eq $CurrSessionHost){Write-Host "No Session Hosts Found in:" $HostPool.Name -ForegroundColor Yellow}
+    Else{
+        $DotLocation = $CurrSessionHost.IndexOf('.')
+        If($DotLocation -ne -1){$CurrSessionHost = $CurrSessionHost.Substring(0,$DotLocation)}
+        $AVDVMRGs += (Get-AzVM -Name $CurrSessionHost).ResourceGroupName
+        $SessionHosts += $CurrSessionHost
+    }
+}
+$AVDVMRGs = $AVDVMRGs | Sort-Object | Get-Unique
+$AVDVMRGIds = @()
+Foreach ($AVDVMRG in $AVDVMRGs){
+    $AVDVMRGIds += (Get-AzResourceGroup -Name $AVDVMRG).ResourceId
+}
+$i = 1
+Foreach ($item in $AVDVMRGIds){
+    If($AVDVMRGIds.count -ne $i){$AVDResourceIDs += """$item""," + "`n`t`t"}
+    Else{$AVDResourceIDs += """$item"""}
+    $i++
+}
+
 
 # =================================================================================================
 #Log Analytics
@@ -188,7 +212,7 @@ $OutputBody = @"
         },
         "SessionHostsResourceGroupIds": {
             "value": [
-                "$AVDHostPool"
+                $AVDResourceIDs
             ]
         },
         "StorageAccountResourceIds": {
