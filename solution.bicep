@@ -104,8 +104,8 @@ var LogAlerts = [
     }
   }
   {
-    name: 'AVD-VM-Local Disk Free Space Warning 90 Percent'
-    displayName: 'AVD-VM-Local Disk Free Space Warning 90 Percent'
+    name: 'AVD-VM-Local Disk Free Space Warning 10 Percent'
+    displayName: 'AVD-VM-Local Disk Free Space Warning 10 Percent'
     description: AlertDescriptionHeader
     severity: 2
     evaluationFrequency: 'PT15M'
@@ -113,13 +113,52 @@ var LogAlerts = [
     criteria: {
       allOf: [
         {
-          query: 'InsightsMetrics\n| where Origin == "vm.azm.ms"\n| where Namespace == "LogicalDisk" and Name == "FreeSpacePercentage"\n| summarize AggregatedValue = avg(Val) by bin(TimeGenerated, 15m), Computer, _ResourceId\n'
-          timeAggregation: 'Average'
-          metricMeasureColumn: 'AggregatedValue'
-          dimensions: []
+          query: 'Perf\n| where TimeGenerated > ago(15m)\n| where ObjectName == "LogicalDisk" and CounterName == "% Free Space"\n| where InstanceName !contains "D:"\n| where InstanceName  !contains "_Total"| where CounterValue <= 10.00'
+          timeAggregation: 'Count'
+          dimensions: [
+            {
+              name: 'Computer'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
           resourceIdColumn: '_ResourceId'
-          operator: 'LessThan'
-          threshold: 10
+          operator: 'GreaterThanOrEqual'
+          threshold: 1
+          failingPeriods: {
+            numberOfEvaluationPeriods: 1
+            minFailingPeriodsToAlert: 1
+          }
+        }
+      ]
+    }
+  }
+  {
+    name: 'AVD-VM-Local Disk Free Space Warning 5 Percent'
+    displayName: 'AVD-VM-Local Disk Free Space Warning 5 Percent'
+    description: AlertDescriptionHeader
+    severity: 1
+    evaluationFrequency: 'PT15M'
+    windowSize: 'PT15M'
+    criteria: {
+      allOf: [
+        {
+          query: 'Perf\n| where TimeGenerated > ago(15m)\n| where ObjectName == "LogicalDisk" and CounterName == "% Free Space"\n| where InstanceName !contains "D:"\n| where InstanceName  !contains "_Total"| where CounterValue <= 5.00'
+          timeAggregation: 'Count'
+          dimensions: [
+            {
+              name: 'Computer'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          resourceIdColumn: '_ResourceId'
+          operator: 'GreaterThanOrEqual'
+          threshold: 1
           failingPeriods: {
             numberOfEvaluationPeriods: 1
             minFailingPeriodsToAlert: 1
@@ -158,31 +197,6 @@ var LogAlerts = [
           ]
           operator: 'GreaterThanOrEqual'
           threshold: 1
-          failingPeriods: {
-            numberOfEvaluationPeriods: 1
-            minFailingPeriodsToAlert: 1
-          }
-        }
-      ]
-    }
-  }
-  {
-    name: 'AVD-VM-Local Disk Free Space Warning 95 Percent'
-    displayName: 'AVD-VM-Local Disk Free Space Warning 95 Percent'
-    description: AlertDescriptionHeader
-    severity: 1
-    evaluationFrequency: 'PT15M'
-    windowSize: 'PT15M'
-    criteria: {
-      allOf: [
-        {
-          query: 'InsightsMetrics\n| where Origin == "vm.azm.ms"\n| where Namespace == "LogicalDisk" and Name == "FreeSpacePercentage"\n| summarize AggregatedValue = avg(Val) by bin(TimeGenerated, 15m), Computer, _ResourceId\n'
-          timeAggregation: 'Average'
-          metricMeasureColumn: 'AggregatedValue'
-          dimensions: []
-          resourceIdColumn: '_ResourceId'
-          operator: 'LessThan'
-          threshold: 5
           failingPeriods: {
             numberOfEvaluationPeriods: 1
             minFailingPeriodsToAlert: 1

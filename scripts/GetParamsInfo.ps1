@@ -101,7 +101,7 @@ Foreach ($AVDVMRG in $AVDVMRGs){
 }
 $i = 1
 Foreach ($item in $AVDVMRGIds){
-    If($AVDVMRGIds.count -ne $i){$AVDResourceIDs += """$item""," + "`n`t`t"}
+    If($AVDVMRGIds.count -ne $i){$AVDResourceIDs += """$item""," + "`n`t`t`t"}
     Else{$AVDResourceIDs += """$item"""}
     $i++
 }
