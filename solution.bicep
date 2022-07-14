@@ -123,6 +123,13 @@ var LogAlerts = [
                 '*'
               ]
             }
+            {
+              name: 'CounterValue'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
           ]
           resourceIdColumn: '_ResourceId'
           operator: 'GreaterThanOrEqual'
@@ -150,6 +157,13 @@ var LogAlerts = [
           dimensions: [
             {
               name: 'Computer'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'CounterValue'
               operator: 'Include'
               values: [
                 '*'
