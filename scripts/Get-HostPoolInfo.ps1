@@ -11,7 +11,7 @@ $Parameters = ConvertFrom-Json -InputObject $WebHookData.RequestBody
 $SubscriptionId = $Parameters.PSObject.Properties['SubscriptionId'].Value
 
 $AVDHostPools = Get-AzWvdHostPool -SubscriptionId $SubscriptionId
-
+Connect-AzAccount -Identity | Out-Null
 $HostPoolInfoObj= @()
 
 Foreach($AVDHostPool in $AVDHostPools){

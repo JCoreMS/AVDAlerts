@@ -59,7 +59,8 @@ var LogicAppName = 'la-avdmetrics-${Environment}-${Location}'
 var ResourceGroupName = 'rg-avdmetrics-${Environment}-${Location}'
 var RoleName = 'Log Analytics Workspace Metrics Contributor'
 var RoleDescription = 'This role allows a resource to write to Log Analytics Metrics.'
-var RunbookName = 'AvdLogGenerator'
+var RunbookNameGetStorage = 'AvdStorageLogData'
+var RunbookNameGetHostPool = 'AvdHostPoolLogData'
 var RunbookScriptGetStorage = 'Get-AzureAvdLogs.ps1'
 var RunbookScriptGetHostPool = 'Get-HostPoolInfo.ps1'
 //var LogAnalyticsWorkspaceName = split(LogAnalyticsWorkspaceResourceId, '/')[8]
@@ -643,7 +644,8 @@ module resources 'modules/resources.bicep' = {
     LogAlerts: LogAlerts
     LogicAppName: LogicAppName
     MetricAlerts: MetricAlerts
-    RunbookName: RunbookName
+    RunbookNameGetStorage: RunbookNameGetStorage
+    RunbookNameGetHostPool: RunbookNameGetHostPool
     RunbookScriptGetStorage: RunbookScriptGetStorage
     RunbookScriptGetHostPool: RunbookScriptGetHostPool
     ScriptsRepositorySasToken: ScriptsRepositorySasToken

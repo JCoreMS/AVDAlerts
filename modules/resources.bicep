@@ -10,7 +10,8 @@ param LogAlerts array
 //param LogAnalyticsWorkspaceName string
 param LogicAppName string
 param MetricAlerts object
-param RunbookName string
+param RunbookNameGetStorage string
+param RunbookNameGetHostPool string
 param RunbookScriptGetStorage string
 param RunbookScriptGetHostPool string
 @secure()
@@ -294,7 +295,7 @@ resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' 
 
 resource runbookGetStorageInfo 'Microsoft.Automation/automationAccounts/runbooks@2019-06-01' = {
   parent: automationAccount
-  name: RunbookName
+  name: RunbookNameGetStorage
   location: Location
   properties: {
     runbookType: 'PowerShell'
@@ -329,7 +330,7 @@ resource variableGetStorageInfo 'Microsoft.Automation/automationAccounts/variabl
 
 resource runbookGetHostPoolInfo 'Microsoft.Automation/automationAccounts/runbooks@2019-06-01' = {
   parent: automationAccount
-  name: RunbookName
+  name: RunbookNameGetHostPool
   location: Location
   properties: {
     runbookType: 'PowerShell'
@@ -343,7 +344,7 @@ resource runbookGetHostPoolInfo 'Microsoft.Automation/automationAccounts/runbook
 }
 
 resource logicAppGetStorageInfo 'Microsoft.Logic/workflows@2016-06-01' = {
-  name: LogicAppName
+  name: '${LogicAppName}-GetStorageInfo'
   location: Location
   properties: {
     state: 'Enabled'
@@ -399,7 +400,7 @@ resource variableGetHostPoolInfo 'Microsoft.Automation/automationAccounts/variab
 }
 
 resource logicAppGetHostPoolInfo 'Microsoft.Logic/workflows@2016-06-01' = {
-  name: LogicAppName
+  name: '${LogicAppName}-GetHostPoolInfo'
   location: Location
   properties: {
     state: 'Enabled'
