@@ -8,7 +8,7 @@ param SetAutoResolve bool = true
 param SetEnabled bool = false
  */
 
- @description('The Distribution Group that will receive email alerts for AVD.')
+@description('The Distribution Group that will receive email alerts for AVD.')
 param DistributionGroup string = ''
 
 @allowed([
@@ -59,15 +59,31 @@ var LogicAppName = 'la-avdmetrics-${Environment}-${Location}'
 var ResourceGroupName = 'rg-avdmetrics-${Environment}-${Location}'
 var RoleName = 'Log Analytics Workspace Metrics Contributor'
 var RoleDescription = 'This role allows a resource to write to Log Analytics Metrics.'
-var RunbookName = 'AvdLogGenerator'
-var RunbookScript = 'Get-AzureAvdLogs.ps1'
+var RunbookNameGetStorage = 'AvdStorageLogData'
+var RunbookNameGetHostPool = 'AvdHostPoolLogData'
+var RunbookScriptGetStorage = 'Get-AzureAvdLogs.ps1'
+var RunbookScriptGetHostPool = 'Get-HostPoolInfo.ps1'
 //var LogAnalyticsWorkspaceName = split(LogAnalyticsWorkspaceResourceId, '/')[8]
-var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v0.1)'
+var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v0.2)'
+var RoleAssignments = {
+  DesktopVirtualizationRead: {
+    Name: 'Desktop-Virtualization-Reader'
+    GUID: '49a72310-ab8d-41df-bbb0-79b649203868'
+  }
+  StoreKeyRead: {
+    Name: 'Storage-Acct-Key-Reader-Data-Access'
+    GUID: 'c12c1c16-33a1-487b-954d-41c89c60f349'
+  }
+}
+// 'c12c1c16-33a1-487b-954d-41c89c60f349'  // Reader and Data Access (Storage Account Keys)
+// 'acdd72a7-3385-48ef-bd42-f606fba81ae7'  // Reader
+// '49a72310-ab8d-41df-bbb0-79b649203868'    // Desktop Virtualization Reader (May be able to replace Reader with this)
+
 var LogAlerts = [
   {
     name: 'AVD-HostPool-No Resources Available'
     displayName: 'AVD-HostPool-No Resources Available'
-    description: 'Based on the AVD Healthcheck Agent'
+    description: AlertDescriptionHeader
     severity: 1
     evaluationFrequency: 'PT15M'
     windowSize: 'PT15M'
@@ -104,8 +120,84 @@ var LogAlerts = [
     }
   }
   {
-    name: 'AVD-VM-Local Disk Free Space Warning 10 Percent'
-    displayName: 'AVD-VM-Local Disk Free Space Warning 10 Percent'
+    name: 'AVD-HostPool-Disconnected User over 24 Hours'
+    displayName: 'AVD-HostPool-Disconnected User over 24 Hours'
+    description: AlertDescriptionHeader
+    severity: 2
+    evaluationFrequency: 'PT1H'
+    windowSize: 'PT1H'
+    criteria: {
+      allOf: [
+        {
+          query: '// Session duration \n// Lists users by session duration in the last 24 hours. \n// The "State" provides information on the connection stage of an actitivity.\n// The delta between "Connected" and "Completed" provides the connection time for a specific connection.\nWVDConnections \n| where TimeGenerated > ago(24h) \n| where State == "Connected"  \n| project CorrelationId , UserName, ConnectionType, StartTime=TimeGenerated, SessionHostName\n| join (WVDConnections  \n    | where State == "Completed"  \n    | project EndTime=TimeGenerated, CorrelationId)  \n    on CorrelationId  \n| project Duration = EndTime - StartTime, ConnectionType, UserName, SessionHostName\n| where Duration >= timespan(24:00:00)\n| sort by Duration desc'
+          timeAggregation: 'Count'
+          dimensions: [
+            {
+              name: 'UserName'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'SessionHostName'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          operator: 'GreaterThanOrEqual'
+          threshold: 1
+          failingPeriods: {
+            numberOfEvaluationPeriods: 1
+            minFailingPeriodsToAlert: 1
+          }
+        }
+      ]
+    }
+  }
+  {
+    name: 'AVD-HostPool-Disconnected User over 72 Hours'
+    displayName: 'AVD-HostPool-Disconnected User over 72 Hours'
+    description: AlertDescriptionHeader
+    severity: 1
+    evaluationFrequency: 'PT1H'
+    windowSize: 'PT1H'
+    criteria: {
+      allOf: [
+        {
+          query: '// Session duration \n// Lists users by session duration in the last 24 hours. \n// The "State" provides information on the connection stage of an actitivity.\n// The delta between "Connected" and "Completed" provides the connection time for a specific connection.\nWVDConnections \n| where TimeGenerated > ago(24h) \n| where State == "Connected"  \n| project CorrelationId , UserName, ConnectionType, StartTime=TimeGenerated, SessionHostName\n| join (WVDConnections  \n    | where State == "Completed"  \n    | project EndTime=TimeGenerated, CorrelationId)  \n    on CorrelationId  \n| project Duration = EndTime - StartTime, ConnectionType, UserName, SessionHostName\n| where Duration >= timespan(72:00:00)\n| sort by Duration desc'
+          timeAggregation: 'Count'
+          dimensions: [
+            {
+              name: 'UserName'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'SessionHostName'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          operator: 'GreaterThanOrEqual'
+          threshold: 1
+          failingPeriods: {
+            numberOfEvaluationPeriods: 1
+            minFailingPeriodsToAlert: 1
+          }
+        }
+      ]
+    }
+  }
+  {
+    name: 'AVD-VM-Local Disk Free Space 10 Percent'
+    displayName: 'AVD-VM-Local Disk Free Space 10%'
     description: AlertDescriptionHeader
     severity: 2
     evaluationFrequency: 'PT15M'
@@ -143,8 +235,8 @@ var LogAlerts = [
     }
   }
   {
-    name: 'AVD-VM-Local Disk Free Space Warning 5 Percent'
-    displayName: 'AVD-VM-Local Disk Free Space Warning 5 Percent'
+    name: 'AVD-VM-Local Disk Free Space 5 Percent'
+    displayName: 'AVD-VM-Local Disk Free Space 5%'
     description: AlertDescriptionHeader
     severity: 1
     evaluationFrequency: 'PT15M'
@@ -198,16 +290,16 @@ var LogAlerts = [
               name: 'Computer'
               operator: 'Include'
               values: [
-                  '*'
+                '*'
               ]
-          }
-          {
+            }
+            {
               name: 'RenderedDescription'
               operator: 'Include'
               values: [
-                  '*'
+                '*'
               ]
-          }
+            }
           ]
           operator: 'GreaterThanOrEqual'
           threshold: 1
@@ -237,7 +329,7 @@ var LogAlerts = [
               name: 'SessionHostName'
               operator: 'Include'
               values: [
-                  '*'
+                '*'
               ]
             }
           ]
@@ -251,9 +343,9 @@ var LogAlerts = [
       ]
     }
   }
-  {  // Based on Runbook script Output to LAW
+  { // Based on Runbook script Output to LAW
     name: 'AVD-Storage-Low Space on Azure File Share-15 Percent Remaining'
-    displayName: 'AVD-Storage-Low Space on Azure File Share-15 Percent Remaining'
+    displayName: 'AVD-Storage-Low Space on Azure File Share-15% Remaining'
     description: '${AlertDescriptionHeader}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining'
     severity: 2
     evaluationFrequency: 'PT10M'
@@ -264,8 +356,7 @@ var LogAlerts = [
         {
           query: '''
           AzureDiagnostics 
-          | where Category has "JobStreams"
-          | where StreamType_s has "Output"
+          | where Category has "JobStreams" and StreamType_s == "Output" and RunbookName_s == "AvdStorageLogData"
           | sort by TimeGenerated
           //  StorageType / Subscription / RG / StorAcct / Share / Quota / GB Used / %Available
           | extend StorageType=split(ResultDescription, ',')[0]
@@ -284,7 +375,7 @@ var LogAlerts = [
               name: 'ResultDescription'
               operator: 'Include'
               values: [
-                  '*'
+                '*'
               ]
             }
           ]
@@ -299,9 +390,9 @@ var LogAlerts = [
       ]
     }
   }
-  {  // Based on Runbook script Output to LAW
+  { // Based on Runbook script Output to LAW
     name: 'AVD-Storage-Low Space on Azure File Share-5 Percent Remaining'
-    displayName: 'AVD-Storage-Low Space on Azure File Share-5 Percent Remaining'
+    displayName: 'AVD-Storage-Low Space on Azure File Share-5% Remaining'
     description: '${AlertDescriptionHeader}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining'
     severity: 1
     evaluationFrequency: 'PT10M'
@@ -312,8 +403,7 @@ var LogAlerts = [
         {
           query: '''
           AzureDiagnostics 
-          | where Category has "JobStreams"
-          | where StreamType_s has "Output"
+          | where Category has "JobStreams" and StreamType_s == "Output" and RunbookName_s == "AvdStorageLogData"
           | sort by TimeGenerated
           //  StorageType / Subscription / RG / StorAcct / Share / Quota / GB Used / %Available
           | extend StorageType=split(ResultDescription, ',')[0]
@@ -332,7 +422,175 @@ var LogAlerts = [
               name: 'ResultDescription'
               operator: 'Include'
               values: [
-                  '*'
+                '*'
+              ]
+            }
+          ]
+          resourceIdColumng: '_ResourceId'
+          operator: 'GreaterThanOrEqual'
+          threshold: 1
+          failingPeriods: {
+            numberOfEvaluationPeriods: 1
+            minFailingPeriodsToAlert: 1
+          }
+        }
+      ]
+    }
+  }
+  { // Based on Runbook script Output to LAW
+    name: 'AVD-HostPool-Capacity-85Percent'
+    displayName: 'AVD-HostPool-Capacity 85%'
+    description: '${AlertDescriptionHeader}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Host Pool\nOutput is:\nHostPoolName|ResourceGroup|Type|MaxSessionLimit|NumberHosts|TotalUsers|DisconnectedUser|ActiveUsers|SessionsAvailable|HostPoolPercentageLoad'
+    severity: 2
+    evaluationFrequency: 'PT5M'
+    windowSize: 'PT5M'
+    overrideQueryTimeRange: 'P2D'
+    criteria: {
+      allOf: [
+        {
+          query: '''
+          AzureDiagnostics 
+          | where Category has "JobStreams" and StreamType_s == "Output" and RunbookName_s == "AvdHostPoolLogData"
+          | sort by TimeGenerated
+          | where TimeGenerated > now() - 5m
+          | extend HostPoolName=tostring(split(ResultDescription, '|')[0])
+          | extend ResourceGroup=tostring(split(ResultDescription, '|')[1])
+          | extend Type=tostring(split(ResultDescription, '|')[2])
+          | extend MaxSessionLimit=toint(split(ResultDescription, '|')[3])
+          | extend NumberSessionHosts=toint(split(ResultDescription, '|')[4])
+          | extend UserSessionsTotal=toint(split(ResultDescription, '|')[5])
+          | extend UserSessionsDisconnected=toint(split(ResultDescription, '|')[6])
+          | extend UserSessionsActive=toint(split(ResultDescription, '|')[7])
+          | extend UserSessionsAvailable=toint(split(ResultDescription, '|')[8])
+          | extend HostPoolPercentLoad=toint(split(ResultDescription, '|')[9])
+          | where HostPoolPercentLoad >= 85         
+           '''
+          timeAggregation: 'Count'
+          dimensions: [
+            {
+              name: 'HostPoolName'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'UserSessionsTotal'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'UserSessionsDisconnected'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'UserSessionsActive'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'UserSessionsAvailable'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'HostPoolPercentLoad'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          resourceIdColumng: '_ResourceId'
+          operator: 'GreaterThanOrEqual'
+          threshold: 1
+          failingPeriods: {
+            numberOfEvaluationPeriods: 1
+            minFailingPeriodsToAlert: 1
+          }
+        }
+      ]
+    }
+  }
+  { // Based on Runbook script Output to LAW
+    name: 'AVD-HostPool-Capacity-95Percent'
+    displayName: 'AVD-HostPool-Capacity 95%'
+    description: '${AlertDescriptionHeader}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Host Pool\nOutput is:\nHostPoolName|ResourceGroup|Type|MaxSessionLimit|NumberHosts|TotalUsers|DisconnectedUser|ActiveUsers|SessionsAvailable|HostPoolPercentageLoad'
+    severity: 1
+    evaluationFrequency: 'PT5M'
+    windowSize: 'PT5M'
+    overrideQueryTimeRange: 'P2D'
+    criteria: {
+      allOf: [
+        {
+          query: '''
+          AzureDiagnostics 
+          | where Category has "JobStreams" and StreamType_s == "Output" and RunbookName_s == "AvdHostPoolLogData"
+          | sort by TimeGenerated
+          | where TimeGenerated > now() - 5m
+          | extend HostPoolName=tostring(split(ResultDescription, '|')[0])
+          | extend ResourceGroup=tostring(split(ResultDescription, '|')[1])
+          | extend Type=tostring(split(ResultDescription, '|')[2])
+          | extend MaxSessionLimit=toint(split(ResultDescription, '|')[3])
+          | extend NumberSessionHosts=toint(split(ResultDescription, '|')[4])
+          | extend UserSessionsTotal=toint(split(ResultDescription, '|')[5])
+          | extend UserSessionsDisconnected=toint(split(ResultDescription, '|')[6])
+          | extend UserSessionsActive=toint(split(ResultDescription, '|')[7])
+          | extend UserSessionsAvailable=toint(split(ResultDescription, '|')[8])
+          | extend HostPoolPercentLoad=toint(split(ResultDescription, '|')[9])
+          | where HostPoolPercentLoad >= 95         
+           '''
+          timeAggregation: 'Count'
+          dimensions: [
+            {
+              name: 'HostPoolName'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'UserSessionsTotal'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'UserSessionsDisconnected'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'UserSessionsActive'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'UserSessionsAvailable'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'HostPoolPercentLoad'
+              operator: 'Include'
+              values: [
+                '*'
               ]
             }
           ]
@@ -353,7 +611,7 @@ var MetricAlerts = {
     {
       name: 'AVD-Storage-Over 200ms Latency for Storage Acct'
       displayName: 'AVD-Storage-Over 200ms Latency for Storage Acct'
-      description: AlertDescriptionHeader
+      description: '${AlertDescriptionHeader}\nThis could indicate a lag or poor performance for user Profiles or Apps using MSIX App Attach.'
       severity: 2
       evaluationFrequency: 'PT5M'
       windowSize: 'PT15M'
@@ -420,10 +678,10 @@ var MetricAlerts = {
       targetResourceType: 'Microsoft.Storage/storageAccounts/fileServices'
     }
   ]
-  anf: [ 
+  anf: [
     {
       name: 'AVD-Storage-Low Space on ANF Share-15 Percent Remaining'
-      displayName: 'AVD-Storage-Low Space on ANF Share-15 Percent Remaining'
+      displayName: 'AVD-Storage-Low Space on ANF Share-15% Remaining'
       description: AlertDescriptionHeader
       severity: 2
       evaluationFrequency: 'PT1H'
@@ -446,7 +704,7 @@ var MetricAlerts = {
     }
     {
       name: 'AVD-Storage-Low Space on ANF Share-5 Percent Remaining'
-      displayName: 'AVD-Storage-Low Space on ANF Share-5 Percent Remaining'
+      displayName: 'AVD-Storage-Low Space on ANF Share-5% Remaining'
       description: AlertDescriptionHeader
       severity: 1
       evaluationFrequency: 'PT1H'
@@ -471,7 +729,7 @@ var MetricAlerts = {
   virtualMachines: [
     {
       name: 'AVD-VM-High CPU 85 Percent'
-      displayName: 'AVD-VM-High CPU 85 Percent'
+      displayName: 'AVD-VM-High CPU 85%'
       description: AlertDescriptionHeader
       severity: 2
       evaluationFrequency: 'PT5M'
@@ -494,7 +752,7 @@ var MetricAlerts = {
     }
     {
       name: 'AVD-VM-High CPU 95 Percent'
-      displayName: 'AVD-VM-High CPU 95 Percent'
+      displayName: 'AVD-VM-High CPU 95%'
       description: AlertDescriptionHeader
       severity: 1
       evaluationFrequency: 'PT5M'
@@ -588,8 +846,6 @@ var MetricAlerts = {
   ] */
 }
 
-
-
 resource resourceGroupAVDMetrics 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: ResourceGroupName
   location: Location
@@ -642,8 +898,10 @@ module resources 'modules/resources.bicep' = {
     LogAlerts: LogAlerts
     LogicAppName: LogicAppName
     MetricAlerts: MetricAlerts
-    RunbookName: RunbookName
-    RunbookScript: RunbookScript
+    RunbookNameGetStorage: RunbookNameGetStorage
+    RunbookNameGetHostPool: RunbookNameGetHostPool
+    RunbookScriptGetStorage: RunbookScriptGetStorage
+    RunbookScriptGetHostPool: RunbookScriptGetHostPool
     ScriptsRepositorySasToken: ScriptsRepositorySasToken
     ScriptsRepositoryUri: ScriptsRepositoryUri
     SessionHostsResourceGroupIds: SessionHostsResourceGroupIds
@@ -655,17 +913,14 @@ module resources 'modules/resources.bicep' = {
   }
 }
 
-
-resource roleAssignment_Subscription 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = {
-  name: guid(subscription().id, AutomationAccountName, 'Reader')
+resource roleAssignment_Subscription 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = [for Role in items(RoleAssignments): {
+  name: guid(subscription().id, AutomationAccountName, Role.value.Name)
   properties: {
-    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', 'c12c1c16-33a1-487b-954d-41c89c60f349') // Reader and Data Access
+    roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', Role.value.GUID)
     principalId: resources.outputs.automationAccountPrincipalId
     principalType: 'ServicePrincipal'
   }
-}
-
-
+}]
 
 // Commenting out Function App resources until Custom Metrics / Logs is supported in Azure US Government
 /* resource roleCustomAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
