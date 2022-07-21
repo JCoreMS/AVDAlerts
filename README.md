@@ -21,7 +21,7 @@ You'll need a Log Analytics Workspace already configured via AVD Insights for mo
 |---                                                                |---                      |---           |---           |  
 | AVD-HostPool-Capacity                                             | At 95% / 85%          | Log Analytics  |  5 min       |
 | AVD-HostPool-Disconnected User over XX Hours                      | 24 / 72               | Log Analytics  |  1 hour      |
-| AVD-HostPool-No Resources Available                               | No Hosts per AVD Agent| Log Analytics |  15 min      |
+| AVD-HostPool-No Resources Available                               | Any are Sev1          | Log Analytics |  15 min      |
 | AVD-Storage-Low Space on ANF Share-XX Percent Remaining-{volumename}| 5 / 15               | Metric Alerts |   1 hour      |
 | AVD-Storage-Low Space on Azure File Share-XX% Remaining           | 5 / 15                | Log Analytics  |   1 hour     |
 | AVD-Storage-Over 200ms Latency for Storage Act-{storacctname}     | na / 200ms            | Metrice Alerts |  15 min     |
