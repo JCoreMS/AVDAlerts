@@ -24,8 +24,8 @@ You'll need a Log Analytics Workspace already configured via AVD Insights for mo
 | AVD-HostPool-No Resources Available                               | No Hosts per AVD Agent| Log Analytics |  15 min      |
 | AVD-Storage-Low Space on ANF Share-XX Percent Remaining-{volumename}| 5 / 15               | Metric Alerts |   1 hour      |
 | AVD-Storage-Low Space on Azure File Share-XX% Remaining           | 5 / 15                | Log Analytics  |   1 hour     |
-| AVD-Storage-Over 200ms Latency for Storage Act-{storacctname}     | n/a / 200ms            | Metrice Alerts |  15 min     |
-| AVD-Storage-Possible Throttling Due to High IOPs-{storacctname}   | n/a / custom          | Metric Alerts | 15 min        |
+| AVD-Storage-Over 200ms Latency for Storage Act-{storacctname}     | na / 200ms            | Metrice Alerts |  15 min     |
+| AVD-Storage-Possible Throttling Due to High IOPs-{storacctname}   | na / custom          | Metric Alerts | 15 min        |
 | AVD-VM-Available Memory Less Than XGB                             | 1 / 2                 | Metric Alerts | 5 min         |
 | AVD-VM-FSLogix Profile Failed (Event Log Indicated Failure)       | Any are Sev1          | Log Analytics | 5 min         |
 | AVD-VM-Health Check Failure                                       | Any are Sev1          | Log Analytics | 5 min         |
