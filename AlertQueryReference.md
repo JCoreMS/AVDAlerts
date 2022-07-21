@@ -1,3 +1,5 @@
+[Back](README.md)
+
 # Alert Query Reference
 
 The following are the queries used in the solution.  
