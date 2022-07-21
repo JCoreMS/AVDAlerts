@@ -349,7 +349,7 @@ var LogAlerts = [
     description: '${AlertDescriptionHeader}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining'
     severity: 2
     evaluationFrequency: 'PT10M'
-    windowSize: 'PT10M'
+    windowSize: 'PT1H'
     overrideQueryTimeRange: 'P2D'
     criteria: {
       allOf: [
@@ -396,7 +396,7 @@ var LogAlerts = [
     description: '${AlertDescriptionHeader}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining'
     severity: 1
     evaluationFrequency: 'PT10M'
-    windowSize: 'PT10M'
+    windowSize: 'PT1H'
     overrideQueryTimeRange: 'P2D'
     criteria: {
       allOf: [
@@ -613,7 +613,7 @@ var MetricAlerts = {
       displayName: 'AVD-Storage-Over 200ms Latency for Storage Acct'
       description: '${AlertDescriptionHeader}\nThis could indicate a lag or poor performance for user Profiles or Apps using MSIX App Attach.'
       severity: 2
-      evaluationFrequency: 'PT5M'
+      evaluationFrequency: 'PT15M'
       windowSize: 'PT15M'
       criteria: {
         allOf: [
@@ -637,8 +637,8 @@ var MetricAlerts = {
       displayName: 'AVD-Storage-Possible Throttling Due to High IOPs'
       description: '${AlertDescriptionHeader}\nThis indicates you may be maxing out the allowed IOPs.\nhttps://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled'
       severity: 2
-      evaluationFrequency: 'PT5M'
-      windowSize: 'PT5M'
+      evaluationFrequency: 'PT15M'
+      windowSize: 'PT15M'
       criteria: {
         allOf: [
           {

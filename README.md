@@ -17,23 +17,20 @@ You'll need a Log Analytics Workspace already configured via AVD Insights for mo
 
 ## Alerts Table
 
-| Name                                                              | Condition                              | Severity  |  Signal Type |  Frequency  |  
-|---                                                                |---                                     |---        |---          |---           |  
-|  AVD-HostPool-No Resources Available                              | Host Pool has NO available hosts  | 1             | Log Analytics Query  |  15 Minutes  |  
-|  AVD-Storage-Low Space on ANF Share-15 Percent Remaining-profiles | VolumeConsumedSizePercentage >= 85  | 2               |Metric Alerts  |  Hourly |  
-|  AVD-Storage-Low Space on ANF Share-5 Percent Remaining-profiles  | VolumeConsumedSizePercentage >= 95  | 1               | Metric Alerts  |  Hourly |  
-|  AVD-Storage-Low Space on Azure File Share-15 Percent Remaining   | 15% remaining (Value in Runbook output)  | 2          | Log Analytics Query  |  10 Minutes |  
-|  AVD-Storage-Low Space on Azure File Share-5 Percent Remaining   | 5% remaining (Value in Runbook output)  | 1            | Log Analytics Query  |  10 Minutes |  
-|  AVD-Storage-Over 200ms Latency for Storage Acct-'storageacctname'   | SuccessServerLatency > 200  | 2          |  Metric Alerts  |  15 Minutes  |  
-|  AVD-Storage-Possible Throttling Due to High IOPs-'storageacctname'   | Transactions >= 1 (description has details)  | 2          | Metric Alerts  | 5 Minutes |  
-|  AVD-VM-Available Memory Less Than 1GB   | Available Memory Bytes <= 1073741824  | 1          | Metric Alerts  |  5 Minutes |  
-|  AVD-VM-Available Memory Less Than 2GB   | Available Memory Bytes <= 2147483648  | 2          | Metric Alerts  |  5 Minutes |  
-|  AVD-VM-FSLogix Profile Failed (Event Log Indicated Failure) | Table rows >=1 In selected dimensions | 1  |  Log Analytics Query  |  5 Minutes |  
-|  AVD-VM-Health Check Failure  | Table rows >=1 In selected dimensions (at least one AVD Health check failed) | 1  | Log Analytics Query |  5 Minutes |  
-|  AVD-VM-High CPU 85 Percent  | Percentage CPU > 85 | 2  | Metric Alerts |  5 Minutes |  
-|  AVD-VM-High CPU 95 Percent  | Percentage CPU > 95 | 1  | Metric Alerts |  5 Minutes |  
-|  AVD-VM-Local Disk Free Space Warning 90 Percent  | AggregatedValue < 10 | 2  | Log Analytics Query |  15 Minutes |  
-|  AVD-VM-Local Disk Free Space Warning 95 Percent  | AggregatedValue < 5 | 1  | Log Analytics Query |  15 Minutes |  
+| Name                                                              | Condition (Sev1 / Sev2) |  Signal Type |  Frequency   |  
+|---                                                                |---                      |---           |---           |  
+| AVD-HostPool-Capacity                                             | At 95% / 85%          | Log Analytics  |  5 min       |
+| AVD-HostPool-Disconnected User over XX Hours                      | 24 / 72               | Log Analytics  |  1 hour      |
+| AVD-HostPool-No Resources Available                               | No Hosts per AVD Agent| Log Analytics |  15 min      |
+| AVD-Storage-Low Space on ANF Share-XX Percent Remaining-{volumename}| 5 / 15               | Metric Alerts |   1 hour      |
+| AVD-Storage-Low Space on Azure File Share-XX% Remaining           | 5 / 15                | Log Analytics  |   1 hour     |
+| AVD-Storage-Over 200ms Latency for Storage Act-{storacctname}     | n/a / 200ms            | Metrice Alerts |  15 min     |
+| AVD-Storage-Possible Throttling Due to High IOPs-{storacctname}   | n/a / custom          | Metric Alerts | 15 min        |
+| AVD-VM-Available Memory Less Than XGB                             | 1 / 2                 | Metric Alerts | 5 min         |
+| AVD-VM-FSLogix Profile Failed (Event Log Indicated Failure)       | Any are Sev1          | Log Analytics | 5 min         |
+| AVD-VM-Health Check Failure                                       | Any are Sev1          | Log Analytics | 5 min         |
+| AVD-VM-High CPU XX Percent                                        | 95 / 85               | Metric Alerts | 5 min         |
+| AVD-VM-Local Disk Free Space X%                                   | 5 / 10                | Log Analytics | 15 min        |
 
 ## Deploy via Portal
 
@@ -41,7 +38,7 @@ You'll need a Log Analytics Workspace already configured via AVD Insights for mo
 [![Deploy to Azure Gov](https://aka.ms/deploytoazuregovbutton)](https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FJCoreMS%2FAVDAlerts%2Fmain%2Fsolution.json)
 
 ## Deploy from PowerShell
-Consider using the script to build out your parameters file in the ./scripts folder. This will prompt for information and retrieve the needed resource IDs as well as create a timestamped pararmeters JSON file.  
+Consider using the script to build out your parameters file in the ./scripts folder. This will prompt for information and retrieve the needed resource IDs as well as create a timestamped parameters JSON file.  
 [GetParamsInfo.PS1](./scripts/GetParamsInfo.ps1)
 
 You will need the appropriate PowerShell modules installed and connected to Azure.  Then you can run the following from PowerShell:  
