@@ -4,7 +4,7 @@ The following are the queries used in the solution.
 
 ## AVD-HostPool-Capacity-XXPercent
 
-```JSON
+```
 AzureDiagnostics 
 | where Category has "JobStreams" and StreamType_s == "Output" and RunbookName_s == "AvdHostPoolLogData"
 | sort by TimeGenerated
@@ -24,7 +24,7 @@ AzureDiagnostics
 
 ## AVD-HostPool-Disconnected User over XX Hours
 
-```JSON
+```
 // Session duration 
 // Lists users by session duration in the last 24 hours. 
 // The "State" provides information on the connection stage of an actitivity.
@@ -49,7 +49,7 @@ WVDConnections
 
 ## AVD-HostPool-No Resources Available
 
-```JSON
+```
 WVDConnections 
 | where TimeGenerated > ago (15m) 
 | project-away TenantId, SourceSystem  
@@ -79,7 +79,7 @@ WVDConnections
 
 Generated from custom script via Automation Account and Runbook.
 
-```JSON
+```
 AzureDiagnostics 
 | where Category has "JobStreams"
     and StreamType_s == "Output"
@@ -99,7 +99,7 @@ AzureDiagnostics
 
 ## AVD-VM-FSLogix Profile Failed (Event Log Indicated Failure)
 
-```JSON
+```
 Event
 | where EventLog == "Microsoft-FSLogix-Apps/Admin"
 | where EventLevelName == "Error"
@@ -107,7 +107,7 @@ Event
 
 ## AVD-VM-Local Disk Free Space XX% Remaining
 
-```JSON
+```
 Perf
 | where TimeGenerated > ago(15m)
 | where ObjectName == "LogicalDisk" and CounterName == "% Free Space"
