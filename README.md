@@ -19,7 +19,7 @@ You'll need a Log Analytics Workspace already configured via AVD Insights for mo
 
 | Name                                                              | Condition (Sev1 / Sev2) |  Signal Type |  Frequency   |  
 |---                                                                |---                      |---           |---           |  
-| AVD-HostPool-Capacity                                             | At 95% / 85%          | Log Analytics  |  5 min       |
+| AVD-HostPool-Capacity                                             | 95% / 85%          | Log Analytics  |  5 min       |
 | AVD-HostPool-Disconnected User over XX Hours                      | 24 / 72               | Log Analytics  |  1 hour      |
 | AVD-HostPool-No Resources Available                               | Any are Sev1          | Log Analytics |  15 min      |
 | AVD-Storage-Low Space on ANF Share-XX Percent Remaining-{volumename}| 5 / 15               | Metric Alerts |   1 hour      |
