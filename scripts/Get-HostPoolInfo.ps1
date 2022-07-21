@@ -6,16 +6,17 @@ param(
 	[Parameter(Mandatory)]
 	$WebHookData
 )
-
+Connect-AzAccount -Identity | Out-Null
 $Parameters = ConvertFrom-Json -InputObject $WebHookData.RequestBody
 $SubscriptionId = $Parameters.PSObject.Properties['SubscriptionId'].Value
 
 $AVDHostPools = Get-AzWvdHostPool -SubscriptionId $SubscriptionId
-Connect-AzAccount -Identity | Out-Null
-$HostPoolInfoObj= @()
+
+# $HostPoolInfoObj= @()
+$Output = @()
 
 Foreach($AVDHostPool in $AVDHostPools){
-    $HPName = $AVDHostPool.Name
+	$HPName = $AVDHostPool.Name
     $HPResGroup = ($AVDHostPool.Id -split '/')[4]
     $HPType = $AVDHostPool.HostPoolType
     $HPMaxSessionLimit = $AVDHostPool.MaxSessionLimit
@@ -25,7 +26,12 @@ Foreach($AVDHostPool in $AVDHostPools){
     $HPUsrActive = (Get-AzWvdUserSession -HostPoolName $HPName -ResourceGroupName $HPResGroup | Where-Object {$_.sessionState -eq "Active" -AND $_.userPrincipalName -ne $null}).count
     # Max allowed Sessions - Based on Total given unavailable may be on scaling plan
     $HPSessionsAvail = ($HPMaxSessionLimit * $HPNumSessionHosts)-$HPUsrSession
-    $HostPoolInfoObj += [PSCustomObject]@{
+    if($HPUsrSession -ne 0)	{
+		$HPLoadPercent = ($HPUsrSession/($HPMaxSessionLimit * $HPNumSessionHosts))*100
+	}
+	Else {$HPLoadPercent = 0}
+	$Output += $HPName + "|" + $HPResGroup + "|" + $HPType + "|" + $HPMaxSessionLimit  + "|" + $HPNumSessionHosts + "|" + $HPUsrSession  + "|" + $HPUsrDisonnected  + "|" + $HPUsrActive + "|" + $HPSessionsAvail + "|" + $HPLoadPercent
+    <#$HostPoolInfoObj += [PSCustomObject]@{
         HPName              = $HPName
         HPResGroup          = $HPResGroup
         HPType              = $HPType.ToString()
@@ -35,8 +41,8 @@ Foreach($AVDHostPool in $AVDHostPools){
         HPSessionsAvail     = $HPSessionsAvail
         HPUsrActive         = $HPUsrActive
         HPUsrDisconn        = $HPUsrDisonnected
-
     }
+	#>
 }
-$Output = ConvertTo-Json -InputObject $HostPoolInfoObj
+# $Output = ConvertTo-Json -InputObject $HostPoolInfoObj
 Write-Output $Output

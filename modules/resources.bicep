@@ -328,21 +328,6 @@ resource variableGetStorageInfo 'Microsoft.Automation/automationAccounts/variabl
   }
 }
 
-resource runbookGetHostPoolInfo 'Microsoft.Automation/automationAccounts/runbooks@2019-06-01' = {
-  parent: automationAccount
-  name: RunbookNameGetHostPool
-  location: Location
-  properties: {
-    runbookType: 'PowerShell'
-    logProgress: false
-    logVerbose: false
-    publishContentLink: {
-      uri: '${ScriptsRepositoryUri}${RunbookScriptGetHostPool}${ScriptsRepositorySasToken}'
-      version: '1.0.0.0'
-    }
-  }
-}
-
 resource logicAppGetStorageInfo 'Microsoft.Logic/workflows@2016-06-01' = {
   name: '${LogicAppName}-GetStorageInfo'
   location: Location
@@ -374,6 +359,21 @@ resource logicAppGetStorageInfo 'Microsoft.Logic/workflows@2016-06-01' = {
           }
         }
       }
+    }
+  }
+}
+
+resource runbookGetHostPoolInfo 'Microsoft.Automation/automationAccounts/runbooks@2019-06-01' = {
+  parent: automationAccount
+  name: RunbookNameGetHostPool
+  location: Location
+  properties: {
+    runbookType: 'PowerShell'
+    logProgress: false
+    logVerbose: false
+    publishContentLink: {
+      uri: '${ScriptsRepositoryUri}${RunbookScriptGetHostPool}${ScriptsRepositorySasToken}'
+      version: '1.0.0.0'
     }
   }
 }
