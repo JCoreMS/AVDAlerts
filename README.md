@@ -32,6 +32,8 @@ You'll need a Log Analytics Workspace already configured via AVD Insights for mo
 | AVD-VM-High CPU XX Percent                                        | 95 / 85               | Metric Alerts | 5 min         |
 | AVD-VM-Local Disk Free Space X%                                   | 5 / 10                | Log Analytics | 15 min        |
 
+[**Log Analytics Query Reference**](AlertQueryReference.md)
+
 ## Deploy via Portal
 
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FJCoreMS%2FAVDAlerts%2Fmain%2Fsolution.json)
