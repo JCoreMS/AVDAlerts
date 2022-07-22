@@ -25,10 +25,10 @@ $ResourceGroupName = $Parameters.PSObject.Properties['ResourceGroupName'].Value
 $StorageAccountName = $Parameters.PSObject.Properties['StorageAccountName'].Value
 $SubscriptionId = $Parameters.PSObject.Properties['SubscriptionId'].Value
 #>
-
+$CloudEnvironment = $Parameters.PSObject.Properties['CloudEnvironment'].Value
 $StorageAccts = $Parameters.PSObject.Properties['StorageAccountResourceIds'].Value
 
-Connect-AzAccount -Identity | Out-Null
+Connect-AzAccount -Identity -Environment $CloudEnvironment | Out-Null
 
 $SubName = (Get-azSubscription -SubscriptionId ($StorageAccts -split '/')[2]).Name
 

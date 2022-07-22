@@ -6,9 +6,12 @@ param(
 	[Parameter(Mandatory)]
 	$WebHookData
 )
-Connect-AzAccount -Identity | Out-Null
+
 $Parameters = ConvertFrom-Json -InputObject $WebHookData.RequestBody
+$CloudEnvironment = $Parameters.PSObject.Properties['CloudEnvironment'].Value
 $SubscriptionId = $Parameters.PSObject.Properties['SubscriptionId'].Value
+
+Connect-AzAccount -Identity -Environment $CloudEnvironment | Out-Null
 
 $AVDHostPools = Get-AzWvdHostPool -SubscriptionId $SubscriptionId
 

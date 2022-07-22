@@ -1,3 +1,4 @@
+param CloudEnvironment string
 param ActionGroupName string
 param AutomationAccountName string
 param DistributionGroup string
@@ -345,6 +346,7 @@ resource logicAppGetStorageInfo 'Microsoft.Logic/workflows@2016-06-01' = {
               // Examples of values to pass to the runbook
               // Environment: Environment
               // SubscriptionId: SubscriptionId
+              CloudEnvironment: CloudEnvironment
               StorageAccountResourceIDs: StorageAccountResourceIds
             }
           }
@@ -415,6 +417,7 @@ resource logicAppGetHostPoolInfo 'Microsoft.Logic/workflows@2016-06-01' = {
             body: {
               // Examples of values to pass to the runbook
               // Environment: Environment
+              CloudEnvironment: CloudEnvironment
               SubscriptionId: SubscriptionId
             }
           }
