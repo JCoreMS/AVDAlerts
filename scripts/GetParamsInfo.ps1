@@ -215,7 +215,7 @@ $OutputBody = @"
             "value": ""
         },
         "ScriptsRepositoryUri": {
-            "value": "https://github.com/JCoreMS/AVDAlerts/blob/main/scripts/"
+            "value": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/scripts/"
         },
         "SessionHostsResourceGroupIds": {
             "value": [
