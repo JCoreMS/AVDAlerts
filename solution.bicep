@@ -7,9 +7,6 @@ param SetAutoResolve bool = true
 @description('Determine if you would like to enable all the alerts after deployment.')
 param SetEnabled bool = false
  */
- @description('The Cloud Environment you are deploying to. (i.e. Commercial,US Gov, China, etc.)')
- param CloudEnvironment string = 'environment()'
-
 @description('The Distribution Group that will receive email alerts for AVD.')
 param DistributionGroup string = ''
 
@@ -889,7 +886,6 @@ module resources 'modules/resources.bicep' = {
   name: 'MonitoringResourcesDeployment'
   scope: resourceGroupAVDMetrics
   params: {
-    CloudEnvironment: CloudEnvironment
     AutomationAccountName: AutomationAccountName
     DistributionGroup: DistributionGroup
     //FunctionAppName: FunctionAppName

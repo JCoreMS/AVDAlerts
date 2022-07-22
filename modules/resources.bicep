@@ -1,4 +1,3 @@
-param CloudEnvironment string
 param ActionGroupName string
 param AutomationAccountName string
 param DistributionGroup string
@@ -28,6 +27,7 @@ param ANFVolumeResourceIds array
 
 // var Environment = environment().name
 var SubscriptionId = subscription().subscriptionId
+var CloudEnvironment = environment().name
 
 //var LogAnalyticsRG = split(LogAnalyticsWorkspaceResourceId, '/')[4]
 
