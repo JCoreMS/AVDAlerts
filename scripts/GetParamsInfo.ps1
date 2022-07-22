@@ -26,8 +26,8 @@ Foreach($Sub in $Subs){
  }
 
 $Selection = Read-Host "Select Subscription number desired"
-$Selection = $Subs[$Selection-1]
-Select-AzSubscription -SubscriptionObject $Selection
+$Sub = $Subs[$Selection-1]
+Select-AzSubscription -SubscriptionObject $Sub
 
 
 # =================================================================================================
@@ -61,10 +61,13 @@ If(($EnvType -ne "p") -and ($EnvType -ne "d") -and ($EnvType -ne "t"))
 # AVD Host Pool RG Names
 # =================================================================================================
 Write-Host "Getting AVD Host Pools in Subscription..."
+$AVDResourceRG = ""
+$RGs = ""
 $AVDHostPools = Get-AzResource -ResourceType 'Microsoft.DesktopVirtualization/hostPools'
 Foreach($item in $AVDHostPools){$RGs += $AVDHostPools.ResourceGroupName}
 $RGs = $RGs | Sort-Object -Unique
 If ($RGs.count -gt 1){
+    Write-Host "More than 1 RG found!"
     $i=1
     Foreach($RG in $RGs){
         Write-Host $i" - "$RG
@@ -78,12 +81,13 @@ If ($RGs.count -gt 1){
 }
 Else {
     Write-Host "Adding the only SINGLE Resource Group found with Host Pool resources:" $RGs[0].Name
-    $AVDResourceRG = $RGs[0]
+    $AVDResourceRG = $RGs
 }
 Write-Host "..Getting Resource Groups with associated VMs... PLEASE WAIT!" -ForegroundColor Yellow
 $HostPools = Get-AzWvdHostPool -ResourceGroupName $AVDResourceRG
 $SessionHosts = @()
 $AVDVMRGs = @()
+$AVDResourceIDs = @()
 Foreach($HostPool in $HostPools){
     $CurrSessionHost = ((Get-AzWvdSessionHost -SubscriptionId $Sub.Id -ResourceGroupName $AVDResourceRG -HostPoolName $HostPool.Name).Name -split '/')[1]
     If($null -eq $CurrSessionHost){Write-Host "No Session Hosts Found in:" $HostPool.Name -ForegroundColor Yellow}
@@ -99,11 +103,10 @@ $AVDVMRGIds = @()
 Foreach ($AVDVMRG in $AVDVMRGs){
     $AVDVMRGIds += (Get-AzResourceGroup -Name $AVDVMRG).ResourceId
 }
-$i = 1
+
 Foreach ($item in $AVDVMRGIds){
-    If($AVDVMRGIds.count -ne $i){$AVDResourceIDs += """$item""," + "`n`t`t`t"}
+    If($AVDVMRGIds.count -ne 1){$AVDResourceIDs += """$item""," + "`n`t`t`t"}
     Else{$AVDResourceIDs += """$item"""}
-    $i++
 }
 
 
@@ -212,7 +215,7 @@ $OutputBody = @"
             "value": ""
         },
         "ScriptsRepositoryUri": {
-            "value": "https://storeus2avdalerts.blob.core.windows.net/deployment/"
+            "value": "https://github.com/JCoreMS/AVDAlerts/blob/main/scripts/"
         },
         "SessionHostsResourceGroupIds": {
             "value": [

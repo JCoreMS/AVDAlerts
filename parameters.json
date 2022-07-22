@@ -18,7 +18,7 @@
             "value": ""
         },
         "ScriptsRepositoryUri": {
-            "value": "https://storeus2avdalerts.blob.core.windows.net/deployment/"
+            "value": "https://github.com/JCoreMS/AVDAlerts/blob/main/scripts/"
         },
         "SessionHostsResourceGroupIds": {
             "value": [
