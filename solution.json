@@ -5,17 +5,10 @@
     "_generator": {
       "name": "bicep",
       "version": "0.8.9.13224",
-      "templateHash": "9098683953402540339"
+      "templateHash": "11591909210567562003"
     }
   },
   "parameters": {
-    "CloudEnvironment": {
-      "type": "string",
-      "defaultValue": "environment()",
-      "metadata": {
-        "description": "The Cloud Environment you are deploying to. (i.e. Commercial,US Gov, China, etc.)"
-      }
-    },
     "DistributionGroup": {
       "type": "string",
       "defaultValue": "",
@@ -996,7 +989,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.8.9.13224",
-              "templateHash": "6903828559342249788"
+              "templateHash": "12346541630715509151"
             }
           },
           "parameters": {
@@ -1063,7 +1056,8 @@
             }
           },
           "variables": {
-            "SubscriptionId": "[subscription().subscriptionId]"
+            "SubscriptionId": "[subscription().subscriptionId]",
+            "CloudEnvironment": "[environment().name]"
           },
           "resources": [
             {
@@ -1225,6 +1219,7 @@
                         "method": "POST",
                         "uri": "[replace(reference(resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetStorage')))).value, '\"', '')]",
                         "body": {
+                          "CloudEnvironment": "[variables('CloudEnvironment')]",
                           "StorageAccountResourceIDs": "[parameters('StorageAccountResourceIds')]"
                         }
                       }
@@ -1309,6 +1304,7 @@
                         "method": "POST",
                         "uri": "[replace(reference(resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetHostPool')))).value, '\"', '')]",
                         "body": {
+                          "CloudEnvironment": "[variables('CloudEnvironment')]",
                           "SubscriptionId": "[variables('SubscriptionId')]"
                         }
                       }
