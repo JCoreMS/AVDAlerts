@@ -19,11 +19,11 @@ You'll need a Log Analytics Workspace already configured via AVD Insights for mo
 
 | Name                                                              | Condition (Sev1 / Sev2) |  Signal Type |  Frequency   |  
 |---                                                                |---                      |---           |---           |  
-| :one: AVD-HostPool-Capacity                                           | 95% / 85%          | Log Analytics  |  5 min       |
+| AVD-HostPool-Capacity :one:                                          | 95% / 85%          | Log Analytics  |  5 min       |
 | AVD-HostPool-Disconnected User over XX Hours                      | 24 / 72               | Log Analytics  |  1 hour      |
 | AVD-HostPool-No Resources Available                               | Any are Sev1          | Log Analytics |  15 min      |
-| :two: AVD-Storage-Low Space on ANF Share-XX Percent Remaining-{volumename} | 5 / 15               | Metric Alerts |   1 hour      |
-| :two: AVD-Storage-Low Space on Azure File Share-XX% Remaining      | 5 / 15                | Log Analytics  |   1 hour     |
+| AVD-Storage-Low Space on ANF Share-XX Percent Remaining-{volumename} :two: | 5 / 15               | Metric Alerts |   1 hour      |
+| AVD-Storage-Low Space on Azure File Share-XX% Remaining :two:     | 5 / 15                | Log Analytics  |   1 hour     |
 | AVD-Storage-Over 200ms Latency for Storage Act-{storacctname}     | na / 200ms            | Metric Alerts |  15 min     |
 | AVD-Storage-Possible Throttling Due to High IOPs-{storacctname}   | na / custom          | Metric Alerts | 15 min        |
 | AVD-VM-Available Memory Less Than XGB                             | 1 / 2                 | Metric Alerts | 5 min         |
