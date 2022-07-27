@@ -6,6 +6,8 @@ The following are the queries used in the solution.
 
 ## AVD-HostPool-Capacity-XXPercent
 
+This query is also based on the output of the Runbook for AVD Host Pool information that is the AzureDiagnostics table.
+
 ```
 AzureDiagnostics 
 | where Category has "JobStreams" and StreamType_s == "Output" and RunbookName_s == "AvdHostPoolLogData"
@@ -79,7 +81,7 @@ WVDConnections
 
 ## AVD-Storage-Low Space on Azure File Share-XX% Remaining
 
-Generated from custom script via Automation Account and Runbook.
+This query is also based on the output of the Runbook for Azure Files and ANF Storage information that is the AzureDiagnostics table.
 
 ```
 AzureDiagnostics 
