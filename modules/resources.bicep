@@ -199,7 +199,7 @@ resource metricAlerts_VirtualMachines 'Microsoft.Insights/metricAlerts@2018-03-0
 }] */
 
 module storAccountMetric 'storAccountMetric.bicep' = [for i in range(0, length(StorageAccountResourceIds)): {
-  name: 'MetricAlert_StorageAccount_${i}'
+  name: 'MetricAlert_StorageAccount_${split(StorageAccountResourceIds[i],'/')[8]}'
   params: {
     Location: Location
     StorageAccountResourceID: StorageAccountResourceIds[i]
@@ -210,7 +210,7 @@ module storAccountMetric 'storAccountMetric.bicep' = [for i in range(0, length(S
 }]
 
 module azureNetAppFilesMetric 'anfMetric.bicep' = [for i in range(0, length(ANFVolumeResourceIds)): {
-  name: 'MetricAlert_ANF_${i}'
+  name: 'MetricAlert_ANF_${split(ANFVolumeResourceIds[i],'/')[12]}'
   params: {
     Location: Location
     ANFVolumeResourceID: ANFVolumeResourceIds[i]

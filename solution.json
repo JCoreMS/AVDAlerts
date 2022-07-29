@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.8.9.13224",
-      "templateHash": "11591909210567562003"
+      "templateHash": "3878234733763621120"
     }
   },
   "parameters": {
@@ -604,6 +604,28 @@
             "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
           },
           "targetResourceType": "Microsoft.Storage/storageAccounts"
+        },
+        {
+          "name": "AVD-Storage-Azure Files Availability",
+          "displayName": "AVD-Storage-Azure Files Availability",
+          "description": "[format('{0}\nThis could indicate storage is unavailable for user Profiles or Apps using MSIX App Attach.', variables('AlertDescriptionHeader'))]",
+          "severity": 1,
+          "evaluationFrequency": "PT5M",
+          "windowSize": "PT5M",
+          "criteria": {
+            "allOf": [
+              {
+                "threshold": 99,
+                "name": "Metric1",
+                "metricName": "Availability",
+                "operator": "LessThanOrEqual",
+                "timeAggregation": "Average",
+                "criterionType": "StaticThresholdCriterion"
+              }
+            ],
+            "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+          },
+          "targetResourceType": "Microsoft.Storage/storageAccounts"
         }
       ],
       "fileShares": [
@@ -989,7 +1011,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.8.9.13224",
-              "templateHash": "12346541630715509151"
+              "templateHash": "12058107068317698872"
             }
           },
           "parameters": {
@@ -1355,7 +1377,7 @@
               },
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2020-10-01",
-              "name": "[format('MetricAlert_StorageAccount_{0}', range(0, length(parameters('StorageAccountResourceIds')))[copyIndex()])]",
+              "name": "[format('MetricAlert_StorageAccount_{0}', split(parameters('StorageAccountResourceIds')[range(0, length(parameters('StorageAccountResourceIds')))[copyIndex()]], '/')[8])]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -1449,7 +1471,7 @@
               },
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2020-10-01",
-              "name": "[format('MetricAlert_ANF_{0}', range(0, length(parameters('ANFVolumeResourceIds')))[copyIndex()])]",
+              "name": "[format('MetricAlert_ANF_{0}', split(parameters('ANFVolumeResourceIds')[range(0, length(parameters('ANFVolumeResourceIds')))[copyIndex()]], '/')[12])]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"

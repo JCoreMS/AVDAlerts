@@ -629,6 +629,28 @@ var MetricAlerts = {
       }
       targetResourceType: 'Microsoft.Storage/storageAccounts'
     }
+    {
+      name: 'AVD-Storage-Azure Files Availability'
+      displayName: 'AVD-Storage-Azure Files Availability'
+      description: '${AlertDescriptionHeader}\nThis could indicate storage is unavailable for user Profiles or Apps using MSIX App Attach.'
+      severity: 1
+      evaluationFrequency: 'PT5M'
+      windowSize: 'PT5M'
+      criteria: {
+        allOf: [
+          {
+            threshold: 99
+            name: 'Metric1'
+            metricName: 'Availability'
+            operator: 'LessThanOrEqual'
+            timeAggregation: 'Average'
+            criterionType: 'StaticThresholdCriterion'
+          }
+        ]
+        'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+      }
+      targetResourceType: 'Microsoft.Storage/storageAccounts'
+    }
   ]
   fileShares: [
     {
