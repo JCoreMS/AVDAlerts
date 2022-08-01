@@ -885,7 +885,8 @@ module deploymentScript 'modules/deploymentScript.bicep' = {
   }
 }
 
-resource roleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
+//  Function App Role required for Custom Metrics write - Removed until in US Gov and GA
+/* resource roleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
   name: guid(RoleName)
   properties: {
     roleName: RoleName
@@ -902,7 +903,7 @@ resource roleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-prev
       subscription().id
     ]
   }
-}
+} */
 
 module resources 'modules/resources.bicep' = {
   name: 'MonitoringResourcesDeployment'
