@@ -3,8 +3,8 @@ This solution provides a baseline of alerts for AVD that are disabled by default
 
 ## What's the cost?
 While this is highly subjective on the environment, number of triggered alerts, etc. it was designed with cost in mind. The primary resources in this deployment are the Automation Account and Alerts. We recommend you enable alerts in stages and monitor costs, however the overall cost should be minimal.  
-- Automation Account runs a script every 5 minutes to collect additional Azure File Share data and averages around $2/month
-- Alert Rules vary based on number of times triggered but estimates are under $1/mo each. (There are approximately 15 you can enable)
+- Automation Account runs a script every 5 minutes to collect additional Azure File Share data and averages around $5/month
+- Alert Rules vary based on number of times triggered but estimates are under $1/mo each.
 
 ## What will be deployed in my subscription?
 1. A Resource Group for AVD Metrics
@@ -17,21 +17,23 @@ You'll need a Log Analytics Workspace already configured via AVD Insights for mo
 
 ## Alerts Table
 
-| Name                                                              | Condition (Sev1 / Sev2) |  Signal Type |  Frequency   |  
-|---                                                                |---                      |---           |---           |  
-| AVD-HostPool-Capacity :one:                                          | 95% / 85%          | Log Analytics  |  5 min       |
-| AVD-HostPool-Disconnected User over XX Hours                      | 24 / 72               | Log Analytics  |  1 hour      |
-| AVD-HostPool-No Resources Available                               | Any are Sev1          | Log Analytics |  15 min      |
-| AVD-Storage-Low Space on ANF Share-XX Percent Remaining-{volumename} :two: | 5 / 15               | Metric Alerts |   1 hour      |
-| AVD-Storage-Low Space on Azure File Share-XX% Remaining :two:     | 5 / 15                | Log Analytics  |   1 hour     |
-| AVD-Storage-Over 200ms Latency for Storage Act-{storacctname}     | na / 200ms            | Metric Alerts |  15 min     |
-| AVD-Storage-Possible Throttling Due to High IOPs-{storacctname}   | na / custom          | Metric Alerts | 15 min        |
-| AVD-Storage-Azure Files Availability-{storacctname}               | 99 / na               | Metric Alerts | 5 min         |
-| AVD-VM-Available Memory Less Than XGB                             | 1 / 2                 | Metric Alerts | 5 min         |
-| AVD-VM-FSLogix Profile Failed (Event Log Indicated Failure)       | Any are Sev1          | Log Analytics | 5 min         |
-| AVD-VM-Health Check Failure                                       | Any are Sev1          | Log Analytics | 5 min         |
-| AVD-VM-High CPU XX Percent                                        | 95 / 85               | Metric Alerts | 5 min         |
-| AVD-VM-Local Disk Free Space X%                                   | 5 / 10                | Log Analytics | 15 min        |
+Table below shows the Alert Names however the number of alert rules created may be multiple based on different severity and/or additional volume or storage name designators. For example, a deployment with a single Azure Files Storage Account and an Azure NetApp Files Volume would yield 20 alert rules created.
+
+| Name                                                              | Condition (Sev1 / Sev2) |  Signal Type |  Frequency   |  # Alert Rules |
+|---                                                                |---                      |---           |---           |---  
+| AVD-HostPool-Capacity :one:                                       | 95% / 85%          | Log Analytics  |  5 min       |    2  |
+| AVD-HostPool-Disconnected User over XX Hours                      | 24 / 72               | Log Analytics  |  1 hour      |   2  |
+| AVD-HostPool-No Resources Available                               | Any are Sev1          | Log Analytics |  15 min      |  2   |
+| AVD-Storage-Low Space on ANF Share-XX Percent Remaining-{volumename} :two: | 5 / 15               | Metric Alerts |   1 hour    |  2/vol  |
+| AVD-Storage-Low Space on Azure File Share-XX% Remaining :two:     | 5 / 15                | Log Analytics  |   1 hour     |   2   |
+| AVD-Storage-Over 200ms Latency for Storage Act-{storacctname}     | na / 200ms            | Metric Alerts |  15 min     |  2/stor acct |
+| AVD-Storage-Possible Throttling Due to High IOPs-{storacctname}   | na / custom          | Metric Alerts | 15 min        | 2/stor acct |
+| AVD-Storage-Azure Files Availability-{storacctname}               | 99 / na               | Metric Alerts | 5 min         | 2/stor acct |
+| AVD-VM-Available Memory Less Than XGB                             | 1 / 2                 | Metric Alerts | 5 min         | 2/stor acct |
+| AVD-VM-FSLogix Profile Failed (Event Log Indicated Failure)       | Any are Sev1          | Log Analytics | 5 min         |   1  |
+| AVD-VM-Health Check Failure                                       | Any are Sev1          | Log Analytics | 5 min         |   1  |
+| AVD-VM-High CPU XX Percent                                        | 95 / 85               | Metric Alerts | 5 min         |   2  |
+| AVD-VM-Local Disk Free Space X%                                   | 5 / 10                | Log Analytics | 15 min        |   2  |
 
 __NOTE:__  
 :one: __Alert based on Runbook for Azure Files and ANF__  
