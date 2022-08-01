@@ -36,9 +36,9 @@ Table below shows the Alert Names however the number of alert rules created may 
 | AVD-VM-Local Disk Free Space X%                                   | 5 / 10                | Log Analytics | 15 min        |   2  |
 
 __NOTES:__  
-:one: Alert based on Runbook for Azure Files and ANF
-:two: Alert based on Runbook for AVD Host Pool information
-:three: See the following for custom condition. Note that both Standard and Premium values are incorporated into the alert rule. ['How to create an alert if a file share is throttled'](https://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled)
+:one: Alert based on Runbook for Azure Files and ANF  
+:two: Alert based on Runbook for AVD Host Pool information  
+:three: See the following for custom condition. Note that both Standard and Premium values are incorporated into the alert rule. ['How to create an alert if a file share is throttled'](https://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled)  
 
 [**Log Analytics Query Reference**](AlertQueryReference.md)
 
