@@ -17,7 +17,7 @@ You'll need a Log Analytics Workspace already configured via AVD Insights for mo
 
 ## Alerts Table
 
-Table below shows the Alert Names however the number of alert rules created may be multiple based on different severity and/or additional volume or storage name designators. For example, a deployment with a single Azure Files Storage Account and an Azure NetApp Files Volume would yield 20 alert rules created. [Excel Table](references\alerts.xlsx)
+Table below shows the Alert Names however the number of alert rules created may be multiple based on different severity and/or additional volume or storage name designators. For example, a deployment with a single Azure Files Storage Account and an Azure NetApp Files Volume would yield 20 alert rules created. [(Excel Table)](./references/alerts.xlsx)
 
 | Name                                                              | Condition (Sev1 / Sev2) |  Signal Type |  Frequency   |  # Alert Rules |
 |---                                                                |---                      |---           |---           |---  
