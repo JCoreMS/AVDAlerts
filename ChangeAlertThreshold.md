@@ -2,7 +2,7 @@
 
 # Change Alert Rule Threshold
 
-The thresholds configured for the solution are not necessarily ideal for all organizations.  In the event you would like to edit or change any of the pre-configured thresholds you can easily do so.  It is recommended that any alert and it's associated threshold is meaningful and actionable. Thus you should have alerts that don't fire or trigger when you want them to.  Keep in mind the alert rules with percentages can be subjective as well when it comes to things like storage space available. Most of the provided Kusto queries that make up the Log Search may vary but should be easy enough to determine.  
+The thresholds configured for the solution are not necessarily ideal for all organizations.  In the event you would like to edit or change any of the pre-configured thresholds you can easily do so.  It is recommended that any alert and it's associated threshold is meaningful and actionable. Thus you should have alerts that fire or trigger when you want them to.  Keep in mind the alert rules with percentages can be subjective as well when it comes to things like storage space available. Most of the provided Kusto queries that make up the Log Search may vary but should be easy enough to determine.  
 
 __Note:__ Unfortunately the thresholds denoted in the Alert Rule Name cannot be changed. Thus you'll need to create another rule with a new name containing the desired value and then update the query syntax or metric.  
 
