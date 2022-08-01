@@ -27,7 +27,7 @@ Table below shows the Alert Names however the number of alert rules created may 
 | AVD-Storage-Low Space on ANF Share-XX Percent Remaining-{volumename} :two: | 5 / 15               | Metric Alerts |   1 hour    |  2/vol  |
 | AVD-Storage-Low Space on Azure File Share-XX% Remaining :two:     | 5 / 15                | Log Analytics  |   1 hour     |   2   |
 | AVD-Storage-Over 200ms Latency for Storage Act-{storacctname}     | na / 200ms            | Metric Alerts |  15 min     |  2/stor acct |
-| AVD-Storage-Possible Throttling Due to High IOPs-{storacctname}   | na / custom          | Metric Alerts | 15 min        | 2/stor acct |
+| AVD-Storage-Possible Throttling Due to High IOPs-{storacctname}   | na / custom :three:   | Metric Alerts | 15 min        | 2/stor acct |
 | AVD-Storage-Azure Files Availability-{storacctname}               | 99 / na               | Metric Alerts | 5 min         | 2/stor acct |
 | AVD-VM-Available Memory Less Than XGB                             | 1 / 2                 | Metric Alerts | 5 min         |   2  |
 | AVD-VM-FSLogix Profile Failed (Event Log Indicated Failure)       | Any are Sev1          | Log Analytics | 5 min         |   1  |
@@ -38,6 +38,7 @@ Table below shows the Alert Names however the number of alert rules created may 
 __NOTE:__  
 :one: __Alert based on Runbook for Azure Files and ANF__  
 :two: __Alert based on Runbook for AVD Host Pool information__  
+:three: __See the following for custom condition: [How to create an alert if a file share is throttled](https://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled)__
 
 [**Log Analytics Query Reference**](AlertQueryReference.md)
 
