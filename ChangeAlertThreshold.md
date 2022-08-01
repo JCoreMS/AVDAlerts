@@ -32,8 +32,8 @@ __Note:__ Unfortunately the thresholds denoted in the Alert Rule Name cannot be 
 2. Click on the "Condition name" usually in blue.  
 ![Screenshot](./images/AVDAlerts-AlertRulesChange.jpg)  
 3. Edit the information on the blade that pops out on the right side.  
-    - For Log Search type alerts, adjust the Kusto Query in the top box with most thresholds being the last line.  
+    - For __Log Search type alerts__, adjust the Kusto Query in the top box with most thresholds being the last line.  
     ![Screenshot](./images/AVDAlerts-AlertRulesChangeLogbased.jpg)  
-    - For Metric type alerts, there typically is a "Threshold value" field in the "Alert Logic" section.  
+    - For __Metric type alerts__, there typically is a "Threshold value" field in the "Alert Logic" section.  
     ![Screenshot](./images/AVDAlerts-AlertRulesChangeMetricbased.jpg) 
 4. Be sure to save the changes on the right hand blade as well as the Alert Rule.  
