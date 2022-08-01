@@ -38,7 +38,7 @@ Table below shows the Alert Names however the number of alert rules created may 
 __NOTE:__  
 :one: __Alert based on Runbook for Azure Files and ANF__  
 :two: __Alert based on Runbook for AVD Host Pool information__  
-:three: __See the following for custom condition: [How to create an alert if a file share is throttled](https://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled)__
+:three: __See the following for custom condition. Note that both Standard and Premium values are incorporated into the alert rule. ['How to create an alert if a file share is throttled'](https://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled)__
 
 [**Log Analytics Query Reference**](AlertQueryReference.md)
 
