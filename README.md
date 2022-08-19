@@ -8,6 +8,9 @@ This solution provides a baseline of alerts for AVD that are disabled by default
 
 ## Prerequisites  
 
+**NOTE**  
+Currently it is required to input ANF and Azure storage resource IDs. This will be addressed at a later time. To ensure deployment simply add an example resource ID in either that you do not currently have resources to ensure deployment of remaining resources. 
+
 An AVD deployment and the Owner Role on the Subscription containing the AVD resources, VMs and Storage.  You must have also pre-configured the AVD Insights as it will enable diagnostic logging for the Host Pools and associated VMs in which the alerts rely on.  
 
 ## What's deployed to my Subscription?
