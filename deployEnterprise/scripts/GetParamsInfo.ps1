@@ -29,9 +29,31 @@ $Selection = Read-Host "Select Subscription number desired"
 $Sub = $Subs[$Selection-1]
 Select-AzSubscription -SubscriptionObject $Sub
 
+Clear-Host
 
 # =================================================================================================
-CLS
+# Get Environment and Subscription for Deployment
+# =================================================================================================
+
+Write-Host "Which Azure Cloud would you like to deploy to?"
+$CloudList = (Get-AzEnvironment).Name
+Foreach($cloud in $CloudList){Write-Host ($CloudList.IndexOf($cloud)+1) "-" $cloud}
+$select = Read-Host
+$Environment = $CloudList[$select-1]
+
+Connect-AzAccount -Environment $Environment
+
+$Subs = Get-AzSubscription
+Foreach($Sub in $Subs){
+    Write-Host ($Subs.Indexof($Sub)+1) "-" $Sub.Name
+ }
+
+$Selection = Read-Host "Subscription"
+$Selection = $Subs[$Selection-1]
+Select-AzSubscription -SubscriptionObject $Selection
+
+
+# =================================================================================================
 # Get distro email address
 # =================================================================================================
 $DistributionGroup = Read-Host "Provide the email address of the user or distribuition list for AVD Alerts (Disabled by default)"
