@@ -15,7 +15,7 @@ Global Admin at the Tenant level.
 You will need the appropriate PowerShell modules installed and connected to Azure.  Then you can run the following from PowerShell:  
 
 ```PowerShell
-New-AzTenantDeployment -Name "AVD-Alerts-Solution" -TemplateUri https://raw.githubusercontent.com/JCoreMS/AVDAlerts/JCore-TenantDeploy-9.2.22/deployEnterprise/tenant.solution.json -TemplateParameterFile <YourParametersFile> -Location <region>
+New-AzTenantDeployment -Name "AVD-Alerts-Solution" -TemplateUri https://raw.githubusercontent.com/JCoreMS/AVDAlerts/JCore-TenantDeploy-9.2.22/deployEnterprise/tenant.solution.json -TemplateParameterFile tenant.solution.parameters.json -Location <region>
 ```
 
 __See [PostDeployment](../PostDeploy.md) for next steps to enable and view alerts.__
