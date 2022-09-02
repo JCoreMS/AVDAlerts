@@ -1,17 +1,13 @@
 param ActionGroupName string
+param ANFVolumeResourceIds array
 param AutomationAccountName string
 param DistributionGroup string
 param FileServicesResourceIDs array
-//param FunctionAppName string
-//param HostingPlanName string
-//param HostPoolResourceGroupNames array
 param Location string
 param LogAnalyticsWorkspaceResourceId string
 param LogAlerts array
-//param LogAnalyticsWorkspaceName string
 param LogicAppName string
 param MetricAlerts object
-// param RoleAssignments object
 param RunbookNameGetStorage string
 param RunbookNameGetHostPool string
 param RunbookScriptGetStorage string
@@ -23,7 +19,7 @@ param SessionHostsResourceGroupIds array
 param StorageAccountResourceIds array
 param Tags object
 param Timestamp string = utcNow('u')
-param ANFVolumeResourceIds array
+
 
 
 // var Environment = environment().name
@@ -33,9 +29,6 @@ var CloudEnvironment = environment().name
 var AVDHostSubIDlist = [for id in (SessionHostsResourceGroupIds): split(id,'/')[2]]
 var AVDHostSubIDs = union(AVDHostSubIDlist,[])
 
-// Unique list of Subscription IDs for Logic App deployment (Get Storage Info) and RBAC on Storage Account Locations
-var AzStorAcctSubIDlist = [for id in (StorageAccountResourceIds): split(id,'/')[2]]
-var AzStorAcctSubIDs = union(AzStorAcctSubIDlist,[])
 // var LogAnalyticsSubId = split(LogAnalyticsWorkspaceResourceId,'/')[2]
 
 //var LogAnalyticsRG = split(LogAnalyticsWorkspaceResourceId, '/')[4]
@@ -365,10 +358,6 @@ resource logicAppGetStorageInfo 'Microsoft.Logic/workflows@2016-06-01' = {
             method: 'POST'
             uri: replace(variableGetStorageInfo.properties.value, '"', '')
             body: {
-              // Examples of values to pass to the runbook
-              // Environment: Environment
-              // SubscriptionId: SubscriptionId
-              AzStorAcctSubIDs: AzStorAcctSubIDs
               CloudEnvironment: CloudEnvironment
               StorageAccountResourceIDs: StorageAccountResourceIds
               SubscriptionId: SubscriptionId
@@ -439,8 +428,6 @@ resource logicAppGetHostPoolInfo 'Microsoft.Logic/workflows@2016-06-01' = {
             method: 'POST'
             uri: replace(variableGetHostPoolInfo.properties.value, '"', '')
             body: {
-              // Examples of values to pass to the runbook
-              // Environment: Environment
               CloudEnvironment: CloudEnvironment
               SubscriptionId: SubscriptionId
             }
