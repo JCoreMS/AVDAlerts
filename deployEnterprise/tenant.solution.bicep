@@ -65,7 +65,7 @@ var RunbookNameGetHostPool = 'AvdHostPoolLogData'
 var RunbookScriptGetStorage = 'Get-StorAcctInfo.ps1'
 var RunbookScriptGetHostPool = 'Get-HostPoolInfo.ps1'
 //var LogAnalyticsWorkspaceName = split(LogAnalyticsWorkspaceResourceId, '/')[8]
-var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v0.2)'
+var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v0.3)\n'
 // File Services - append for resource IDs
 var FileServicesResourceIDs = [for id in (StorageAccountResourceIds): '${id}/fileServices/default']
 // Unique list of Subscription IDs for Logic App deployment and RBAC on Session Host Resource IDs
