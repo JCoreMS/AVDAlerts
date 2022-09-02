@@ -428,6 +428,7 @@ resource logicAppGetHostPoolInfo 'Microsoft.Logic/workflows@2016-06-01' = {
             method: 'POST'
             uri: replace(variableGetHostPoolInfo.properties.value, '"', '')
             body: {
+              AVDHostSubIDs: AVDHostSubIDs
               CloudEnvironment: CloudEnvironment
               SubscriptionId: SubscriptionId
             }
