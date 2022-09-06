@@ -22,31 +22,25 @@ param Environment string = 't'
 param Location string = deployment().location
 
 @description('The Resource ID for the Log Analytics Workspace.')
-param LogAnalyticsWorkspaceResourceId string = ''
+param LogAnalyticsWorkspaceResourceId string
 
 @secure()
 @description('The SAS token if using a storage account for the repository.')
-param ScriptsRepositorySasToken string = ''
+param ScriptsRepositorySasToken string
 
 @description('The repository URI hosting the scripts for this solution.')
 param ScriptsRepositoryUri string = 'https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/'
 
 @description('The Resource Group ID for the AVD session host VMs.')
-param SessionHostsResourceGroupIds array = [
-  ''
-]
+param SessionHostsResourceGroupIds array
 
 @description('The Resource IDs for the Azure Files Storage Accounts used for FSLogix profile storage.')
-param StorageAccountResourceIds array = [
-  ''
-]
+param StorageAccountResourceIds array
 
 @description('The Resource IDs for the Azure NetApp Volumes used for FSLogix profile storage.')
-param ANFVolumeResourceIds array = [
-  ''
-]
+param ANFVolumeResourceIds array
 
-param Timestamp string = utcNow('yyyyMMddhhmmss')
+//param Timestamp string = utcNow('yyyyMMddhhmmss')
 
 param Tags object = {}
 
@@ -56,14 +50,15 @@ var ActionGroupName = 'ag-avdmetrics-${Environment}-${Location}'
 //var HostingPlanName = 'asp-avdmetrics-${Environment}-${Location}'
 var LogicAppName = 'la-avdmetrics-${Environment}-${Location}'
 var ResourceGroupName = 'rg-avdmetrics-${Environment}-${Location}'
-var RoleName = 'Log Analytics Workspace Metrics Contributor'
-var RoleDescription = 'This role allows a resource to write to Log Analytics Metrics.'
+//var RoleName = 'Log Analytics Workspace Metrics Contributor'
+//var RoleDescription = 'This role allows a resource to write to Log Analytics Metrics.'
 var RunbookNameGetStorage = 'AvdStorageLogData'
 var RunbookNameGetHostPool = 'AvdHostPoolLogData'
 var RunbookScriptGetStorage = 'Get-AzureAvdLogs.ps1'
 var RunbookScriptGetHostPool = 'Get-HostPoolInfo.ps1'
 //var LogAnalyticsWorkspaceName = split(LogAnalyticsWorkspaceResourceId, '/')[8]
-var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v0.2)'
+var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v0.3)\n'
+var FileServicesResourceIDs = [for id in (StorageAccountResourceIds): '${id}/fileServices/default']
 var RoleAssignments = {
   DesktopVirtualizationRead: {
     Name: 'Desktop-Virtualization-Reader'
@@ -871,7 +866,7 @@ resource resourceGroupAVDMetrics 'Microsoft.Resources/resourceGroups@2021-04-01'
   name: ResourceGroupName
   location: Location
 }
-
+/*
 module deploymentScript 'modules/deploymentScript.bicep' = {
   name: 'ds_deployment'
   dependsOn: [
@@ -884,6 +879,7 @@ module deploymentScript 'modules/deploymentScript.bicep' = {
     Timestamp: Timestamp
   }
 }
+*/
 
 //  Function App Role required for Custom Metrics write - Removed until in US Gov and GA
 /* resource roleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
@@ -911,6 +907,7 @@ module resources 'modules/resources.bicep' = {
   params: {
     AutomationAccountName: AutomationAccountName
     DistributionGroup: DistributionGroup
+    FileServicesResourceIDs: FileServicesResourceIDs
     //FunctionAppName: FunctionAppName
     //HostingPlanName: HostingPlanName
     //HostPoolResourceGroupNames: HostPoolResourceGroupNames
@@ -929,7 +926,6 @@ module resources 'modules/resources.bicep' = {
     SessionHostsResourceGroupIds: SessionHostsResourceGroupIds
     StorageAccountResourceIds: StorageAccountResourceIds
     ActionGroupName: ActionGroupName
-    FileServicesResourceIDs: deploymentScript.outputs.fileServicesResourceIDs
     ANFVolumeResourceIds: ANFVolumeResourceIds
     Tags: Tags
   }
