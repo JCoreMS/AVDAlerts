@@ -198,7 +198,7 @@ resource metricAlerts_VirtualMachines 'Microsoft.Insights/metricAlerts@2018-03-0
   }
 }] */
 
-module storAccountMetric 'storAccountMetric.bicep' = [for i in range(0, length(StorageAccountResourceIds)): if(!empty(StorageAccountResourceIds)) {
+module storAccountMetric 'storAccountMetric.bicep' = [for i in range(0, length(StorageAccountResourceIds)): if(length(StorageAccountResourceIds)>0) {
   name: 'MetricAlert_StorageAccount_${split(StorageAccountResourceIds[i],'/')[8]}'
   params: {
     Location: Location
@@ -209,7 +209,7 @@ module storAccountMetric 'storAccountMetric.bicep' = [for i in range(0, length(S
   }
 }]
 
-module azureNetAppFilesMetric 'anfMetric.bicep' = [for i in range(0, length(ANFVolumeResourceIds)): if(!empty(ANFVolumeResourceIds)) {
+module azureNetAppFilesMetric 'anfMetric.bicep' = [for i in range(0, length(ANFVolumeResourceIds)): if(length(ANFVolumeResourceIds)>0) {
   name: 'MetricAlert_ANF_${split(ANFVolumeResourceIds[i],'/')[12]}'
   params: {
     Location: Location
@@ -222,7 +222,7 @@ module azureNetAppFilesMetric 'anfMetric.bicep' = [for i in range(0, length(ANFV
 
 // If Metric Namespace contains file services ; change scopes to append default
 // module to loop through each scope time as it MUST be a single Resource ID
-module fileServicesMetric 'fileservicsmetric.bicep' = [for i in range(0, length(FileServicesResourceIDs)): if(!empty(FileServicesResourceIDs)) {
+module fileServicesMetric 'fileservicsmetric.bicep' = [for i in range(0, length(FileServicesResourceIDs)): if(length(FileServicesResourceIDs)>0) {
   name: 'MetricAlert_FileServices_${i}'
   params: {
     Location: Location

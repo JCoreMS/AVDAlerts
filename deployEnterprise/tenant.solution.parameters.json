@@ -1,0 +1,49 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+      "DeployToSub": {
+          "value": ""
+      },
+      "DistributionGroup": {
+          "value": ""
+      },
+      "Environment": {
+          "value": "t"
+      },
+      "Location": {
+          "value": ""
+      },
+      "LogAnalyticsWorkspaceResourceId": {
+          "value": ""
+      },
+      "ScriptsRepositorySasToken": {
+          "value": ""
+      },
+      "ScriptsRepositoryUri": {
+          "value": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/JCore-TenantDeploy-9.2.22/deployEnterprise/scripts/"
+      },
+      "SessionHostsResourceGroupIds": {
+          "value": [
+            "",
+            ""  
+          ]
+      },
+      "StorageAccountResourceIds": {
+          "value": [
+              "",
+              ""
+          ]
+      },
+      "ANFVolumeResourceIds": {
+          "value": [
+              ""
+          ]
+      },
+      "Tags": {
+          "value": {
+              "AutoDeployment": "https://github.com/JCoreMS/AVDAlerts"
+          }
+      }
+  }
+}
