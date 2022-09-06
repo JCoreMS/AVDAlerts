@@ -57,7 +57,7 @@
     },
     "ScriptsRepositoryUri": {
       "type": "string",
-      "defaultValue": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/scripts/",
+      "defaultValue": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deployEnterprise/scripts/",
       "metadata": {
         "description": "The repository URI hosting the scripts for this solution."
       }

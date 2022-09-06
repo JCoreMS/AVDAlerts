@@ -29,7 +29,7 @@ param LogAnalyticsWorkspaceResourceId string = ''
 param ScriptsRepositorySasToken string = ''
 
 @description('The repository URI hosting the scripts for this solution.')
-param ScriptsRepositoryUri string = 'https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/scripts/'
+param ScriptsRepositoryUri string = 'https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/'
 
 @description('The Resource Group ID for the AVD session host VMs.')
 param SessionHostsResourceGroupIds array = [
