@@ -21,7 +21,7 @@
           "value": ""
       },
       "ScriptsRepositoryUri": {
-          "value": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/JCore-TenantDeploy-9.2.22/deployEnterprise/scripts/"
+          "value": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deployEnterprise/scripts/"
       },
       "SessionHostsResourceGroupIds": {
           "value": [
