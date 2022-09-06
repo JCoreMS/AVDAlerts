@@ -2,7 +2,6 @@ targetScope = 'subscription'
 
 param AutomationAccountName string
 param DistributionGroup string
-param FileServicesResourceIDs array
 param Location string
 param LogAnalyticsWorkspaceResourceId string
 param LogAlerts array
@@ -35,7 +34,6 @@ module resources 'modules/resources.bicep' = {
   params: {
     AutomationAccountName: AutomationAccountName
     DistributionGroup: DistributionGroup
-    FileServicesResourceIDs: FileServicesResourceIDs
     //FunctionAppName: FunctionAppName
     //HostingPlanName: HostingPlanName
     //HostPoolResourceGroupNames: HostPoolResourceGroupNames

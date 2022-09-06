@@ -2,7 +2,6 @@ param ActionGroupName string
 param ANFVolumeResourceIds array
 param AutomationAccountName string
 param DistributionGroup string
-param FileServicesResourceIDs array
 param Location string
 param LogAnalyticsWorkspaceResourceId string
 param LogAlerts array
@@ -237,11 +236,11 @@ module azureNetAppFilesMetric 'anfMetric.bicep' = [for i in range(0, length(ANFV
 
 // If Metric Namespace contains file services ; change scopes to append default
 // module to loop through each scope time as it MUST be a single Resource ID
-module fileServicesMetric 'fileservicsmetric.bicep' = [for i in range(0, length(FileServicesResourceIDs)): if(!empty(FileServicesResourceIDs)) {
+module fileServicesMetric 'fileservicsmetric.bicep' = [for i in range(0, length(StorageAccountResourceIds)): if(!empty(StorageAccountResourceIds)) {
   name: 'MetricAlerts_FileServices_${i}'
   params: {
     Location: Location
-    FileServicesResourceID: FileServicesResourceIDs[i]
+    StorageAccountResourceID: StorageAccountResourceIds[i]
     MetricAlertsFileShares: MetricAlerts.fileShares
     ActionGroupID: actionGroup.id
     Tags: Tags

@@ -58,7 +58,6 @@ var RunbookScriptGetStorage = 'Get-AzureAvdLogs.ps1'
 var RunbookScriptGetHostPool = 'Get-HostPoolInfo.ps1'
 //var LogAnalyticsWorkspaceName = split(LogAnalyticsWorkspaceResourceId, '/')[8]
 var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v0.3)\n'
-var FileServicesResourceIDs = [for id in (StorageAccountResourceIds): '${id}/fileServices/default']
 var RoleAssignments = {
   DesktopVirtualizationRead: {
     Name: 'Desktop-Virtualization-Reader'
@@ -907,7 +906,6 @@ module resources 'modules/resources.bicep' = {
   params: {
     AutomationAccountName: AutomationAccountName
     DistributionGroup: DistributionGroup
-    FileServicesResourceIDs: FileServicesResourceIDs
     //FunctionAppName: FunctionAppName
     //HostingPlanName: HostingPlanName
     //HostPoolResourceGroupNames: HostPoolResourceGroupNames

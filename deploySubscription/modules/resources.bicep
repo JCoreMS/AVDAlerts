@@ -4,7 +4,6 @@ param DistributionGroup string
 //param FunctionAppName string
 //param HostingPlanName string
 //param HostPoolResourceGroupNames array
-param FileServicesResourceIDs array
 param Location string
 param LogAnalyticsWorkspaceResourceId string
 param LogAlerts array
@@ -222,11 +221,11 @@ module azureNetAppFilesMetric 'anfMetric.bicep' = [for i in range(0, length(ANFV
 
 // If Metric Namespace contains file services ; change scopes to append default
 // module to loop through each scope time as it MUST be a single Resource ID
-module fileServicesMetric 'fileservicsmetric.bicep' = [for i in range(0, length(FileServicesResourceIDs)): if(length(FileServicesResourceIDs)>0) {
+module fileServicesMetric 'fileservicsmetric.bicep' = [for i in range(0, length(StorageAccountResourceIds)): if(length(StorageAccountResourceIds)>0) {
   name: 'MetricAlert_FileServices_${i}'
   params: {
     Location: Location
-    FileServicesResourceID: FileServicesResourceIDs[i]
+    StorageAccountResourceID: StorageAccountResourceIds[i]
     MetricAlertsFileShares: MetricAlerts.fileShares
     ActionGroupID: actionGroup.id
     Tags: Tags
@@ -294,7 +293,7 @@ resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' 
   }
 }
 
-resource runbookGetStorageInfo 'Microsoft.Automation/automationAccounts/runbooks@2019-06-01' = if(!empty(StorageAccountResourceIds)) {
+resource runbookGetStorageInfo 'Microsoft.Automation/automationAccounts/runbooks@2019-06-01' = if(length(StorageAccountResourceIds)>0) {
   parent: automationAccount
   name: RunbookNameGetStorage
   location: Location
@@ -309,7 +308,7 @@ resource runbookGetStorageInfo 'Microsoft.Automation/automationAccounts/runbooks
   }
 }
 
-resource webhookGetStorageInfo 'Microsoft.Automation/automationAccounts/webhooks@2015-10-31' = if(!empty(StorageAccountResourceIds)) {
+resource webhookGetStorageInfo 'Microsoft.Automation/automationAccounts/webhooks@2015-10-31' = if(length(StorageAccountResourceIds)>0) {
   parent: automationAccount
   name: '${runbookGetStorageInfo.name}_${dateTimeAdd(Timestamp, 'PT0H', 'yyyyMMddhhmmss')}'
   properties: {
@@ -320,7 +319,7 @@ resource webhookGetStorageInfo 'Microsoft.Automation/automationAccounts/webhooks
     }
   }
 }
-resource variableGetStorageInfo 'Microsoft.Automation/automationAccounts/variables@2019-06-01' = if(!empty(StorageAccountResourceIds)) {
+resource variableGetStorageInfo 'Microsoft.Automation/automationAccounts/variables@2019-06-01' = if(length(StorageAccountResourceIds)>0) {
   parent: automationAccount
   name: 'WebhookURI_${runbookGetStorageInfo.name}'
   properties: {
@@ -329,7 +328,7 @@ resource variableGetStorageInfo 'Microsoft.Automation/automationAccounts/variabl
   }
 }
 
-resource logicAppGetStorageInfo 'Microsoft.Logic/workflows@2016-06-01' = if(!empty(StorageAccountResourceIds)) {
+resource logicAppGetStorageInfo 'Microsoft.Logic/workflows@2016-06-01' = if(length(StorageAccountResourceIds)>0) {
   name: '${LogicAppName}-GetStorageInfo'
   location: Location
   properties: {

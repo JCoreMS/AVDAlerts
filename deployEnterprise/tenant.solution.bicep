@@ -67,7 +67,7 @@ var RunbookScriptGetHostPool = 'Get-HostPoolInfo.ps1'
 //var LogAnalyticsWorkspaceName = split(LogAnalyticsWorkspaceResourceId, '/')[8]
 var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v0.3)\n'
 // File Services - append for resource IDs
-var FileServicesResourceIDs = [for id in (StorageAccountResourceIds): '${id}/fileServices/default']
+
 // Unique list of Subscription IDs for Logic App deployment and RBAC on Session Host Resource IDs
 var AVDHostSubIDlist = [for id in (SessionHostsResourceGroupIds): split(id,'/')[2]]
 var AVDHostSubIDs = union(AVDHostSubIDlist,[])
@@ -889,7 +889,6 @@ module mod_subscription_AVDAlertsResources './subAVDAlerts.bicep' = {
   params: {
     AutomationAccountName: AutomationAccountName
     DistributionGroup: DistributionGroup
-    FileServicesResourceIDs: FileServicesResourceIDs
     //FunctionAppName: FunctionAppName
     //HostingPlanName: HostingPlanName
     //HostPoolResourceGroupNames: HostPoolResourceGroupNames
