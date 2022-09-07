@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.9.1.41621",
-      "templateHash": "3929728503215270071"
+      "templateHash": "4180739792759016371"
     }
   },
   "parameters": {
@@ -110,7 +110,7 @@
     "AutomationAccountName": "[format('aa-avdmetrics-{0}-{1}', parameters('Environment'), parameters('Location'))]",
     "ActionGroupName": "[format('ag-avdmetrics-{0}-{1}', parameters('Environment'), parameters('Location'))]",
     "LogicAppName": "[format('la-avdmetrics-{0}-{1}', parameters('Environment'), parameters('Location'))]",
-    "ResourceGroupName": "[format('rg-avdmetrics-{0}-{1}', parameters('Environment'), parameters('Location'))]",
+    "ResourceGroupName": "[format('rg-avdmetrics-enterprise-{0}-{1}', parameters('Environment'), parameters('Location'))]",
     "RunbookNameGetStorage": "AvdStorageLogData",
     "RunbookNameGetHostPool": "AvdHostPoolLogData",
     "RunbookScriptGetStorage": "Get-StorAcctInfo.ps1",
