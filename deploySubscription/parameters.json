@@ -37,7 +37,7 @@
         },
         "Tags": {
             "value": {
-                "AutoDeployment": "AVDMetrics"
+                "AutoDeployment": "https://github.com/JCoreMS/AVDAlerts"
             }
         }
     }
