@@ -14,9 +14,6 @@ There are 2 different deployments depending on your AVD infrastructure.
 
 ## Prerequisites  
 
-**NOTE**  
-Currently it is required to input ANF and Azure storage resource IDs. This will be addressed at a later time. To ensure deployment simply add an example resource ID in either that you do not currently have resources to ensure deployment of remaining resources.
-
 **Enterprise**  
 An AVD deployment and/or storage or Log Analytics workspaces in multiple subscriptions within the same Azure AD Tenant. Owner Role at the Tenant level which can be defined via [Azure CLI or PowerShell.](https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/deploy-to-tenant?tabs=azure-cli#required-access)
 
