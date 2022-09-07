@@ -50,14 +50,11 @@ var ActionGroupName = 'ag-avdmetrics-${Environment}-${Location}'
 //var HostingPlanName = 'asp-avdmetrics-${Environment}-${Location}'
 var LogicAppName = 'la-avdmetrics-${Environment}-${Location}'
 var ResourceGroupName = 'rg-avdmetrics-${Environment}-${Location}'
-//var RoleName = 'Log Analytics Workspace Metrics Contributor'
-//var RoleDescription = 'This role allows a resource to write to Log Analytics Metrics.'
 var RunbookNameGetStorage = 'AvdStorageLogData'
 var RunbookNameGetHostPool = 'AvdHostPoolLogData'
 var RunbookScriptGetStorage = 'Get-AzureAvdLogs.ps1'
 var RunbookScriptGetHostPool = 'Get-HostPoolInfo.ps1'
-//var LogAnalyticsWorkspaceName = split(LogAnalyticsWorkspaceResourceId, '/')[8]
-var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v0.3)\n'
+var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v0.4)\n'
 var RoleAssignments = {
   DesktopVirtualizationRead: {
     Name: 'Desktop-Virtualization-Reader'
@@ -865,20 +862,7 @@ resource resourceGroupAVDMetrics 'Microsoft.Resources/resourceGroups@2021-04-01'
   name: ResourceGroupName
   location: Location
 }
-/*
-module deploymentScript 'modules/deploymentScript.bicep' = {
-  name: 'ds_deployment'
-  dependsOn: [
-    resourceGroupAVDMetrics
-  ]
-  scope: resourceGroup(ResourceGroupName)
-  params: {
-    StorageAccountResourceIds: StorageAccountResourceIds
-    Location: Location
-    Timestamp: Timestamp
-  }
-}
-*/
+
 
 //  Function App Role required for Custom Metrics write - Removed until in US Gov and GA
 /* resource roleDefinition 'Microsoft.Authorization/roleDefinitions@2018-01-01-preview' = {
@@ -908,10 +892,8 @@ module resources 'modules/resources.bicep' = {
     DistributionGroup: DistributionGroup
     //FunctionAppName: FunctionAppName
     //HostingPlanName: HostingPlanName
-    //HostPoolResourceGroupNames: HostPoolResourceGroupNames
     Location: Location
     LogAnalyticsWorkspaceResourceId: LogAnalyticsWorkspaceResourceId
-    //LogAnalyticsWorkspaceName: LogAnalyticsWorkspaceName
     LogAlerts: LogAlerts
     LogicAppName: LogicAppName
     MetricAlerts: MetricAlerts

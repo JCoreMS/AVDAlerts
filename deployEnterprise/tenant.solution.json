@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.9.1.41621",
-      "templateHash": "3149119569548805421"
+      "templateHash": "3929728503215270071"
     }
   },
   "parameters": {
@@ -97,11 +97,6 @@
   "variables": {
     "copy": [
       {
-        "name": "FileServicesResourceIDs",
-        "count": "[length(parameters('StorageAccountResourceIds'))]",
-        "input": "[format('{0}/fileServices/default', parameters('StorageAccountResourceIds')[copyIndex('FileServicesResourceIDs')])]"
-      },
-      {
         "name": "AVDHostSubIDlist",
         "count": "[length(parameters('SessionHostsResourceGroupIds'))]",
         "input": "[split(parameters('SessionHostsResourceGroupIds')[copyIndex('AVDHostSubIDlist')], '/')[2]]"
@@ -120,7 +115,7 @@
     "RunbookNameGetHostPool": "AvdHostPoolLogData",
     "RunbookScriptGetStorage": "Get-StorAcctInfo.ps1",
     "RunbookScriptGetHostPool": "Get-HostPoolInfo.ps1",
-    "AlertDescriptionHeader": "Automated AVD Alert Deployment Solution (v0.3)\n",
+    "AlertDescriptionHeader": "Automated AVD Alert Deployment Solution (v0.4)\n",
     "AVDHostSubIDs": "[union(variables('AVDHostSubIDlist'), createArray())]",
     "AzStorAcctSubIDs": "[union(variables('AzStorAcctSubIDlist'), createArray())]",
     "RoleAssignments": {
@@ -861,9 +856,6 @@
           "DistributionGroup": {
             "value": "[parameters('DistributionGroup')]"
           },
-          "FileServicesResourceIDs": {
-            "value": "[variables('FileServicesResourceIDs')]"
-          },
           "Location": {
             "value": "[parameters('Location')]"
           },
@@ -923,7 +915,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.9.1.41621",
-              "templateHash": "3338241662476298134"
+              "templateHash": "15058025113590309246"
             }
           },
           "parameters": {
@@ -932,9 +924,6 @@
             },
             "DistributionGroup": {
               "type": "string"
-            },
-            "FileServicesResourceIDs": {
-              "type": "array"
             },
             "Location": {
               "type": "string"
@@ -1012,9 +1001,6 @@
                   "DistributionGroup": {
                     "value": "[parameters('DistributionGroup')]"
                   },
-                  "FileServicesResourceIDs": {
-                    "value": "[parameters('FileServicesResourceIDs')]"
-                  },
                   "Location": {
                     "value": "[parameters('Location')]"
                   },
@@ -1071,7 +1057,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.9.1.41621",
-                      "templateHash": "5060420796729502608"
+                      "templateHash": "4951116756653873101"
                     }
                   },
                   "parameters": {
@@ -1086,9 +1072,6 @@
                     },
                     "DistributionGroup": {
                       "type": "string"
-                    },
-                    "FileServicesResourceIDs": {
-                      "type": "array"
                     },
                     "Location": {
                       "type": "string"
@@ -1212,178 +1195,6 @@
                           "name": "Free"
                         }
                       }
-                    },
-                    {
-                      "type": "Microsoft.Automation/automationAccounts/runbooks",
-                      "apiVersion": "2019-06-01",
-                      "name": "[format('{0}/{1}', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage'))]",
-                      "location": "[parameters('Location')]",
-                      "properties": {
-                        "runbookType": "PowerShell",
-                        "logProgress": false,
-                        "logVerbose": false,
-                        "publishContentLink": {
-                          "uri": "[format('{0}{1}{2}', parameters('ScriptsRepositoryUri'), parameters('RunbookScriptGetStorage'), parameters('ScriptsRepositorySasToken'))]",
-                          "version": "1.0.0.0"
-                        }
-                      },
-                      "dependsOn": [
-                        "[resourceId('Microsoft.Automation/automationAccounts', parameters('AutomationAccountName'))]"
-                      ]
-                    },
-                    {
-                      "type": "Microsoft.Automation/automationAccounts/webhooks",
-                      "apiVersion": "2015-10-31",
-                      "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]",
-                      "properties": {
-                        "isEnabled": true,
-                        "expiryTime": "[dateTimeAdd(parameters('Timestamp'), 'P5Y')]",
-                        "runbook": {
-                          "name": "[parameters('RunbookNameGetStorage')]"
-                        }
-                      },
-                      "dependsOn": [
-                        "[resourceId('Microsoft.Automation/automationAccounts', parameters('AutomationAccountName'))]",
-                        "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage'))]"
-                      ]
-                    },
-                    {
-                      "type": "Microsoft.Automation/automationAccounts/variables",
-                      "apiVersion": "2019-06-01",
-                      "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetStorage')))]",
-                      "properties": {
-                        "value": "[format('\"{0}\"', reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))).uri)]",
-                        "isEncrypted": false
-                      },
-                      "dependsOn": [
-                        "[resourceId('Microsoft.Automation/automationAccounts', parameters('AutomationAccountName'))]",
-                        "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage'))]",
-                        "[resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]"
-                      ]
-                    },
-                    {
-                      "type": "Microsoft.Logic/workflows",
-                      "apiVersion": "2016-06-01",
-                      "name": "[format('{0}-GetStorageInfo', parameters('LogicAppName'))]",
-                      "location": "[parameters('Location')]",
-                      "properties": {
-                        "state": "Enabled",
-                        "definition": {
-                          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
-                          "actions": {
-                            "HTTP": {
-                              "type": "Http",
-                              "inputs": {
-                                "method": "POST",
-                                "uri": "[replace(reference(resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetStorage')))).value, '\"', '')]",
-                                "body": {
-                                  "CloudEnvironment": "[variables('CloudEnvironment')]",
-                                  "StorageAccountResourceIDs": "[parameters('StorageAccountResourceIds')]",
-                                  "SubscriptionId": "[variables('SubscriptionId')]"
-                                }
-                              }
-                            }
-                          },
-                          "triggers": {
-                            "Recurrence": {
-                              "type": "Recurrence",
-                              "recurrence": {
-                                "frequency": "Minute",
-                                "interval": 5
-                              }
-                            }
-                          }
-                        }
-                      },
-                      "dependsOn": [
-                        "[resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetStorage')))]"
-                      ]
-                    },
-                    {
-                      "type": "Microsoft.Automation/automationAccounts/runbooks",
-                      "apiVersion": "2019-06-01",
-                      "name": "[format('{0}/{1}', parameters('AutomationAccountName'), parameters('RunbookNameGetHostPool'))]",
-                      "location": "[parameters('Location')]",
-                      "properties": {
-                        "runbookType": "PowerShell",
-                        "logProgress": false,
-                        "logVerbose": false,
-                        "publishContentLink": {
-                          "uri": "[format('{0}{1}{2}', parameters('ScriptsRepositoryUri'), parameters('RunbookScriptGetHostPool'), parameters('ScriptsRepositorySasToken'))]",
-                          "version": "1.0.0.0"
-                        }
-                      },
-                      "dependsOn": [
-                        "[resourceId('Microsoft.Automation/automationAccounts', parameters('AutomationAccountName'))]"
-                      ]
-                    },
-                    {
-                      "type": "Microsoft.Automation/automationAccounts/webhooks",
-                      "apiVersion": "2015-10-31",
-                      "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetHostPool'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]",
-                      "properties": {
-                        "isEnabled": true,
-                        "expiryTime": "[dateTimeAdd(parameters('Timestamp'), 'P5Y')]",
-                        "runbook": {
-                          "name": "[parameters('RunbookNameGetHostPool')]"
-                        }
-                      },
-                      "dependsOn": [
-                        "[resourceId('Microsoft.Automation/automationAccounts', parameters('AutomationAccountName'))]",
-                        "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetHostPool'))]"
-                      ]
-                    },
-                    {
-                      "type": "Microsoft.Automation/automationAccounts/variables",
-                      "apiVersion": "2019-06-01",
-                      "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetHostPool')))]",
-                      "properties": {
-                        "value": "[format('\"{0}\"', reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetHostPool'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))).uri)]",
-                        "isEncrypted": false
-                      },
-                      "dependsOn": [
-                        "[resourceId('Microsoft.Automation/automationAccounts', parameters('AutomationAccountName'))]",
-                        "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetHostPool'))]",
-                        "[resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetHostPool'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]"
-                      ]
-                    },
-                    {
-                      "type": "Microsoft.Logic/workflows",
-                      "apiVersion": "2016-06-01",
-                      "name": "[format('{0}-GetHostPoolInfo', parameters('LogicAppName'))]",
-                      "location": "[parameters('Location')]",
-                      "properties": {
-                        "state": "Enabled",
-                        "definition": {
-                          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
-                          "actions": {
-                            "HTTP": {
-                              "type": "Http",
-                              "inputs": {
-                                "method": "POST",
-                                "uri": "[replace(reference(resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetHostPool')))).value, '\"', '')]",
-                                "body": {
-                                  "AVDHostSubIDs": "[variables('AVDHostSubIDs')]",
-                                  "CloudEnvironment": "[variables('CloudEnvironment')]",
-                                  "SubscriptionId": "[variables('SubscriptionId')]"
-                                }
-                              }
-                            }
-                          },
-                          "triggers": {
-                            "Recurrence": {
-                              "type": "Recurrence",
-                              "recurrence": {
-                                "frequency": "Minute",
-                                "interval": 5
-                              }
-                            }
-                          }
-                        }
-                      },
-                      "dependsOn": [
-                        "[resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetHostPool')))]"
-                      ]
                     },
                     {
                       "condition": "[not(empty(parameters('LogAnalyticsWorkspaceResourceId')))]",
@@ -1725,14 +1536,14 @@
                       ]
                     },
                     {
-                      "condition": "[not(empty(parameters('FileServicesResourceIDs')))]",
+                      "condition": "[not(empty(parameters('StorageAccountResourceIds')))]",
                       "copy": {
                         "name": "fileServicesMetric",
-                        "count": "[length(range(0, length(parameters('FileServicesResourceIDs'))))]"
+                        "count": "[length(range(0, length(parameters('StorageAccountResourceIds'))))]"
                       },
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2020-10-01",
-                      "name": "[format('MetricAlerts_FileServices_{0}', range(0, length(parameters('FileServicesResourceIDs')))[copyIndex()])]",
+                      "name": "[format('MetricAlerts_FileServices_{0}', range(0, length(parameters('StorageAccountResourceIds')))[copyIndex()])]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
@@ -1742,8 +1553,8 @@
                           "Location": {
                             "value": "[parameters('Location')]"
                           },
-                          "FileServicesResourceID": {
-                            "value": "[parameters('FileServicesResourceIDs')[range(0, length(parameters('FileServicesResourceIDs')))[copyIndex()]]]"
+                          "StorageAccountResourceID": {
+                            "value": "[parameters('StorageAccountResourceIds')[range(0, length(parameters('StorageAccountResourceIds')))[copyIndex()]]]"
                           },
                           "MetricAlertsFileShares": {
                             "value": "[parameters('MetricAlerts').fileShares]"
@@ -1762,14 +1573,14 @@
                             "_generator": {
                               "name": "bicep",
                               "version": "0.9.1.41621",
-                              "templateHash": "1127318133734745803"
+                              "templateHash": "9573725674197826024"
                             }
                           },
                           "parameters": {
                             "Location": {
                               "type": "string"
                             },
-                            "FileServicesResourceID": {
+                            "StorageAccountResourceID": {
                               "type": "string"
                             },
                             "MetricAlertsFileShares": {
@@ -1782,6 +1593,9 @@
                               "type": "object"
                             }
                           },
+                          "variables": {
+                            "FileServicesResourceID": "[format('{0}/fileServices/default', parameters('StorageAccountResourceID'))]"
+                          },
                           "resources": [
                             {
                               "copy": {
@@ -1790,7 +1604,7 @@
                               },
                               "type": "Microsoft.Insights/metricAlerts",
                               "apiVersion": "2018-03-01",
-                              "name": "[format('{0}-{1}', parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].name, split(parameters('FileServicesResourceID'), '/')[8])]",
+                              "name": "[format('{0}-{1}', parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].name, split(variables('FileServicesResourceID'), '/')[8])]",
                               "location": "global",
                               "tags": "[parameters('Tags')]",
                               "properties": {
@@ -1798,7 +1612,7 @@
                                 "severity": "[parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].severity]",
                                 "enabled": false,
                                 "scopes": [
-                                  "[parameters('FileServicesResourceID')]"
+                                  "[variables('FileServicesResourceID')]"
                                 ],
                                 "evaluationFrequency": "[parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].evaluationFrequency]",
                                 "windowSize": "[parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].windowSize]",
@@ -1819,6 +1633,323 @@
                       "dependsOn": [
                         "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
                       ]
+                    },
+                    {
+                      "condition": "[greater(length(parameters('StorageAccountResourceIds')), 0)]",
+                      "type": "Microsoft.Resources/deployments",
+                      "apiVersion": "2020-10-01",
+                      "name": "LogicApp_Storage",
+                      "properties": {
+                        "expressionEvaluationOptions": {
+                          "scope": "inner"
+                        },
+                        "mode": "Incremental",
+                        "parameters": {
+                          "AutomationAccountName": {
+                            "value": "[parameters('AutomationAccountName')]"
+                          },
+                          "CloudEnvironment": {
+                            "value": "[variables('CloudEnvironment')]"
+                          },
+                          "Location": {
+                            "value": "[parameters('Location')]"
+                          },
+                          "LogicAppName": {
+                            "value": "[format('{0}-Storage', parameters('LogicAppName'))]"
+                          },
+                          "RunbookNameGetStorage": {
+                            "value": "[parameters('RunbookNameGetStorage')]"
+                          },
+                          "RunbookURI": {
+                            "value": "[format('{0}{1}{2}', parameters('ScriptsRepositoryUri'), parameters('RunbookScriptGetStorage'), parameters('ScriptsRepositorySasToken'))]"
+                          },
+                          "StorageAccountResourceIds": {
+                            "value": "[parameters('StorageAccountResourceIds')]"
+                          },
+                          "Timestamp": {
+                            "value": "[parameters('Timestamp')]"
+                          }
+                        },
+                        "template": {
+                          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                          "contentVersion": "1.0.0.0",
+                          "metadata": {
+                            "_generator": {
+                              "name": "bicep",
+                              "version": "0.9.1.41621",
+                              "templateHash": "7473612162354184312"
+                            }
+                          },
+                          "parameters": {
+                            "AutomationAccountName": {
+                              "type": "string"
+                            },
+                            "CloudEnvironment": {
+                              "type": "string"
+                            },
+                            "Location": {
+                              "type": "string"
+                            },
+                            "LogicAppName": {
+                              "type": "string"
+                            },
+                            "RunbookNameGetStorage": {
+                              "type": "string"
+                            },
+                            "RunbookURI": {
+                              "type": "string"
+                            },
+                            "StorageAccountResourceIds": {
+                              "type": "array"
+                            },
+                            "Timestamp": {
+                              "type": "string"
+                            }
+                          },
+                          "resources": [
+                            {
+                              "type": "Microsoft.Automation/automationAccounts/runbooks",
+                              "apiVersion": "2019-06-01",
+                              "name": "[format('{0}/{1}', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage'))]",
+                              "location": "[parameters('Location')]",
+                              "properties": {
+                                "runbookType": "PowerShell",
+                                "logProgress": false,
+                                "logVerbose": false,
+                                "publishContentLink": {
+                                  "uri": "[parameters('RunbookURI')]",
+                                  "version": "1.0.0.0"
+                                }
+                              }
+                            },
+                            {
+                              "type": "Microsoft.Automation/automationAccounts/webhooks",
+                              "apiVersion": "2015-10-31",
+                              "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]",
+                              "properties": {
+                                "isEnabled": true,
+                                "expiryTime": "[dateTimeAdd(parameters('Timestamp'), 'P5Y')]",
+                                "runbook": {
+                                  "name": "[parameters('RunbookNameGetStorage')]"
+                                }
+                              },
+                              "dependsOn": [
+                                "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage'))]"
+                              ]
+                            },
+                            {
+                              "type": "Microsoft.Automation/automationAccounts/variables",
+                              "apiVersion": "2019-06-01",
+                              "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetStorage')))]",
+                              "properties": {
+                                "value": "[format('\"{0}\"', reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))).uri)]",
+                                "isEncrypted": false
+                              },
+                              "dependsOn": [
+                                "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage'))]",
+                                "[resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]"
+                              ]
+                            },
+                            {
+                              "type": "Microsoft.Logic/workflows",
+                              "apiVersion": "2016-06-01",
+                              "name": "[parameters('LogicAppName')]",
+                              "location": "[parameters('Location')]",
+                              "properties": {
+                                "state": "Enabled",
+                                "definition": {
+                                  "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                                  "actions": {
+                                    "HTTP": {
+                                      "type": "Http",
+                                      "inputs": {
+                                        "method": "POST",
+                                        "uri": "[replace(reference(resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetStorage')))).value, '\"', '')]",
+                                        "body": {
+                                          "CloudEnvironment": "[parameters('CloudEnvironment')]",
+                                          "StorageAccountResourceIDs": "[parameters('StorageAccountResourceIds')]"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "triggers": {
+                                    "Recurrence": {
+                                      "type": "Recurrence",
+                                      "recurrence": {
+                                        "frequency": "Minute",
+                                        "interval": 5
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "dependsOn": [
+                                "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage'))]",
+                                "[resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetStorage')))]",
+                                "[resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]"
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Resources/deployments",
+                      "apiVersion": "2020-10-01",
+                      "name": "LogicApp_HostPool",
+                      "properties": {
+                        "expressionEvaluationOptions": {
+                          "scope": "inner"
+                        },
+                        "mode": "Incremental",
+                        "parameters": {
+                          "AutomationAccountName": {
+                            "value": "[parameters('AutomationAccountName')]"
+                          },
+                          "CloudEnvironment": {
+                            "value": "[variables('CloudEnvironment')]"
+                          },
+                          "Location": {
+                            "value": "[parameters('Location')]"
+                          },
+                          "LogicAppName": {
+                            "value": "[format('{0}-HostPool', parameters('LogicAppName'))]"
+                          },
+                          "RunbookNameGetHostPool": {
+                            "value": "[parameters('RunbookNameGetHostPool')]"
+                          },
+                          "RunbookURI": {
+                            "value": "[format('{0}{1}{2}', parameters('ScriptsRepositoryUri'), parameters('RunbookScriptGetHostPool'), parameters('ScriptsRepositorySasToken'))]"
+                          },
+                          "SubscriptionId": {
+                            "value": "[variables('SubscriptionId')]"
+                          },
+                          "Timestamp": {
+                            "value": "[parameters('Timestamp')]"
+                          }
+                        },
+                        "template": {
+                          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                          "contentVersion": "1.0.0.0",
+                          "metadata": {
+                            "_generator": {
+                              "name": "bicep",
+                              "version": "0.9.1.41621",
+                              "templateHash": "8963983652883738090"
+                            }
+                          },
+                          "parameters": {
+                            "AutomationAccountName": {
+                              "type": "string"
+                            },
+                            "CloudEnvironment": {
+                              "type": "string"
+                            },
+                            "Location": {
+                              "type": "string"
+                            },
+                            "LogicAppName": {
+                              "type": "string"
+                            },
+                            "RunbookNameGetHostPool": {
+                              "type": "string"
+                            },
+                            "RunbookURI": {
+                              "type": "string"
+                            },
+                            "SubscriptionId": {
+                              "type": "string"
+                            },
+                            "Timestamp": {
+                              "type": "string"
+                            }
+                          },
+                          "resources": [
+                            {
+                              "type": "Microsoft.Automation/automationAccounts/runbooks",
+                              "apiVersion": "2019-06-01",
+                              "name": "[format('{0}/{1}', parameters('AutomationAccountName'), parameters('RunbookNameGetHostPool'))]",
+                              "location": "[parameters('Location')]",
+                              "properties": {
+                                "runbookType": "PowerShell",
+                                "logProgress": false,
+                                "logVerbose": false,
+                                "publishContentLink": {
+                                  "uri": "[parameters('RunbookURI')]",
+                                  "version": "1.0.0.0"
+                                }
+                              }
+                            },
+                            {
+                              "type": "Microsoft.Automation/automationAccounts/webhooks",
+                              "apiVersion": "2015-10-31",
+                              "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetHostPool'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]",
+                              "properties": {
+                                "isEnabled": true,
+                                "expiryTime": "[dateTimeAdd(parameters('Timestamp'), 'P5Y')]",
+                                "runbook": {
+                                  "name": "[parameters('RunbookNameGetHostPool')]"
+                                }
+                              },
+                              "dependsOn": [
+                                "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetHostPool'))]"
+                              ]
+                            },
+                            {
+                              "type": "Microsoft.Automation/automationAccounts/variables",
+                              "apiVersion": "2019-06-01",
+                              "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetHostPool')))]",
+                              "properties": {
+                                "value": "[format('\"{0}\"', reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetHostPool'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))).uri)]",
+                                "isEncrypted": false
+                              },
+                              "dependsOn": [
+                                "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetHostPool'))]",
+                                "[resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetHostPool'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]"
+                              ]
+                            },
+                            {
+                              "type": "Microsoft.Logic/workflows",
+                              "apiVersion": "2016-06-01",
+                              "name": "[parameters('LogicAppName')]",
+                              "location": "[parameters('Location')]",
+                              "properties": {
+                                "state": "Enabled",
+                                "definition": {
+                                  "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                                  "actions": {
+                                    "HTTP": {
+                                      "type": "Http",
+                                      "inputs": {
+                                        "method": "POST",
+                                        "uri": "[replace(reference(resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetHostPool')))).value, '\"', '')]",
+                                        "body": {
+                                          "CloudEnvironment": "[parameters('CloudEnvironment')]",
+                                          "SubscriptionId": "[parameters('SubscriptionId')]"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "triggers": {
+                                    "Recurrence": {
+                                      "type": "Recurrence",
+                                      "recurrence": {
+                                        "frequency": "Minute",
+                                        "interval": 5
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "dependsOn": [
+                                "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetHostPool'))]",
+                                "[resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetHostPool')))]",
+                                "[resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetHostPool'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]"
+                              ]
+                            }
+                          ]
+                        }
+                      }
                     }
                   ],
                   "outputs": {

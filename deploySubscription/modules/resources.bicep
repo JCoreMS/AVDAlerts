@@ -293,147 +293,35 @@ resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' 
   }
 }
 
-resource runbookGetStorageInfo 'Microsoft.Automation/automationAccounts/runbooks@2019-06-01' = if(length(StorageAccountResourceIds)>0) {
-  parent: automationAccount
-  name: RunbookNameGetStorage
-  location: Location
-  properties: {
-    runbookType: 'PowerShell'
-    logProgress: false
-    logVerbose: false
-    publishContentLink: {
-      uri: '${ScriptsRepositoryUri}${RunbookScriptGetStorage}${ScriptsRepositorySasToken}'
-      version: '1.0.0.0'
-    }
+module logicApp_Storage './logicApp_Storage.bicep' = if(length(StorageAccountResourceIds)>0) {
+  name: 'LogicApp_Storage'
+  params: {
+    AutomationAccountName: AutomationAccountName
+    CloudEnvironment: CloudEnvironment
+    Location: Location
+    LogicAppName: '${LogicAppName}-Storage'
+    RunbookNameGetStorage: RunbookNameGetStorage
+    RunbookURI: '${ScriptsRepositoryUri}${RunbookScriptGetStorage}${ScriptsRepositorySasToken}'
+    StorageAccountResourceIds: StorageAccountResourceIds
+    Timestamp: Timestamp
   }
 }
 
-resource webhookGetStorageInfo 'Microsoft.Automation/automationAccounts/webhooks@2015-10-31' = if(length(StorageAccountResourceIds)>0) {
-  parent: automationAccount
-  name: '${runbookGetStorageInfo.name}_${dateTimeAdd(Timestamp, 'PT0H', 'yyyyMMddhhmmss')}'
-  properties: {
-    isEnabled: true
-    expiryTime: dateTimeAdd(Timestamp, 'P5Y')
-    runbook: {
-      name: runbookGetStorageInfo.name
-    }
-  }
-}
-resource variableGetStorageInfo 'Microsoft.Automation/automationAccounts/variables@2019-06-01' = if(length(StorageAccountResourceIds)>0) {
-  parent: automationAccount
-  name: 'WebhookURI_${runbookGetStorageInfo.name}'
-  properties: {
-    value: '"${webhookGetStorageInfo.properties.uri}"'
-    isEncrypted: false
+module logicApp_HostPool './logicApp_HostPool.bicep' = {
+  name: 'LogicApp_HostPool'
+  params: {
+    AutomationAccountName: AutomationAccountName
+    CloudEnvironment: CloudEnvironment
+    Location: Location
+    LogicAppName: '${LogicAppName}-HostPool'
+    RunbookNameGetHostPool: RunbookNameGetHostPool
+    RunbookURI: '${ScriptsRepositoryUri}${RunbookScriptGetHostPool}${ScriptsRepositorySasToken}'
+    SubscriptionId: SubscriptionId
+    Timestamp: Timestamp
   }
 }
 
-resource logicAppGetStorageInfo 'Microsoft.Logic/workflows@2016-06-01' = if(length(StorageAccountResourceIds)>0) {
-  name: '${LogicAppName}-GetStorageInfo'
-  location: Location
-  properties: {
-    state: 'Enabled'
-    definition: {
-      '$schema': 'https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#'
-      actions: {
-        HTTP: {
-          type: 'Http'
-          inputs: {
-            method: 'POST'
-            uri: replace(variableGetStorageInfo.properties.value, '"', '')
-            body: {
-              // Examples of values to pass to the runbook
-              // Environment: Environment
-              // SubscriptionId: SubscriptionId
-              CloudEnvironment: CloudEnvironment
-              StorageAccountResourceIDs: StorageAccountResourceIds
-            }
-          }
-        }
-      }
-      triggers: {
-        Recurrence: {
-          type: 'Recurrence'
-          recurrence: {
-            frequency: 'Minute'
-            interval: 5
-          }
-        }
-      }
-    }
-  }
-}
 
-resource runbookGetHostPoolInfo 'Microsoft.Automation/automationAccounts/runbooks@2019-06-01' = {
-  parent: automationAccount
-  name: RunbookNameGetHostPool
-  location: Location
-  properties: {
-    runbookType: 'PowerShell'
-    logProgress: false
-    logVerbose: false
-    publishContentLink: {
-      uri: '${ScriptsRepositoryUri}${RunbookScriptGetHostPool}${ScriptsRepositorySasToken}'
-      version: '1.0.0.0'
-    }
-  }
-}
-
-resource webhookGetHostPoolInfo 'Microsoft.Automation/automationAccounts/webhooks@2015-10-31' = {
-  parent: automationAccount
-  name: '${runbookGetHostPoolInfo.name}_${dateTimeAdd(Timestamp, 'PT0H', 'yyyyMMddhhmmss')}'
-  properties: {
-    isEnabled: true
-    expiryTime: dateTimeAdd(Timestamp, 'P5Y')
-    runbook: {
-      name: runbookGetHostPoolInfo.name
-    }
-  }
-}
-
-resource variableGetHostPoolInfo 'Microsoft.Automation/automationAccounts/variables@2019-06-01' = {
-  parent: automationAccount
-  name: 'WebhookURI_${runbookGetHostPoolInfo.name}'
-  properties: {
-    value: '"${webhookGetHostPoolInfo.properties.uri}"'
-    isEncrypted: false
-  }
-}
-
-resource logicAppGetHostPoolInfo 'Microsoft.Logic/workflows@2016-06-01' = {
-  name: '${LogicAppName}-GetHostPoolInfo'
-  location: Location
-  properties: {
-    state: 'Enabled'
-    definition: {
-      '$schema': 'https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#'
-      actions: {
-        HTTP: {
-          type: 'Http'
-          inputs: {
-            method: 'POST'
-            uri: replace(variableGetHostPoolInfo.properties.value, '"', '')
-            body: {
-              // Examples of values to pass to the runbook
-              // Environment: Environment
-              CloudEnvironment: CloudEnvironment
-              SubscriptionId: SubscriptionId
-            }
-          }
-        }
-      }
-      triggers: {
-        Recurrence: {
-          type: 'Recurrence'
-          recurrence: {
-            frequency: 'Minute'
-            interval: 5
-          }
-        }
-      }
-    }
-  }
-}
 
 // Enables the runbook logs in Log Analytics for alerting and dashboards
 resource diagnostics 'Microsoft.Insights/diagnosticsettings@2017-05-01-preview' = if (!empty(LogAnalyticsWorkspaceResourceId)) {
