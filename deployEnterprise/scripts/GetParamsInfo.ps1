@@ -51,7 +51,7 @@ Foreach($Sub in $Subs){
 $Selection = Read-Host "Subscription"
 $Selection = $Subs[$Selection-1]
 Select-AzSubscription -SubscriptionObject $Selection
-
+$SubID = $Sub.Id
 
 # =================================================================================================
 # Get distro email address
@@ -221,6 +221,9 @@ $OutputHeader = @'
 
 $OutputBody = @"
 
+        "DeployToSub": {
+            "value": "$SubID"
+        },
         "DistributionGroup": {
             "value": "$DistributionGroup"
         },
@@ -237,7 +240,7 @@ $OutputBody = @"
             "value": ""
         },
         "ScriptsRepositoryUri": {
-            "value": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/scripts/"
+            "value": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deployEnterprise/scripts/"
         },
         "SessionHostsResourceGroupIds": {
             "value": [

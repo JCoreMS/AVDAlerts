@@ -28,6 +28,7 @@ Foreach($Sub in $Subs){
 $Selection = Read-Host "Select Subscription number desired"
 $Sub = $Subs[$Selection-1]
 Select-AzSubscription -SubscriptionObject $Sub
+$SubId = $Sub.Id
 
 
 # =================================================================================================
@@ -215,7 +216,7 @@ $OutputBody = @"
             "value": ""
         },
         "ScriptsRepositoryUri": {
-            "value": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/scripts/"
+            "value": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/"
         },
         "SessionHostsResourceGroupIds": {
             "value": [
