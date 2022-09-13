@@ -38,6 +38,11 @@ CLS
 $DistributionGroup = Read-Host "Provide the email address of the user or distribuition list for AVD Alerts (Disabled by default)"
 
 # =================================================================================================
+# Get Alert Name Prefix
+# =================================================================================================
+$AlertNamePrefix = Read-Host "Provide the Alert Name Prefix you would like to use. To use the default of 'AVD-' just hit ENTER."
+
+# =================================================================================================
 # Get Location to be used
 # =================================================================================================
 Write-Host "If you need a list of Locations you can also run the following at a PowerShell prompt:"
@@ -189,6 +194,10 @@ If($null -ne $Tags){
     }
     $String += '}'
 }
+
+# Accomodate option for Alert Name Prefix if empty, use default
+if ($AlertNamePrefix -eq ''){$AlertNamePrefix = "AVD-"}
+
 # Output Tags in JSON format
 
 $OutputHeader = @'
@@ -200,6 +209,9 @@ $OutputHeader = @'
 
 $OutputBody = @"
 
+        "AlertNamePrefix": {
+            "value": "$AlertNamePrefix"
+        },
         "DistributionGroup": {
             "value": "$DistributionGroup"
         },
