@@ -7,6 +7,10 @@ param SetAutoResolve bool = true
 @description('Determine if you would like to enable all the alerts after deployment.')
 param SetEnabled bool = false
  */
+
+ @description('')
+param AlertNamePrefix string = 'AVD-'
+
 @description('The Distribution Group that will receive email alerts for AVD.')
 param DistributionGroup string = ''
 
@@ -54,7 +58,7 @@ var RunbookNameGetStorage = 'AvdStorageLogData'
 var RunbookNameGetHostPool = 'AvdHostPoolLogData'
 var RunbookScriptGetStorage = 'Get-AzureAvdLogs.ps1'
 var RunbookScriptGetHostPool = 'Get-HostPoolInfo.ps1'
-var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v0.4)\n'
+var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v0.5)\n'
 var RoleAssignments = {
   DesktopVirtualizationRead: {
     Name: 'Desktop-Virtualization-Reader'
@@ -71,8 +75,8 @@ var RoleAssignments = {
 
 var LogAlerts = [
   {
-    name: 'AVD-HostPool-No Resources Available'
-    displayName: 'AVD-HostPool-No Resources Available'
+    name: '${AlertNamePrefix}HostPool-No Resources Available'
+    displayName: '${AlertNamePrefix}HostPool-No Resources Available'
     description: AlertDescriptionHeader
     severity: 1
     evaluationFrequency: 'PT15M'
@@ -110,8 +114,8 @@ var LogAlerts = [
     }
   }
   {
-    name: 'AVD-HostPool-Disconnected User over 24 Hours'
-    displayName: 'AVD-HostPool-Disconnected User over 24 Hours'
+    name: '${AlertNamePrefix}HostPool-Disconnected User over 24 Hours'
+    displayName: '${AlertNamePrefix}HostPool-Disconnected User over 24 Hours'
     description: AlertDescriptionHeader
     severity: 2
     evaluationFrequency: 'PT1H'
@@ -119,7 +123,7 @@ var LogAlerts = [
     criteria: {
       allOf: [
         {
-          query: '// Session duration \n// Lists users by session duration in the last 24 hours. \n// The "State" provides information on the connection stage of an actitivity.\n// The delta between "Connected" and "Completed" provides the connection time for a specific connection.\nWVDConnections \n| where TimeGenerated > ago(24h) \n| where State == "Connected"  \n| project CorrelationId , UserName, ConnectionType, StartTime=TimeGenerated, SessionHostName\n| join (WVDConnections  \n    | where State == "Completed"  \n    | project EndTime=TimeGenerated, CorrelationId)  \n    on CorrelationId  \n| project Duration = EndTime - StartTime, ConnectionType, UserName, SessionHostName\n| where Duration >= timespan(24:00:00)\n| sort by Duration desc'
+          query: '// Session duration \n// Lists users by session duration in the last 24 hours. \n// The "State" provides information on the connection stage of an activity.\n// The delta between "Connected" and "Completed" provides the connection time for a specific connection.\nWVDConnections \n| where TimeGenerated > ago(24h) \n| where State == "Connected"  \n| project CorrelationId , UserName, ConnectionType, StartTime=TimeGenerated, SessionHostName\n| join (WVDConnections  \n    | where State == "Completed"  \n    | project EndTime=TimeGenerated, CorrelationId)  \n    on CorrelationId  \n| project Duration = EndTime - StartTime, ConnectionType, UserName, SessionHostName\n| where Duration >= timespan(24:00:00)\n| sort by Duration desc'
           timeAggregation: 'Count'
           dimensions: [
             {
@@ -148,8 +152,8 @@ var LogAlerts = [
     }
   }
   {
-    name: 'AVD-HostPool-Disconnected User over 72 Hours'
-    displayName: 'AVD-HostPool-Disconnected User over 72 Hours'
+    name: '${AlertNamePrefix}HostPool-Disconnected User over 72 Hours'
+    displayName: '${AlertNamePrefix}HostPool-Disconnected User over 72 Hours'
     description: AlertDescriptionHeader
     severity: 1
     evaluationFrequency: 'PT1H'
@@ -157,7 +161,7 @@ var LogAlerts = [
     criteria: {
       allOf: [
         {
-          query: '// Session duration \n// Lists users by session duration in the last 24 hours. \n// The "State" provides information on the connection stage of an actitivity.\n// The delta between "Connected" and "Completed" provides the connection time for a specific connection.\nWVDConnections \n| where TimeGenerated > ago(24h) \n| where State == "Connected"  \n| project CorrelationId , UserName, ConnectionType, StartTime=TimeGenerated, SessionHostName\n| join (WVDConnections  \n    | where State == "Completed"  \n    | project EndTime=TimeGenerated, CorrelationId)  \n    on CorrelationId  \n| project Duration = EndTime - StartTime, ConnectionType, UserName, SessionHostName\n| where Duration >= timespan(72:00:00)\n| sort by Duration desc'
+          query: '// Session duration \n// Lists users by session duration in the last 24 hours. \n// The "State" provides information on the connection stage of an activity.\n// The delta between "Connected" and "Completed" provides the connection time for a specific connection.\nWVDConnections \n| where TimeGenerated > ago(24h) \n| where State == "Connected"  \n| project CorrelationId , UserName, ConnectionType, StartTime=TimeGenerated, SessionHostName\n| join (WVDConnections  \n    | where State == "Completed"  \n    | project EndTime=TimeGenerated, CorrelationId)  \n    on CorrelationId  \n| project Duration = EndTime - StartTime, ConnectionType, UserName, SessionHostName\n| where Duration >= timespan(72:00:00)\n| sort by Duration desc'
           timeAggregation: 'Count'
           dimensions: [
             {
@@ -186,8 +190,8 @@ var LogAlerts = [
     }
   }
   {
-    name: 'AVD-VM-Local Disk Free Space 10 Percent'
-    displayName: 'AVD-VM-Local Disk Free Space 10%'
+    name: '${AlertNamePrefix}VM-Local Disk Free Space 10 Percent'
+    displayName: '${AlertNamePrefix}VM-Local Disk Free Space 10%'
     description: AlertDescriptionHeader
     severity: 2
     evaluationFrequency: 'PT15M'
@@ -225,8 +229,8 @@ var LogAlerts = [
     }
   }
   {
-    name: 'AVD-VM-Local Disk Free Space 5 Percent'
-    displayName: 'AVD-VM-Local Disk Free Space 5%'
+    name: '${AlertNamePrefix}VM-Local Disk Free Space 5 Percent'
+    displayName: '${AlertNamePrefix}VM-Local Disk Free Space 5%'
     description: AlertDescriptionHeader
     severity: 1
     evaluationFrequency: 'PT15M'
@@ -264,8 +268,8 @@ var LogAlerts = [
     }
   }
   {
-    name: 'AVD-VM-FSLogix Profile Failed'
-    displayName: 'AVD-VM-FSLogix Profile Failed (Event Log Indicated Failure)'
+    name: '${AlertNamePrefix}VM-FSLogix Profile Failed'
+    displayName: '${AlertNamePrefix}VM-FSLogix Profile Failed (Event Log Indicated Failure)'
     description: AlertDescriptionHeader
     severity: 1
     evaluationFrequency: 'PT5M'
@@ -302,8 +306,8 @@ var LogAlerts = [
     }
   }
   {
-    name: 'AVD-VM-Health Check Failure'
-    displayName: 'AVD-VM-Health Check Failure'
+    name: '${AlertNamePrefix}VM-Health Check Failure'
+    displayName: '${AlertNamePrefix}VM-Health Check Failure'
     description: '${AlertDescriptionHeader}VM is available for use but one of the dependent resources is in a failed state'
     severity: 1
     evaluationFrequency: 'PT5M'
@@ -334,8 +338,8 @@ var LogAlerts = [
     }
   }
   { // Based on Runbook script Output to LAW
-    name: 'AVD-Storage-Low Space on Azure File Share-15 Percent Remaining'
-    displayName: 'AVD-Storage-Low Space on Azure File Share-15% Remaining'
+    name: '${AlertNamePrefix}Storage-Low Space on Azure File Share-15 Percent Remaining'
+    displayName: '${AlertNamePrefix}Storage-Low Space on Azure File Share-15% Remaining'
     description: '${AlertDescriptionHeader}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining'
     severity: 2
     evaluationFrequency: 'PT10M'
@@ -381,8 +385,8 @@ var LogAlerts = [
     }
   }
   { // Based on Runbook script Output to LAW
-    name: 'AVD-Storage-Low Space on Azure File Share-5 Percent Remaining'
-    displayName: 'AVD-Storage-Low Space on Azure File Share-5% Remaining'
+    name: '${AlertNamePrefix}Storage-Low Space on Azure File Share-5 Percent Remaining'
+    displayName: '${AlertNamePrefix}Storage-Low Space on Azure File Share-5% Remaining'
     description: '${AlertDescriptionHeader}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining'
     severity: 1
     evaluationFrequency: 'PT10M'
@@ -428,8 +432,8 @@ var LogAlerts = [
     }
   }
   { // Based on Runbook script Output to LAW
-    name: 'AVD-HostPool-Capacity-85Percent'
-    displayName: 'AVD-HostPool-Capacity 85%'
+    name: '${AlertNamePrefix}HostPool-Capacity-85Percent'
+    displayName: '${AlertNamePrefix}HostPool-Capacity 85%'
     description: '${AlertDescriptionHeader}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Host Pool\nOutput is:\nHostPoolName|ResourceGroup|Type|MaxSessionLimit|NumberHosts|TotalUsers|DisconnectedUser|ActiveUsers|SessionsAvailable|HostPoolPercentageLoad'
     severity: 2
     evaluationFrequency: 'PT5M'
@@ -512,8 +516,8 @@ var LogAlerts = [
     }
   }
   { // Based on Runbook script Output to LAW
-    name: 'AVD-HostPool-Capacity-95Percent'
-    displayName: 'AVD-HostPool-Capacity 95%'
+    name: '${AlertNamePrefix}HostPool-Capacity-95Percent'
+    displayName: '${AlertNamePrefix}HostPool-Capacity 95%'
     description: '${AlertDescriptionHeader}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Host Pool\nOutput is:\nHostPoolName|ResourceGroup|Type|MaxSessionLimit|NumberHosts|TotalUsers|DisconnectedUser|ActiveUsers|SessionsAvailable|HostPoolPercentageLoad'
     severity: 1
     evaluationFrequency: 'PT5M'
@@ -599,8 +603,8 @@ var LogAlerts = [
 var MetricAlerts = {
   storageAccounts: [
     {
-      name: 'AVD-Storage-Over 200ms Latency for Storage Acct'
-      displayName: 'AVD-Storage-Over 200ms Latency for Storage Acct'
+      name: '${AlertNamePrefix}Storage-Over 200ms Latency for Storage Acct'
+      displayName: '${AlertNamePrefix}Storage-Over 200ms Latency for Storage Acct'
       description: '${AlertDescriptionHeader}\nThis could indicate a lag or poor performance for user Profiles or Apps using MSIX App Attach.'
       severity: 2
       evaluationFrequency: 'PT15M'
@@ -621,8 +625,8 @@ var MetricAlerts = {
       targetResourceType: 'Microsoft.Storage/storageAccounts'
     }
     {
-      name: 'AVD-Storage-Azure Files Availability'
-      displayName: 'AVD-Storage-Azure Files Availability'
+      name: '${AlertNamePrefix}Storage-Azure Files Availability'
+      displayName: '${AlertNamePrefix}Storage-Azure Files Availability'
       description: '${AlertDescriptionHeader}\nThis could indicate storage is unavailable for user Profiles or Apps using MSIX App Attach.'
       severity: 1
       evaluationFrequency: 'PT5M'
@@ -645,8 +649,8 @@ var MetricAlerts = {
   ]
   fileShares: [
     {
-      name: 'AVD-Storage-Possible Throttling Due to High IOPs'
-      displayName: 'AVD-Storage-Possible Throttling Due to High IOPs'
+      name: '${AlertNamePrefix}Storage-Possible Throttling Due to High IOPs'
+      displayName: '${AlertNamePrefix}Storage-Possible Throttling Due to High IOPs'
       description: '${AlertDescriptionHeader}\nThis indicates you may be maxing out the allowed IOPs.\nhttps://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled'
       severity: 2
       evaluationFrequency: 'PT15M'
@@ -692,8 +696,8 @@ var MetricAlerts = {
   ]
   anf: [
     {
-      name: 'AVD-Storage-Low Space on ANF Share-15 Percent Remaining'
-      displayName: 'AVD-Storage-Low Space on ANF Share-15% Remaining'
+      name: '${AlertNamePrefix}Storage-Low Space on ANF Share-15 Percent Remaining'
+      displayName: '${AlertNamePrefix}Storage-Low Space on ANF Share-15% Remaining'
       description: AlertDescriptionHeader
       severity: 2
       evaluationFrequency: 'PT1H'
@@ -715,8 +719,8 @@ var MetricAlerts = {
       targetResourceType: 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes'
     }
     {
-      name: 'AVD-Storage-Low Space on ANF Share-5 Percent Remaining'
-      displayName: 'AVD-Storage-Low Space on ANF Share-5% Remaining'
+      name: '${AlertNamePrefix}Storage-Low Space on ANF Share-5 Percent Remaining'
+      displayName: '${AlertNamePrefix}Storage-Low Space on ANF Share-5% Remaining'
       description: AlertDescriptionHeader
       severity: 1
       evaluationFrequency: 'PT1H'
@@ -740,8 +744,8 @@ var MetricAlerts = {
   ]
   virtualMachines: [
     {
-      name: 'AVD-VM-High CPU 85 Percent'
-      displayName: 'AVD-VM-High CPU 85%'
+      name: '${AlertNamePrefix}VM-High CPU 85 Percent'
+      displayName: '${AlertNamePrefix}VM-High CPU 85%'
       description: AlertDescriptionHeader
       severity: 2
       evaluationFrequency: 'PT5M'
@@ -763,8 +767,8 @@ var MetricAlerts = {
       targetResourceType: 'microsoft.compute/virtualmachines'
     }
     {
-      name: 'AVD-VM-High CPU 95 Percent'
-      displayName: 'AVD-VM-High CPU 95%'
+      name: '${AlertNamePrefix}VM-High CPU 95 Percent'
+      displayName: '${AlertNamePrefix}VM-High CPU 95%'
       description: AlertDescriptionHeader
       severity: 1
       evaluationFrequency: 'PT5M'
@@ -786,8 +790,8 @@ var MetricAlerts = {
       targetResourceType: 'microsoft.compute/virtualmachines'
     }
     {
-      name: 'AVD-VM-Available Memory Less Than 2GB'
-      displayName: 'AVD-VM-Available Memory Less Than 2GB'
+      name: '${AlertNamePrefix}VM-Available Memory Less Than 2GB'
+      displayName: '${AlertNamePrefix}VM-Available Memory Less Than 2GB'
       description: AlertDescriptionHeader
       severity: 2
       evaluationFrequency: 'PT5M'
@@ -809,8 +813,8 @@ var MetricAlerts = {
       targetResourceType: 'microsoft.compute/virtualmachines'
     }
     {
-      name: 'AVD-VM-Available Memory Less Than 1GB'
-      displayName: 'AVD-VM-Available Memory Less Than 1GB'
+      name: '${AlertNamePrefix}VM-Available Memory Less Than 1GB'
+      displayName: '${AlertNamePrefix}VM-Available Memory Less Than 1GB'
       description: AlertDescriptionHeader
       severity: 1
       evaluationFrequency: 'PT5M'
@@ -835,7 +839,7 @@ var MetricAlerts = {
   // Commenting out below until custom metrics are available in US Gov Cloud
   /* avdCustomMetrics: [
     {
-      name: 'AVD-HostPool-UsageAbove80percent'
+      name: '${AlertNamePrefix}HostPool-UsageAbove80percent'
       severity: 2
       evaluationFrequency: 'PT5M'
       windowSize: 'PT5M'
@@ -888,6 +892,7 @@ module resources 'modules/resources.bicep' = {
   name: 'MonitoringResourcesDeployment'
   scope: resourceGroupAVDMetrics
   params: {
+    AlertNamePrefix: AlertNamePrefix
     AutomationAccountName: AutomationAccountName
     DistributionGroup: DistributionGroup
     //FunctionAppName: FunctionAppName
@@ -911,7 +916,7 @@ module resources 'modules/resources.bicep' = {
   }
 }
 
-resource roleAssignment_Subscription 'Microsoft.Authorization/roleAssignments@2018-09-01-preview' = [for Role in items(RoleAssignments): {
+resource roleAssignment_Subscription 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = [for Role in items(RoleAssignments): {
   name: guid(subscription().id, AutomationAccountName, Role.value.Name)
   properties: {
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', Role.value.GUID)

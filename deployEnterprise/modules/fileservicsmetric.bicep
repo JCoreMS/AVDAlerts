@@ -1,3 +1,4 @@
+param AlertNamePrefix string
 param Location string
 param StorageAccountResourceID string
 param MetricAlertsFileShares array
@@ -7,7 +8,7 @@ param Tags object
 var FileServicesResourceID = '${StorageAccountResourceID}/fileServices/default'
 
 resource metricAlerts_FileShares 'Microsoft.Insights/metricAlerts@2018-03-01' = [for i in range(0, length(MetricAlertsFileShares)): {
-  name: '${MetricAlertsFileShares[i].name}-${split(FileServicesResourceID, '/')[8]}'
+  name: '${AlertNamePrefix}${MetricAlertsFileShares[i].name}-${split(FileServicesResourceID, '/')[8]}'
   location: 'global'
   tags: Tags
   properties: {

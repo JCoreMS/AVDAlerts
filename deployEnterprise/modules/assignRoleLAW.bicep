@@ -5,7 +5,7 @@ param RoleAssignments object
 param PrincipalId string
 param LogAnalyticsWorkspaceResourceId string
 
-resource roleAssignment_LAWSub 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource roleAssignment_LAWSub 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
   name: guid(DeployToSub, RoleAssignments.LogAnalyticsContributor.Name)
   properties: {
     principalId: PrincipalId

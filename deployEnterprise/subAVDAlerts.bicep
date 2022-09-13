@@ -1,5 +1,6 @@
 targetScope = 'subscription'
 
+param AlertNamePrefix string
 param AutomationAccountName string
 param DistributionGroup string
 param Location string
@@ -32,6 +33,7 @@ module resources 'modules/resources.bicep' = {
   name: 'MonitoringResourcesDeployment'
   scope: resourceGroupAVDMetrics
   params: {
+    AlertNamePrefix: AlertNamePrefix
     AutomationAccountName: AutomationAccountName
     DistributionGroup: DistributionGroup
     //FunctionAppName: FunctionAppName

@@ -17,6 +17,14 @@ There are 2 different deployments depending on your AVD infrastructure.
 **Enterprise**  
 An AVD deployment and/or storage or Log Analytics workspaces in multiple subscriptions within the same Azure AD Tenant. Owner Role at the Tenant level which can be defined via [Azure CLI or PowerShell.](https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/deploy-to-tenant?tabs=azure-cli#required-access)
 
+Once you are Global Admin ensure your Azure AD Tenant is configure to [allow Admins to manage access to all Subscriptions.](https://docs.microsoft.com/en-us/azure/role-based-access-control/elevate-access-global-admin#elevate-access-for-a-global-administrator)
+
+Additionally you will need to run the following as Global Admin does not have the ability to deploy at the tenant scope by default.
+
+```PowerShell
+New-AzRoleAssignment -SignInName "[userId]" -Scope "/" -RoleDefinitionName "Owner"
+```
+
 **Subscription**  
 An AVD deployment and the Owner Role on the Subscription containing the AVD resources, VMs and Storage.  You must have also pre-configured the AVD Insights as it will enable diagnostic logging for the Host Pools and associated VMs in which the alerts rely on.  
 
