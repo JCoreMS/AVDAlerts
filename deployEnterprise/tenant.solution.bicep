@@ -7,7 +7,7 @@ param SetAutoResolve bool = true
 param SetEnabled bool = false
 */
 
-@description('')
+@description('Alert Name Prefix.')
 param AlertNamePrefix string = 'AVD-'
 
 @description('Subscription ID where the AVD ALerts will be deployed')

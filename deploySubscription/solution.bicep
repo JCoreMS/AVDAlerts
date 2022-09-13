@@ -8,7 +8,7 @@ param SetAutoResolve bool = true
 param SetEnabled bool = false
  */
 
- @description('')
+ @description('Alert Name Prefix')
 param AlertNamePrefix string = 'AVD-'
 
 @description('The Distribution Group that will receive email alerts for AVD.')

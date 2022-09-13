@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.10.13.619",
-      "templateHash": "13021939961831436922"
+      "templateHash": "6879949906728815981"
     }
   },
   "parameters": {
@@ -13,7 +13,7 @@
       "type": "string",
       "defaultValue": "AVD-",
       "metadata": {
-        "description": ""
+        "description": "Alert Name Prefix"
       }
     },
     "DistributionGroup": {
