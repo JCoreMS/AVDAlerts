@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.10.61.36676",
-      "templateHash": "721566423755048370"
+      "templateHash": "893848254140836922"
     }
   },
   "parameters": {
@@ -382,7 +382,7 @@
         "criteria": {
           "allOf": [
             {
-              "query": "// HealthChecks of SessionHost \n// Renders a summary of SessionHost health status. \nlet MapToDesc = (idx:long) {\n    case(idx == 0,  \"DomainJoin\",\n         idx == 1,  \"DomainTrust\",\n         idx == 2,  \"FSLogix\",\n         idx == 3,  \"SxSStack\",\n         idx == 4,  \"URLCheck\",\n         idx == 5,  \"GenevaAgent\",\n         idx == 6,  \"DomainReachable\",\n         idx == 7,  \"WebRTCRedirector\",\n         idx == 8,  \"SxSStackEncryption\",\n         idx == 9,  \"IMDSReachable\",\n         idx == 10, \"MSIXPackageStaging\",\n         \"InvalidIndex\")\n};\nWVDAgentHealthStatus\n| where TimeGenerated > ago(10m)\n| where Status != 'Available'\n| where AllowNewSessions = True\n| extend CheckFailed = parse_json(SessionHostHealthCheckResult)\n| mv-expand CheckFailed\n| where CheckFailed.AdditionalFailureDetails.ErrorCode != 0\n| extend HealthCheckName = tolong(CheckFailed.HealthCheckName)\n| extend HealthCheckResult = tolong(CheckFailed.HealthCheckResult)\n| extend HealthCheckDesc = MapToDesc(HealthCheckName)\n\n",
+              "query": "// HealthChecks of SessionHost \n// Renders a summary of SessionHost health status. \nlet MapToDesc = (idx:long) {\n    case(idx == 0,  \"DomainJoin\",\n         idx == 1,  \"DomainTrust\",\n         idx == 2,  \"FSLogix\",\n         idx == 3,  \"SxSStack\",\n         idx == 4,  \"URLCheck\",\n         idx == 5,  \"GenevaAgent\",\n         idx == 6,  \"DomainReachable\",\n         idx == 7,  \"WebRTCRedirector\",\n         idx == 8,  \"SxSStackEncryption\",\n         idx == 9,  \"IMDSReachable\",\n         idx == 10, \"MSIXPackageStaging\",\n         \"InvalidIndex\")\n};\nWVDAgentHealthStatus\n| where TimeGenerated > ago(10m)\n| where Status != 'Available'\n| where AllowNewSessions = True\n| extend CheckFailed = parse_json(SessionHostHealthCheckResult)\n| mv-expand CheckFailed\n| where CheckFailed.AdditionalFailureDetails.ErrorCode != 0\n| extend HealthCheckName = tolong(CheckFailed.HealthCheckName)\n| extend HealthCheckResult = tolong(CheckFailed.HealthCheckResult)\n| extend HealthCheckDesc = MapToDesc(HealthCheckName)\n| where HealthCheckDesc != 'InvalidIndex'\n",
               "timeAggregation": "Count",
               "dimensions": [
                 {
