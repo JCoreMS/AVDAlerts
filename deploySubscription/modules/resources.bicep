@@ -1,5 +1,4 @@
 param ActionGroupName string
-param AlertNamePrefix string
 param AutomationAccountName string
 param DistributionGroup string
 //param FunctionAppName string
@@ -212,7 +211,6 @@ module storAccountMetric 'storAccountMetric.bicep' = [for i in range(0, length(S
 module azureNetAppFilesMetric 'anfMetric.bicep' = [for i in range(0, length(ANFVolumeResourceIds)): if(length(ANFVolumeResourceIds)>0) {
   name: 'MetricAlert_ANF_${split(ANFVolumeResourceIds[i],'/')[12]}'
   params: {
-    AlertNamePrefix: AlertNamePrefix
     Location: Location
     ANFVolumeResourceID: ANFVolumeResourceIds[i]
     MetricAlertsANF: MetricAlerts.anf
@@ -226,7 +224,6 @@ module azureNetAppFilesMetric 'anfMetric.bicep' = [for i in range(0, length(ANFV
 module fileServicesMetric 'fileservicsmetric.bicep' = [for i in range(0, length(StorageAccountResourceIds)): if(length(StorageAccountResourceIds)>0) {
   name: 'MetricAlert_FileServices_${i}'
   params: {
-    AlertNamePrefix: AlertNamePrefix
     Location: Location
     StorageAccountResourceID: StorageAccountResourceIds[i]
     MetricAlertsFileShares: MetricAlerts.fileShares

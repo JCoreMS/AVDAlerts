@@ -898,7 +898,6 @@ module mod_subscription_AVDAlertsResources './subAVDAlerts.bicep' = {
   name: 'sub-AVDAlertsResources'
   scope: subscription(DeployToSub)
   params: {
-    AlertNamePrefix: AlertNamePrefix
     AutomationAccountName: AutomationAccountName
     DistributionGroup: DistributionGroup
     //FunctionAppName: FunctionAppName

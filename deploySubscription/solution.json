@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.10.61.36676",
-      "templateHash": "3832315552378655554"
+      "templateHash": "7433653560761187016"
     }
   },
   "parameters": {
@@ -851,9 +851,6 @@
         },
         "mode": "Incremental",
         "parameters": {
-          "AlertNamePrefix": {
-            "value": "[parameters('AlertNamePrefix')]"
-          },
           "AutomationAccountName": {
             "value": "[variables('AutomationAccountName')]"
           },
@@ -916,14 +913,11 @@
             "_generator": {
               "name": "bicep",
               "version": "0.10.61.36676",
-              "templateHash": "12529378496299127198"
+              "templateHash": "14637413580815451313"
             }
           },
           "parameters": {
             "ActionGroupName": {
-              "type": "string"
-            },
-            "AlertNamePrefix": {
               "type": "string"
             },
             "AutomationAccountName": {
@@ -1215,9 +1209,6 @@
                 },
                 "mode": "Incremental",
                 "parameters": {
-                  "AlertNamePrefix": {
-                    "value": "[parameters('AlertNamePrefix')]"
-                  },
                   "Location": {
                     "value": "[parameters('Location')]"
                   },
@@ -1241,13 +1232,10 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.10.61.36676",
-                      "templateHash": "3063835615287208544"
+                      "templateHash": "1133104447722951994"
                     }
                   },
                   "parameters": {
-                    "AlertNamePrefix": {
-                      "type": "string"
-                    },
                     "Location": {
                       "type": "string"
                     },
@@ -1272,7 +1260,7 @@
                       },
                       "type": "Microsoft.Insights/metricAlerts",
                       "apiVersion": "2018-03-01",
-                      "name": "[format('{0}{1}-{2}', parameters('AlertNamePrefix'), parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].name, split(parameters('ANFVolumeResourceID'), '/')[12])]",
+                      "name": "[format('{0}-{1}', parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].name, split(parameters('ANFVolumeResourceID'), '/')[12])]",
                       "location": "global",
                       "tags": "[parameters('Tags')]",
                       "properties": {
@@ -1317,9 +1305,6 @@
                 },
                 "mode": "Incremental",
                 "parameters": {
-                  "AlertNamePrefix": {
-                    "value": "[parameters('AlertNamePrefix')]"
-                  },
                   "Location": {
                     "value": "[parameters('Location')]"
                   },
@@ -1343,13 +1328,10 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.10.61.36676",
-                      "templateHash": "16641962629289939999"
+                      "templateHash": "4064801187215295306"
                     }
                   },
                   "parameters": {
-                    "AlertNamePrefix": {
-                      "type": "string"
-                    },
                     "Location": {
                       "type": "string"
                     },
@@ -1377,7 +1359,7 @@
                       },
                       "type": "Microsoft.Insights/metricAlerts",
                       "apiVersion": "2018-03-01",
-                      "name": "[format('{0}{1}-{2}', parameters('AlertNamePrefix'), parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].name, split(variables('FileServicesResourceID'), '/')[8])]",
+                      "name": "[format('{0}-{1}', parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].name, split(variables('FileServicesResourceID'), '/')[8])]",
                       "location": "global",
                       "tags": "[parameters('Tags')]",
                       "properties": {

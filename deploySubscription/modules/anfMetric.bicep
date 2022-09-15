@@ -1,4 +1,3 @@
-param AlertNamePrefix string
 param Location string
 param MetricAlertsANF array
 param ANFVolumeResourceID string
@@ -6,7 +5,7 @@ param ActionGroupID string
 param Tags object
 
 resource metricAlerts_ANFVolume 'Microsoft.Insights/metricAlerts@2018-03-01' = [for i in range(0, length(MetricAlertsANF)): {
-  name: '${AlertNamePrefix}${MetricAlertsANF[i].name}-${split(ANFVolumeResourceID, '/')[12]}'
+  name: '${MetricAlertsANF[i].name}-${split(ANFVolumeResourceID, '/')[12]}'
   location: 'global'
   tags: Tags
   properties: {
