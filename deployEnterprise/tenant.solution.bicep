@@ -351,6 +351,13 @@ var LogAlerts = [
                 '*'
               ]
             }
+            {
+              name: 'HealthCheckDesc'
+              operator: 'Include'
+              values: [
+                  '*'
+              ]
+            }
           ]
           operator: 'GreaterThanOrEqual'
           threshold: 1
