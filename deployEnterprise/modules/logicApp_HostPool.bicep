@@ -1,10 +1,10 @@
 param AutomationAccountName string
+param AVDHostSubIDs array
 param CloudEnvironment string
 param Location string
 param LogicAppName string
 param RunbookNameGetHostPool string
 param RunbookURI string
-param SubscriptionId string
 param Timestamp string
 
 resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' existing = {
@@ -66,8 +66,8 @@ resource logicAppGetHostPoolInfo 'Microsoft.Logic/workflows@2016-06-01' = {
             method: 'POST'
             uri: replace(variableGetHostPoolInfo.properties.value, '"', '')
             body: {
+              AVDHostSubIDs: AVDHostSubIDs
               CloudEnvironment: CloudEnvironment
-              SubscriptionId: SubscriptionId
             }
           }
         }

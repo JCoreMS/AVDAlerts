@@ -24,15 +24,16 @@ $FileShareName = $Parameters.PSObject.Properties['FileShareName'].Value
 $ResourceGroupName = $Parameters.PSObject.Properties['ResourceGroupName'].Value
 $StorageAccountName = $Parameters.PSObject.Properties['StorageAccountName'].Value
 #>
-$SubscriptionId = $Parameters.PSObject.Properties['SubscriptionId'].Value
 $CloudEnvironment = $Parameters.PSObject.Properties['CloudEnvironment'].Value
 $StorageAccts = $Parameters.PSObject.Properties['StorageAccountResourceIds'].Value
 
-Connect-AzAccount -Identity -Environment $CloudEnvironment -SubscriptionId $SubscriptionId | Out-Null
+
 $Output = $null
 
 # Foreach storage account
 Foreach ($storageAcct in $storageAccts) {
+	$SubId = ($storageAcct -split '/')[2]
+	Connect-AzAccount -Identity -Environment $CloudEnvironment -SubscriptionId $SubId | Out-Null
 	$SubName = (Get-azSubscription -SubscriptionId ($storageAcct -split '/')[2]).Name
 	Set-AzContext -SubscriptionId ($storageAcct -split '/')[2] | Out-Null
 	$resourceGroup = ($storageAcct -split '/')[4]

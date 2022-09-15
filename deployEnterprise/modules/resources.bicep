@@ -23,7 +23,6 @@ param Timestamp string = utcNow('u')
 
 
 // var Environment = environment().name
-var SubscriptionId = subscription().subscriptionId
 var CloudEnvironment = environment().name
 // Unique list of Subscription IDs for Logic App deployment (Get Host Pool Info) and RBAC on Session Host Resource IDs
 var AVDHostSubIDlist = [for id in (SessionHostsResourceGroupIds): split(id,'/')[2]]
@@ -313,6 +312,9 @@ resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' 
 
 module logicApp_Storage './logicApp_Storage.bicep' = if(length(StorageAccountResourceIds)>0) {
   name: 'LogicApp_Storage'
+  dependsOn: [
+    automationAccount
+  ]
   params: {
     AutomationAccountName: AutomationAccountName
     CloudEnvironment: CloudEnvironment
@@ -327,14 +329,17 @@ module logicApp_Storage './logicApp_Storage.bicep' = if(length(StorageAccountRes
 
 module logicApp_HostPool './logicApp_HostPool.bicep' = {
   name: 'LogicApp_HostPool'
+  dependsOn: [
+    automationAccount
+  ]
   params: {
     AutomationAccountName: AutomationAccountName
+    AVDHostSubIDs: AVDHostSubIDs
     CloudEnvironment: CloudEnvironment
     Location: Location
     LogicAppName: '${LogicAppName}-HostPool'
     RunbookNameGetHostPool: RunbookNameGetHostPool
     RunbookURI: '${ScriptsRepositoryUri}${RunbookScriptGetHostPool}${ScriptsRepositorySasToken}'
-    SubscriptionId: SubscriptionId
     Timestamp: Timestamp
   }
 }

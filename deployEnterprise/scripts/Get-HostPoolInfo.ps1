@@ -9,16 +9,13 @@ param(
 
 $Parameters = ConvertFrom-Json -InputObject $WebHookData.RequestBody
 $CloudEnvironment = $Parameters.PSObject.Properties['CloudEnvironment'].Value
-$SubscriptionId = $Parameters.PSObject.Properties['SubscriptionId'].Value
 $AVDHostSubIds = $Parameters.PSObject.Properties['AVDHostSubIds'].Value
-
-Connect-AzAccount -Identity -Environment $CloudEnvironment -SubscriptionId $SubscriptionId| Out-Null
 
 # $HostPoolInfoObj= @()
 $Output = @()
 
 Foreach($Sub in $AVDHostSubIds){
-	
+	Connect-AzAccount -Identity -Environment $CloudEnvironment -SubscriptionId $Sub| Out-Null
 	$AVDHostPools = Get-AzWvdHostPool -SubscriptionId $Sub
 
 	Foreach($AVDHostPool in $AVDHostPools){
