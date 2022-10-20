@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.11.1.770",
-      "templateHash": "8725591874958022751"
+      "templateHash": "17363758725449507846"
     }
   },
   "parameters": {
@@ -27,7 +27,7 @@
       "type": "string",
       "defaultValue": "t",
       "metadata": {
-        "description": "The environment is which these resources will be deployed, i.e. Development."
+        "description": "The environment is which these resources will be deployed, i.e. Test, Production, Development."
       },
       "allowedValues": [
         "d",
@@ -45,19 +45,6 @@
       "type": "string",
       "metadata": {
         "description": "The Resource ID for the Log Analytics Workspace."
-      }
-    },
-    "ScriptsRepositorySasToken": {
-      "type": "secureString",
-      "metadata": {
-        "description": "The SAS token if using a storage account for the repository."
-      }
-    },
-    "ScriptsRepositoryUri": {
-      "type": "string",
-      "defaultValue": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/",
-      "metadata": {
-        "description": "The repository URI hosting the scripts for this solution."
       }
     },
     "SessionHostsResourceGroupIds": {
@@ -95,6 +82,7 @@
     "RunbookNameGetHostPool": "AvdHostPoolLogData",
     "RunbookScriptGetStorage": "Get-AzureAvdLogs.ps1",
     "RunbookScriptGetHostPool": "Get-HostPoolInfo.ps1",
+    "ScriptsRepositoryUri": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/",
     "AlertDescriptionHeader": "Automated AVD Alert Deployment Solution (v0.5)\n",
     "RoleAssignments": {
       "DesktopVirtualizationRead": {
@@ -886,11 +874,8 @@
           "RunbookScriptGetHostPool": {
             "value": "[variables('RunbookScriptGetHostPool')]"
           },
-          "ScriptsRepositorySasToken": {
-            "value": "[parameters('ScriptsRepositorySasToken')]"
-          },
           "ScriptsRepositoryUri": {
-            "value": "[parameters('ScriptsRepositoryUri')]"
+            "value": "[variables('ScriptsRepositoryUri')]"
           },
           "SessionHostsResourceGroupIds": {
             "value": "[parameters('SessionHostsResourceGroupIds')]"
@@ -915,7 +900,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.11.1.770",
-              "templateHash": "17976454266756917341"
+              "templateHash": "2507231852634407466"
             }
           },
           "parameters": {
@@ -954,9 +939,6 @@
             },
             "RunbookScriptGetHostPool": {
               "type": "string"
-            },
-            "ScriptsRepositorySasToken": {
-              "type": "secureString"
             },
             "ScriptsRepositoryUri": {
               "type": "string"
@@ -1418,7 +1400,7 @@
                     "value": "[parameters('RunbookNameGetStorage')]"
                   },
                   "RunbookURI": {
-                    "value": "[format('{0}{1}{2}', parameters('ScriptsRepositoryUri'), parameters('RunbookScriptGetStorage'), parameters('ScriptsRepositorySasToken'))]"
+                    "value": "[format('{0}{1}', parameters('ScriptsRepositoryUri'), parameters('RunbookScriptGetStorage'))]"
                   },
                   "StorageAccountResourceIds": {
                     "value": "[parameters('StorageAccountResourceIds')]"
@@ -1576,7 +1558,7 @@
                     "value": "[parameters('RunbookNameGetHostPool')]"
                   },
                   "RunbookURI": {
-                    "value": "[format('{0}{1}{2}', parameters('ScriptsRepositoryUri'), parameters('RunbookScriptGetHostPool'), parameters('ScriptsRepositorySasToken'))]"
+                    "value": "[format('{0}{1}', parameters('ScriptsRepositoryUri'), parameters('RunbookScriptGetHostPool'))]"
                   },
                   "SubscriptionId": {
                     "value": "[variables('SubscriptionId')]"

@@ -19,7 +19,7 @@ param DistributionGroup string = ''
   'p'
   't'
 ])
-@description('The environment is which these resources will be deployed, i.e. Development.')
+@description('The environment is which these resources will be deployed, i.e. Test, Production, Development.')
 param Environment string = 't'
 
 @description('Azure Region for Resources.')
@@ -27,13 +27,6 @@ param Location string
 
 @description('The Resource ID for the Log Analytics Workspace.')
 param LogAnalyticsWorkspaceResourceId string
-
-@secure()
-@description('The SAS token if using a storage account for the repository.')
-param ScriptsRepositorySasToken string
-
-@description('The repository URI hosting the scripts for this solution.')
-param ScriptsRepositoryUri string = 'https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/'
 
 @description('The Resource Group ID for the AVD session host VMs.')
 param SessionHostsResourceGroupIds array = []
@@ -58,6 +51,7 @@ var RunbookNameGetStorage = 'AvdStorageLogData'
 var RunbookNameGetHostPool = 'AvdHostPoolLogData'
 var RunbookScriptGetStorage = 'Get-AzureAvdLogs.ps1'
 var RunbookScriptGetHostPool = 'Get-HostPoolInfo.ps1'
+var ScriptsRepositoryUri = 'https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/'
 var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v0.5)\n'
 var RoleAssignments = {
   DesktopVirtualizationRead: {
@@ -912,7 +906,6 @@ module resources 'modules/resources.bicep' = {
     RunbookNameGetHostPool: RunbookNameGetHostPool
     RunbookScriptGetStorage: RunbookScriptGetStorage
     RunbookScriptGetHostPool: RunbookScriptGetHostPool
-    ScriptsRepositorySasToken: ScriptsRepositorySasToken
     ScriptsRepositoryUri: ScriptsRepositoryUri
     SessionHostsResourceGroupIds: SessionHostsResourceGroupIds
     StorageAccountResourceIds: StorageAccountResourceIds

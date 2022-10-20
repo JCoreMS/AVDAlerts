@@ -14,8 +14,6 @@ param RunbookNameGetStorage string
 param RunbookNameGetHostPool string
 param RunbookScriptGetStorage string
 param RunbookScriptGetHostPool string
-@secure()
-param ScriptsRepositorySasToken string
 param ScriptsRepositoryUri string
 param SessionHostsResourceGroupIds array
 param StorageAccountResourceIds array
@@ -301,7 +299,7 @@ module logicApp_Storage './logicApp_Storage.bicep' = if(length(StorageAccountRes
     Location: Location
     LogicAppName: '${LogicAppName}-Storage'
     RunbookNameGetStorage: RunbookNameGetStorage
-    RunbookURI: '${ScriptsRepositoryUri}${RunbookScriptGetStorage}${ScriptsRepositorySasToken}'
+    RunbookURI: '${ScriptsRepositoryUri}${RunbookScriptGetStorage}'
     StorageAccountResourceIds: StorageAccountResourceIds
     Timestamp: Timestamp
   }
@@ -315,7 +313,7 @@ module logicApp_HostPool './logicApp_HostPool.bicep' = {
     Location: Location
     LogicAppName: '${LogicAppName}-HostPool'
     RunbookNameGetHostPool: RunbookNameGetHostPool
-    RunbookURI: '${ScriptsRepositoryUri}${RunbookScriptGetHostPool}${ScriptsRepositorySasToken}'
+    RunbookURI: '${ScriptsRepositoryUri}${RunbookScriptGetHostPool}'
     SubscriptionId: SubscriptionId
     Timestamp: Timestamp
   }
