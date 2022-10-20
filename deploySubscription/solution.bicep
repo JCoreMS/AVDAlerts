@@ -22,8 +22,8 @@ param DistributionGroup string = ''
 @description('The environment is which these resources will be deployed, i.e. Development.')
 param Environment string = 't'
 
-@description('Azure Region for Resources')
-param Location string = deployment().location
+@description('Azure Region for Resources.')
+param Location string
 
 @description('The Resource ID for the Log Analytics Workspace.')
 param LogAnalyticsWorkspaceResourceId string
@@ -36,13 +36,13 @@ param ScriptsRepositorySasToken string
 param ScriptsRepositoryUri string = 'https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/'
 
 @description('The Resource Group ID for the AVD session host VMs.')
-param SessionHostsResourceGroupIds array
+param SessionHostsResourceGroupIds array = []
 
 @description('The Resource IDs for the Azure Files Storage Accounts used for FSLogix profile storage.')
-param StorageAccountResourceIds array
+param StorageAccountResourceIds array = []
 
 @description('The Resource IDs for the Azure NetApp Volumes used for FSLogix profile storage.')
-param ANFVolumeResourceIds array
+param ANFVolumeResourceIds array = []
 
 //param Timestamp string = utcNow('yyyyMMddhhmmss')
 
