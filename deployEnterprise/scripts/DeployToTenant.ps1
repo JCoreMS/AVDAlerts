@@ -28,11 +28,32 @@ Foreach($Sub in $Subs){
 $Selection = Read-Host "Select Subscription number desired"
 $Sub = $Subs[$Selection-1]
 Select-AzSubscription -SubscriptionObject $Sub
-$SubId = $Sub.Id
 
+Clear-Host
 
 # =================================================================================================
-CLS
+# Get Environment and Subscription for Deployment
+# =================================================================================================
+
+Write-Host "Which Azure Cloud would you like to deploy to?"
+$CloudList = (Get-AzEnvironment).Name
+Foreach($cloud in $CloudList){Write-Host ($CloudList.IndexOf($cloud)+1) "-" $cloud}
+$select = Read-Host
+$Environment = $CloudList[$select-1]
+
+Connect-AzAccount -Environment $Environment
+
+$Subs = Get-AzSubscription
+Foreach($Sub in $Subs){
+    Write-Host ($Subs.Indexof($Sub)+1) "-" $Sub.Name
+ }
+
+$Selection = Read-Host "Subscription"
+$Selection = $Subs[$Selection-1]
+Select-AzSubscription -SubscriptionObject $Selection
+$SubID = $Sub.Id
+
+# =================================================================================================
 # Get distro email address
 # =================================================================================================
 $DistributionGroup = Read-Host "Provide the email address of the user or distribuition list for AVD Alerts (Disabled by default)"
@@ -208,9 +229,11 @@ $OutputHeader = @'
 '@
 
 $OutputBody = @"
-
         "AlertNamePrefix": {
             "value": "$AlertNamePrefix"
+        },
+        "DeployToSub": {
+            "value": "$SubID"
         },
         "DistributionGroup": {
             "value": "$DistributionGroup"
@@ -228,7 +251,7 @@ $OutputBody = @"
             "value": ""
         },
         "ScriptsRepositoryUri": {
-            "value": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/"
+            "value": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deployEnterprise/scripts/"
         },
         "SessionHostsResourceGroupIds": {
             "value": [
@@ -258,8 +281,9 @@ $OutputHeader + $OutputBody | Out-File $OutputFile
 # Write Output for awareness
 Write-Host "Azure Parameters information saved as... `n$OutputFile" -foregroundcolor Green
 
-
-
+# Deploy to Azure
+Write-Host "Deploying to Azure..."
+New-AzTenantDeployment -Name "AVD-Alerts-Solution" -TemplateUri https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deployEnterprise/tenant.solution.json -TemplateParameterFile $OutputFile -Location $Location
 
 
 

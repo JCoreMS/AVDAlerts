@@ -77,32 +77,18 @@ Table below shows the Alert Names however the number of alert rules created may 
 
 [**Log Analytics Query Reference**](AlertQueryReference.md)
 
-## Deploy via Portal
+## Deployment / Installation
+
+Use the associated PowerShell script to gather needed information about your environment and deploy the corresponding solution.
 
 ### Subscription ONLY based Deployment
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FJCoreMS%2FAVDAlerts%2Fmain%2FdeploySubscription%2Fsolution.json)
-[![Deploy to Azure Gov](https://aka.ms/deploytoazuregovbutton)](https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FJCoreMS%2FAVDAlerts%2Fmain%2FdeploySubscription%2Fsolution.json)
-
-#### Deploy from PowerShell
-Consider using the script to build out your parameters file in the ./scripts folder. This will prompt for information and retrieve the needed resource IDs as well as create a timestamped parameters JSON file.  
-[GetParamsInfo.PS1](./scripts/GetParamsInfo.ps1)
-
-You will need the appropriate PowerShell modules installed and connected to Azure.  Ensure you also download and configure the provided Parameters file. After which you can then you can run the following from PowerShell: 
-
-```PowerShell
-New-AzDeployment -Name "AVD-Alerts-Solution" -TemplateUri https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/solution.json -TemplateParameterFile <YourParametersFile> -Location <region>
-```
+This is used for deployment at the Subscription level with all resources related to AVD inside a SINGLE subscription to include the Log Analytics workspace, VMs and AVD specific resources. You will need the appropriate Azure PowerShell modules installed and the Contributor role at the Subscription level.  
+[DeployToSub.PS1](./deploySubscription/scripts/DeployToSub.ps1)
 
 ### Tenant Level (Enterprise) based Deployment
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FJCoreMS%2FAVDAlerts%2Fmain%2FdeployEnterprise%2Ftenant.solution.json)
-[![Deploy to Azure Gov](https://aka.ms/deploytoazuregovbutton)](https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FJCoreMS%2FAVDAlerts%2Fmain%2FdeployEnterprise%2Ftenant.solution.json)
-
-You will need the appropriate PowerShell modules installed and connected to Azure. Ensure you also download and configure the provided Parameters file. After which you can then you can run the following from PowerShell:  
-
-```PowerShell
-New-AzTenantDeployment -Name "AVD-Alerts-Solution" -TemplateUri https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deployEnterprise/tenant.solution.json -TemplateParameterFile tenant.solution.parameters.json -Location <region>
-```
+This is used for deployment at the Tenant level with resources related to AVD spread across MULTIPLE subscriptions.  You will need the appropriate Azure PowerShell modules installed and the deployment ability at the Tenant level.  
+[DeployToTenant.PS1](./deployEnterprise/scripts/DeployToEnterprise.ps1)
 
 **See [PostDeployment](./PostDeploy.md) for next steps to enable and view alerts.**
