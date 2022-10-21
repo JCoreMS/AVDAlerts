@@ -247,12 +247,6 @@ $OutputBody = @"
         "LogAnalyticsWorkspaceResourceId": {
             "value": "$LogAnalyticsWorkspace"
         },
-        "ScriptsRepositorySasToken": {
-            "value": ""
-        },
-        "ScriptsRepositoryUri": {
-            "value": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deployEnterprise/scripts/"
-        },
         "SessionHostsResourceGroupIds": {
             "value": [
                 $AVDResourceIDs
