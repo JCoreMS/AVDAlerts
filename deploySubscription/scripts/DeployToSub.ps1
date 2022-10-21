@@ -255,7 +255,7 @@ Write-Host "Azure Parameters information saved as... `n$OutputFile" -foregroundc
 
 # Launch Deployment
 Write-Host "Launching Deployment..."
-New-AzDeployment -Name "AVD-Alerts-Solution" -TemplateUri https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/solution.json -TemplateParameterFile $OutputFile -Location $Location
+New-AzDeployment -Name "AVD-Alerts-Solution" -TemplateUri https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/solution.json -TemplateParameterFile $OutputFile -Location $Location
 
 
 
