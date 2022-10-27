@@ -5,32 +5,6 @@ $OutputFile = './Parameters_' + $filetimestamp + '.json'
 Write-Host "This script will help you collect the following information and build out your parameters file for deployment."
 Write-Host "While mulitple storage resouces can be defined, you will only be prompted for a single option via this script" -ForegroundColor Yellow
 
-# Connect To Azure
-Write-Host "Connect to Azure Soveriegn Cloud? (US Gov or China)"
-$response = Read-Host "Y or N"
-$response.ToUpper()
-If($response -eq 'Y'){ 
-    Write-Host "1 - US Government"
-    Write-Host "2 - China"
-    $response = Read-Host "Select 1 or 2 (Any other response will assume Azure Global Cloud Environment)"
-    If($response -eq 1){$Environment = "AzureUSGovernment"}
-    If($response -eq 2){$Environment = "AzureChina"}
-}
-else{$Environment = "AzureCloud"} 
-
-Connect-AzAccount -Environment $Environment
-Write-Host "Getting subscriptions..."
-$Subs = Get-AzSubscription
-Foreach($Sub in $Subs){
-    Write-Host ($Subs.Indexof($Sub)+1) "-" $Sub.Name
- }
-
-$Selection = Read-Host "Select Subscription number desired"
-$Sub = $Subs[$Selection-1]
-Select-AzSubscription -SubscriptionObject $Sub
-
-Clear-Host
-
 # =================================================================================================
 # Get Environment and Subscription for Deployment
 # =================================================================================================
@@ -89,7 +63,7 @@ If(($EnvType -ne "p") -and ($EnvType -ne "d") -and ($EnvType -ne "t"))
 # =================================================================================================
 Write-Host "Getting AVD Host Pools in Subscription..."
 $AVDResourceRG = ""
-$RGs = ""
+$RGs = @()
 $AVDHostPools = Get-AzResource -ResourceType 'Microsoft.DesktopVirtualization/hostPools'
 Foreach($item in $AVDHostPools){$RGs += $AVDHostPools.ResourceGroupName}
 $RGs = $RGs | Sort-Object -Unique
@@ -198,7 +172,7 @@ $Tags = @()
 $AddMore = $true
 do {
     $UsrInput = Read-Host "Key:Value"
-    If ($UsrInput.ToUpper() -eq "X"){$AddMore = $false}
+    If (($UsrInput.ToUpper() -eq "X") -or ($UsrInput -eq "")){$AddMore = $false}
     else{$Tags += $UsrInput}
 } while ($AddMore)
 If($null -ne $Tags){
@@ -275,12 +249,43 @@ $OutputHeader + $OutputBody | Out-File $OutputFile
 # Write Output for awareness
 Write-Host "Azure Parameters information saved as... `n$OutputFile" -foregroundcolor Green
 
-# Deploy to Azure
-Write-Host "Deploying to Azure..."
-New-AzTenantDeployment -Name "AVD-Alerts-Solution" -TemplateUri https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deployEnterprise/tenant.solution.json -TemplateParameterFile $OutputFile -Location $Location
+# Summary:
+Clear-Host
+Write-Host "Summary of Selections" -ForegroundColor Green
+Write-Host "====================================================================================" -ForegroundColor Green
+Write-Host "Subscription for Alerts Solution:" -ForegroundColor Cyan
+Write-Host "`t$SubId"
+Write-Host "AVD Alert Name Prefix:" -ForegroundColor Cyan
+Write-Host "`t$AlertNamePrefix"
+Write-Host "Email for Alerts:" -foregroundcolor Cyan
+Write-Host "`t$DistributionGroup"
+Write-Host "Environment Type:" -foregroundcolor Cyan
+Write-Host "`t$EnvType"
+Write-Host "Location:" -foregroundcolor Cyan
+Write-Host "`t$Location"
+Write-Host "Log Analytics Workspace:" -foregroundcolor Cyan
+Write-Host "`t$LogAnalyticsWorkspace"
+Write-Host "Azure Files Storage:" -foregroundcolor Cyan
+Write-Host "`t$StorageAccount"
+Write-Host "NetApp Files Volume:" -foregroundcolor Cyan
+Write-Host "`t$ANFVolumeResource"
+Write-Host "Host Pool VM Resource Groups:" -foregroundcolor Cyan
+Write-Host "`t$AVDResourceIDs"
+Write-Host "Tags for resources:" -foregroundcolor Cyan
+Foreach($Tag in $Tags){Write-Host "`t$Tag"}
+Pause
 
-
-
+# Launch Deployment
+$ToDeploy = Read-Host "Deploy Now? (Y or N)"
+If($ToDeploy.ToUpper() -eq 'Y'){
+    Write-Host "Launching Deployment..."
+    New-AzTenantDeployment -Name "AVD-Alerts-Solution" -TemplateUri https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deployEnterprise/tenant.solution.json -TemplateParameterFile $OutputFile -Location $Location -Verbose
+}
+else {
+    Write-Host "Exiting..." -ForegroundColor Yellow
+    Write-Host "Please use the following to deploy with your pre-created Paramaters file: $OutputFile"
+    Write-Host """New-AzTenantDeployment -Name "AVD-Alerts-Solution" -TemplateUri https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deployEnterprise/tenant.solution.json -TemplateParameterFile $OutputFile -Location $Location"""
+}
 
 
 
