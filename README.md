@@ -94,6 +94,6 @@ This is used for deployment at the Subscription level with all resources related
 ### Tenant Level (Enterprise) based Deployment
 
 This is used for deployment at the Tenant level with resources related to AVD spread across MULTIPLE subscriptions.  You will need the appropriate Azure PowerShell modules installed and the deployment ability at the Tenant level.  
-[DeployToTenant.PS1](./deployEnterprise/scripts/DeployToEnterprise.ps1)
+[DeployToTenant.PS1](./deployEnterprise/scripts/DeployToTenant.ps1)
 
 **See [PostDeployment](./PostDeploy.md) for next steps to enable and view alerts.**
