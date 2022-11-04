@@ -93,7 +93,7 @@ $SessionHosts = @()
 $AVDVMRGs = @()
 $AVDResourceIDs = @()
 Foreach($HostPool in $HostPools){
-    $CurrSessionHost = ((Get-AzWvdSessionHost -SubscriptionId $Sub.Id -ResourceGroupName $AVDResourceRG -HostPoolName $HostPool.Name).Name -split '/')[1]
+    $CurrSessionHost = ((Get-AzWvdSessionHost -SubscriptionId $SubID -ResourceGroupName $AVDResourceRG -HostPoolName $HostPool.Name).Name -split '/')[1]
     If($null -eq $CurrSessionHost){Write-Host "No Session Hosts Found in:" $HostPool.Name -ForegroundColor Yellow}
     Else{
         $DotLocation = $CurrSessionHost.IndexOf('.')
