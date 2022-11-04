@@ -18,7 +18,7 @@ $Environment = $CloudList[$select-1]
 
 Connect-AzAccount -Environment $Environment
 
-$Subs = Get-AzSubscription
+[array]$Subs = Get-AzSubscription
 Foreach($Sub in $Subs){
     Write-Host ($Subs.Indexof($Sub)+1) "-" $Sub.Name
  }
