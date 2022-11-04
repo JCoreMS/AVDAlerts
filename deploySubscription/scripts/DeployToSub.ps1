@@ -306,15 +306,3 @@ else {
     Write-Host "Please use the following to deploy with your pre-created Paramaters file: $OutputFile"
     Write-Host """New-AzDeployment -Name "AVD-Alerts-Solution" -TemplateUri https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/solution.json -TemplateParameterFile $OutputFile -Location $Location"""
 }
-
-
-
-
-
-
-
-
-
-
-
-
