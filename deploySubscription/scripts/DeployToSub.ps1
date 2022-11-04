@@ -1,3 +1,6 @@
+$ErrorActionPreference = 'Stop'
+$WarningPreference = 'SilentlyContinue'
+
 # VARIABLES
 $filetimestamp = Get-Date -Format "MM.dd.yyyy_THH.mm" 
 $OutputFile = './Parameters_' + $filetimestamp + '.json'
@@ -7,45 +10,64 @@ Write-Host "While mulitple storage resouces can be defined, you will only be pro
 
 
 # =================================================================================================
-# Get Environment and Subscription for Deployment
+# Set Environment for Deployment
 # =================================================================================================
-
 Write-Host "Which Azure Cloud would you like to deploy to?"
 $CloudList = (Get-AzEnvironment).Name
 Foreach($cloud in $CloudList){Write-Host ($CloudList.IndexOf($cloud)+1) "-" $cloud}
-$select = Read-Host
+$select = Read-Host "Enter selection"
 $Environment = $CloudList[$select-1]
+Connect-AzAccount -Environment $Environment | Out-Null
+Clear-Host
 
-Connect-AzAccount -Environment $Environment
 
-[array]$Subs = Get-AzSubscription
+# =================================================================================================
+# Set Tenant for Deployment
+# =================================================================================================
+Write-Host "Which Azure Tenant would you like to deploy to?"
+[array]$Tenants = Get-AzTenant
+Foreach($Tenant in $Tenants){
+    Write-Host ($Tenants.Indexof($Tenant)+1) "-" $Tenant.Name
+ }
+$TenantSelection = Read-Host "Enter selection"
+$TenantId = ($Tenants[$TenantSelection-1]).Id
+Clear-Host
+
+
+# =================================================================================================
+# Set Subscription for Deployment
+# =================================================================================================
+Write-Host "Which Azure Subscription would you like to deploy to?"
+[array]$Subs = Get-AzSubscription -TenantId $TenantId
 Foreach($Sub in $Subs){
     Write-Host ($Subs.Indexof($Sub)+1) "-" $Sub.Name
  }
-
-$Selection = Read-Host "Subscription"
-$Selection = $Subs[$Selection-1]
-Select-AzSubscription -SubscriptionObject $Selection
-$SubID = $Sub.Id
-# =================================================================================================
-
+$SubSelection = Read-Host "Enter selection"
+$SubID = ($Subs[$SubSelection-1]).Id
+Set-AzContext -Tenant $TenantId -Subscription $SubID | Out-Null
 Clear-Host
 
+
+# =================================================================================================
 # Get distro email address
 # =================================================================================================
 $DistributionGroup = Read-Host "Provide the email address of the user or distribuition list for AVD Alerts (Disabled by default)"
+Clear-Host
 
 # =================================================================================================
 # Get Alert Name Prefix
 # =================================================================================================
 $AlertNamePrefix = Read-Host "Provide the Alert Name Prefix you would like to use. To use the default of 'AVD-' just hit ENTER."
+Clear-Host
 
 # =================================================================================================
 # Get Location to be used
 # =================================================================================================
 Write-Host "If you need a list of Locations you can also run the following at a PowerShell prompt:"
 Write-Host "Connect-AzAccount; get-AzLocation | fl Location"
-$Location = Read-Host "Type the Location for the resources to be deployed to."
+$Location = Read-Host "Enter the Azure deployment (e.g. eastus)"
+Clear-Host
+
 
 # =================================================================================================
 # Environment to deploy (Prod, Dev, Test)
@@ -61,6 +83,9 @@ If(($EnvType -ne "p") -and ($EnvType -ne "d") -and ($EnvType -ne "t"))
         Write-Host "You must select one of the above! Exiting!" -foregroundcolor Red
         Break
     }
+Clear-Host
+
+
 # =================================================================================================
 # AVD Host Pool RG Names
 # =================================================================================================
@@ -109,9 +134,9 @@ Foreach ($AVDVMRG in $AVDVMRGs){
 }
 
 Foreach ($item in $AVDVMRGIds){
-    If($AVDVMRGIds.count -ne 1){$AVDResourceIDs += """$item""," + "`n`t`t`t"}
-    Else{$AVDResourceIDs += """$item"""}
+    $AVDResourceIDs += $item
 }
+Clear-Host
 
 
 # =================================================================================================
@@ -126,20 +151,32 @@ Foreach($LAW in $LogAnalyticsWorkspaces){
     }
 $response = Read-Host "Select the number corresponding to the Log Analytics Workspace containing AVD Metrics"
 $LogAnalyticsWorkspace = $LogAnalyticsWorkspaces[$response-1].ResourceId
+Clear-Host
 
 
 # =================================================================================================
 #Azure Storage Accounts
 # =================================================================================================
 Write-Host "Getting Azure Storage Accounts..."
-$StorageAccts = Get-AzStorageAccount
-$i=1
-Foreach($StorAcct in $StorageAccts){
-    Write-Host $i" -"($StorAcct.StorageAccountName)
-    $i++
-    }
-$response = Read-Host "Select the number corresponding to the Storage Account containing AVD related file shares"
-$StorageAcct = $StorageAccts[$response-1].Id
+[array]$StorageAccts = Get-AzStorageAccount
+IF($StorageAccts.count -gt 0){
+    $i=1
+    Foreach($StorAcct in $StorageAccts){
+        Write-Host $i" -"($StorAcct.StorageAccountName)
+        $i++
+        }
+    $response = Read-Host "Select the number corresponding to the Storage Account containing AVD related file shares"
+    if(!$response){
+        $StorageAcct = @()
+        }
+    else{
+        $StorageAccts[$response-1].Id
+        }
+}
+ELSE {
+    $StorageAcct = @()
+}
+Clear-Host
 
 
 # =================================================================================================
@@ -147,8 +184,11 @@ $StorageAcct = $StorageAccts[$response-1].Id
 # =================================================================================================
 Write-Host "Getting Azure NetApp Filer Pools\Volumes..."
      # Need RG, AccountName and Pool Name
-$ANFVolumeResources = Get-AzResource -ResourceType 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes'
-IF($ANFVolumeResources.count -eq 1){
+[array]$ANFVolumeResources = Get-AzResource -ResourceType 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes'
+IF($ANFVolumeResources.count -eq 0){
+    $ANFVolumeResource = @()
+    }
+ELSEIF($ANFVolumeResources.count -eq 1){
     Write-Host "Only found a single ANF Volume and capturing:`n`t" ($ANFVolumeResources.Name -split '/')[1]"\"($ANFVolumeResources.Name -split '/')[2]
     $ANFVolumeResource = $ANFVolumeResources[0].ResourceId}
 Else{
@@ -164,6 +204,8 @@ Else{
 
     $ANFVolumeResource = $ANFVolumeResources[$response-1].ResourceId
 }
+Clear-Host
+
 
 # =================================================================================================
 # Desired Tags   -------- Works but adds extra double quotes before and after { } for list of values
@@ -171,81 +213,60 @@ Else{
 Write-Host "Azure Tags are in a key pair format. Please input the Tag you would like to add to the resources."
 Write-Host "Simply hit ENTER to contine adding mulitple tag key pairs and type X, to exit input!"
 Write-Host "(i.e Name:Value or Environment:Lab)"
-$Tags = @()
+$Tags = @{}
 $AddMore = $true
 do {
-    $UsrInput = Read-Host "Key:Value"
+    $UsrInput = Read-Host "Enter key / value pairs"
     If (($UsrInput.ToUpper() -eq "X") -or ($UsrInput -eq "")){$AddMore = $false}
-    else{$Tags += $UsrInput}
-} while ($AddMore)
-If($null -ne $Tags){
-    #Reformat for syntax in params file
-    $String = '{' + "`n`t`t`t"
-    $i = 1
-    Foreach($Tag in $Tags){
-        $TagUpdate = $Tag -replace ':', '":"'
-        Foreach ($element in $TagUpdate){
-            If($Tags.count -ne $i){$String += """" + $element + """," + "`n`t`t`t"}
-            Else{$String += """" + $element + """" + "`n`t`t`t"}
-            $i++
-        }
+    else{
+        $Key = $UsrInput.Split(':')[0]
+        $Value = $UsrInput.Split(':')[1]
+        $Tags += @{$Key="$Value"}
     }
-    $String += '}'
-}
+} while ($AddMore)
+
 
 # Accomodate option for Alert Name Prefix if empty, use default
 if ($AlertNamePrefix -eq ''){$AlertNamePrefix = "AVD-"}
 
 # Output Tags in JSON format
-
-$OutputHeader = @'
-{
-    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-'@
-
-$OutputBody = @"
-
-        "AlertNamePrefix": {
-            "value": "$AlertNamePrefix"
-        },
-        "DistributionGroup": {
-            "value": "$DistributionGroup"
-        },
-        "Environment": {
-            "value": "$EnvType"
-        },
-        "Location": {
-            "value": "$Location"
-        },
-        "LogAnalyticsWorkspaceResourceId": {
-            "value": "$LogAnalyticsWorkspace"
-        },
-        "SessionHostsResourceGroupIds": {
-            "value": [
-                $AVDResourceIDs
-            ]
-        },
-        "StorageAccountResourceIds": {
-            "value": [
-                "$StorageAcct"
-            ]
-        },
-        "ANFVolumeResourceIds": {
-            "value": [
-                "$ANFVolumeResource"
-            ]
-        },
-        "Tags": {
-            "value": $String
+$Parameters = [pscustomobject][ordered]@{
+    '$schema' = "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#"
+    contentVersion = "1.0.0.0"
+    parameters = [pscustomobject][ordered]@{
+        AlertNamePrefix = [pscustomobject][ordered]@{
+            value = $AlertNamePrefix
+        }
+        DistributionGroup = [pscustomobject][ordered]@{
+            value = $DistributionGroup
+        }
+        Environment = [pscustomobject][ordered]@{
+            value = $EnvType
+        }
+        Location =  [pscustomobject][ordered]@{
+            value = $Location
+        }
+        LogAnalyticsWorkspaceResourceId = [pscustomobject][ordered]@{
+            value = $LogAnalyticsWorkspace
+        }
+        SessionHostsResourceGroupIds = [pscustomobject][ordered]@{
+            value = $AVDResourceIDs
+        }
+        StorageAccountResourceIds = [pscustomobject][ordered]@{
+            value = $StorageAcct
+        }
+        ANFVolumeResourceIds = [pscustomobject][ordered]@{
+            value = $ANFVolumeResource
+        }
+        Tags = [pscustomobject][ordered]@{
+            value = $Tags
         }
     }
 }
+$JSON = $Parameters | ConvertTo-Json -Depth 5
+$JSON | Out-File $OutputFile
+Clear-Host
 
-"@
-
-$OutputHeader + $OutputBody | Out-File $OutputFile
 
 # Write Output for awareness
 Write-Host "Azure Parameters information saved as... `n$OutputFile" -foregroundcolor Green
@@ -271,7 +292,7 @@ Write-Host "`t$ANFVolumeResource"
 Write-Host "Host Pool VM Resource Groups:" -foregroundcolor Cyan
 Write-Host "`t$AVDResourceIDs"
 Write-Host "Tags for resources:" -foregroundcolor Cyan
-Foreach($Tag in $Tags){Write-Host "`t$Tag"}
+Write-Output $Tags
 Pause
 
 # Launch Deployment
