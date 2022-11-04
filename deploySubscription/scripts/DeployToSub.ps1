@@ -28,7 +28,9 @@ $Selection = $Subs[$Selection-1]
 Select-AzSubscription -SubscriptionObject $Selection
 $SubID = $Sub.Id
 # =================================================================================================
-CLS
+
+Clear-Host
+
 # Get distro email address
 # =================================================================================================
 $DistributionGroup = Read-Host "Provide the email address of the user or distribuition list for AVD Alerts (Disabled by default)"
