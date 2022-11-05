@@ -172,7 +172,7 @@ IF($StorageAccts.count -gt 0){
         $StorageAcct = @()
         }
     else{
-        $StorageAccts[$response-1].Id
+        $StorageAcct = @("$($StorageAccts[$response-1].Id)")
         }
 }
 ELSE {
@@ -298,7 +298,7 @@ Write-Host "`t$ANFVolumeResource"
 Write-Host "Host Pool VM Resource Groups:" -foregroundcolor Cyan
 Write-Host "`t$AVDResourceIDs"
 Write-Host "Tags for resources:" -foregroundcolor Cyan
-Foreach($Tag in $Tags){Write-Host "`t$Tag"}
+Write-Output $Tags
 Pause
 
 # Launch Deployment
