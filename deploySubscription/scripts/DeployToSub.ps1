@@ -54,18 +54,20 @@ Clear-Host
 $DistributionGroup = Read-Host "Provide the email address of the user or distribuition list for AVD Alerts (Disabled by default)"
 Clear-Host
 
+
 # =================================================================================================
 # Get Alert Name Prefix
 # =================================================================================================
 $AlertNamePrefix = Read-Host "Provide the Alert Name Prefix you would like to use. To use the default of 'AVD-' just hit ENTER."
 Clear-Host
 
+
 # =================================================================================================
 # Get Location to be used
 # =================================================================================================
 Write-Host "If you need a list of Locations you can also run the following at a PowerShell prompt:"
 Write-Host "Connect-AzAccount; get-AzLocation | fl Location"
-$Location = Read-Host "Enter the Azure deployment (e.g. eastus)"
+$Location = Read-Host "Enter the Azure deployment location (e.g. eastus)"
 Clear-Host
 
 
