@@ -172,7 +172,7 @@ IF($StorageAccts.count -gt 0){
         $StorageAcct = @()
         }
     else{
-        $StorageAccts[$response-1].Id
+        $StorageAcct = @("$($StorageAccts[$response-1].Id)")
         }
 }
 ELSE {
