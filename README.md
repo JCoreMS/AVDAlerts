@@ -93,6 +93,15 @@ This is used for deployment at the Subscription level with all resources related
 
 ### Tenant Level (Enterprise) based Deployment
 
+Global Admins do not have deployment privileges at the Tenant level by default. You will need to ensure you run one of the following to add your account to the Tenant Level as an Owner. (Within Cloud Shell is ideal and the fastest)  
+```azurepowershell-interactive
+New-AzRoleAssignment -SignInName "[userId]" -Scope "/" -RoleDefinitionName "Owner"
+```
+```azurecli-interactive
+az role assignment create --assignee "[userId]" --scope "/" --role "Owner"
+```
+Reference: [Tenant deployments with ARM templates](https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/deploy-to-tenant?tabs=azure-cli)
+
 This is used for deployment at the Tenant level with resources related to AVD spread across MULTIPLE subscriptions.  You will need the appropriate Azure PowerShell modules installed and the deployment ability at the Tenant level.  
 [DeployToTenant.PS1](./deployEnterprise/scripts/DeployToTenant.ps1)
 
