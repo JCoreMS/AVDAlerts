@@ -17,6 +17,7 @@ $CloudList = (Get-AzEnvironment).Name
 Foreach($cloud in $CloudList){Write-Host ($CloudList.IndexOf($cloud)+1) "-" $cloud}
 $select = Read-Host "Enter selection"
 $Environment = $CloudList[$select-1]
+Write-Host "Connecting to Azure... (Look for minimized or hidden window)" -ForegroundColor Yellow
 Connect-AzAccount -Environment $Environment | Out-Null
 Clear-Host
 
@@ -37,7 +38,7 @@ Clear-Host
 # =================================================================================================
 # Set Subscription for Deployment
 # =================================================================================================
-Write-Host "Which Azure Subscription would you like to deploy to?"
+Write-Host "Which Azure Subscription would you like to deploy the AVD Metrics solution in?"
 [array]$Subs = Get-AzSubscription -TenantId $TenantId
 Foreach($Sub in $Subs){
     Write-Host ($Subs.Indexof($Sub)+1) "-" $Sub.Name
@@ -74,7 +75,7 @@ Clear-Host
 # =================================================================================================
 # Environment to deploy (Prod, Dev, Test)
 # =================================================================================================
-Write-Host "What type of Environment Type is this being deployed to?"
+Write-Host "What type of Environment Type is this being deployed to? (This is simply used in naming resources)"
 Write-Host "P - Production"
 Write-Host "D - Development"
 Write-Host "T - Test"
@@ -111,7 +112,7 @@ If ($RGs.count -gt 1){
     $AVDResourceRG = $RGs[$response-1]
 }
 Else {
-    Write-Host "Adding the only SINGLE Resource Group found with Host Pool resources:" $RGs[0].Name
+    Write-Host "Adding the only SINGLE Resource Group found with Host Pool resources:" $RGs
     $AVDResourceRG = $RGs
 }
 Write-Host "..Getting Resource Groups with associated VMs... PLEASE WAIT!" -ForegroundColor Yellow
@@ -210,7 +211,7 @@ Clear-Host
 
 
 # =================================================================================================
-# Desired Tags   -------- Works but adds extra double quotes before and after { } for list of values
+# Desired Tags   
 # =================================================================================================
 Write-Host "Azure Tags are in a key pair format. Please input the Tag you would like to add to the resources."
 Write-Host "Simply hit ENTER to contine adding mulitple tag key pairs and type X, to exit input!"
