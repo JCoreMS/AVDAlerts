@@ -192,7 +192,7 @@ IF($ANFVolumeResources.count -eq 0){
     }
 ELSEIF($ANFVolumeResources.count -eq 1){
     Write-Host "Only found a single ANF Volume and capturing:`n`t" ($ANFVolumeResources.Name -split '/')[1]"\"($ANFVolumeResources.Name -split '/')[2]
-    $ANFVolumeResource = $ANFVolumeResources[0].ResourceId}
+    [array]$ANFVolumeResource = $ANFVolumeResources[0].ResourceId}
 Else{
     $i=1
     Foreach($ANFVolRes in $ANFVolumeResources){
@@ -204,7 +204,7 @@ Else{
     Write-Host "(** If you need multiple please select only 1 and review/ edit the paramters file **)" -foregroundcolor Yellow
     $response = Read-Host "Select the number corresponding to the ANF Volume containing AVD related file shares"
 
-    $ANFVolumeResource = $ANFVolumeResources[$response-1].ResourceId
+    [array]$ANFVolumeResource = $ANFVolumeResources[$response-1].ResourceId
 }
 Clear-Host
 

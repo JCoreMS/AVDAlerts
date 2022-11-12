@@ -33,6 +33,17 @@ $TenantSelection = Read-Host "Enter selection"
 $TenantId = ($Tenants[$TenantSelection-1]).Id
 Clear-Host
 
+# =================================================================================================
+# Check Tenant Level Permissions - Owner
+# =================================================================================================
+Write-Host "Checking Tenant Permissions..."
+$CurrUser = (get-azcontext).account.id
+$TenantPerms = get-azroleassignment | where-object Scope -eq "/" | where-object RoleDefinitionName -eq "Owner"
+If ($TenantPerms -eq $null){
+    Write-Host "-- Adding Owner at Tenant level for $CurrUser" -ForegroundColor Yellow
+    New-AzRoleAssignment -SignInName $CurrUser -Scope "/" -RoleDefinitionName "Owner" | Out-Null
+}
+
 
 # =================================================================================================
 # Set Subscription for Deployment
@@ -192,7 +203,7 @@ IF($ANFVolumeResources.count -eq 0){
     }
 ELSEIF($ANFVolumeResources.count -eq 1){
     Write-Host "Only found a single ANF Volume and capturing:`n`t" ($ANFVolumeResources.Name -split '/')[1]"\"($ANFVolumeResources.Name -split '/')[2]
-    $ANFVolumeResource = $ANFVolumeResources[0].ResourceId}
+    [array]$ANFVolumeResource = $ANFVolumeResources[0].ResourceId}
 Else{
     $i=1
     Foreach($ANFVolRes in $ANFVolumeResources){
@@ -204,12 +215,12 @@ Else{
     Write-Host "(** If you need multiple please select only 1 and review/ edit the paramters file **)" -foregroundcolor Yellow
     $response = Read-Host "Select the number corresponding to the ANF Volume containing AVD related file shares"
 
-    $ANFVolumeResource = $ANFVolumeResources[$response-1].ResourceId
+    [array]$ANFVolumeResource = $ANFVolumeResources[$response-1].ResourceId
 }
 Clear-Host
 
 # =================================================================================================
-# Desired Tags   -------- Works but adds extra double quotes before and after { } for list of values
+# Desired Tags   
 # =================================================================================================
 Write-Host "Azure Tags are in a key pair format. Please input the Tag you would like to add to the resources."
 Write-Host "Simply hit ENTER to contine adding mulitple tag key pairs and type X, to exit input!"
