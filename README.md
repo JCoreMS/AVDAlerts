@@ -19,17 +19,18 @@ There are 2 different deployments depending on your AVD infrastructure.
 
 ## Prerequisites  
 
+For both solutions the logic app and Runbook created to collect Azure Storage information requires "Allow storage account key access" to be Enabled within the Configuration section of the storage account. (default setting)
+
 **Enterprise**  
 An AVD deployment and/or storage or Log Analytics workspaces in multiple subscriptions within the same Azure AD Tenant. Owner Role at the Tenant level which can be defined via [Azure CLI or PowerShell.](https://docs.microsoft.com/en-us/azure/azure-resource-manager/templates/deploy-to-tenant?tabs=azure-cli#required-access)
 
 Once you are Global Admin ensure your Azure AD Tenant is configure to [allow Admins to manage access to all Subscriptions.](https://docs.microsoft.com/en-us/azure/role-based-access-control/elevate-access-global-admin#elevate-access-for-a-global-administrator)
 
-Additionally you will need to run the following as Global Admin does not have the ability to deploy at the tenant scope by default.
+Additionally you will need to run the following as Global Admin does not have the ability to deploy at the tenant scope by default. (The provided deployment PowerShell will add this for you.)
 
 ```PowerShell
 New-AzRoleAssignment -SignInName "[userId]" -Scope "/" -RoleDefinitionName "Owner"
 ```
-
 **Subscription**  
 An AVD deployment and the Owner Role on the Subscription containing the AVD resources, VMs and Storage.  You must have also pre-configured the AVD Insights as it will enable diagnostic logging for the Host Pools and associated VMs in which the alerts rely on.  
 
@@ -102,7 +103,7 @@ az role assignment create --assignee "[userId]" --scope "/" --role "Owner"
 ```
 Reference: [Tenant deployments with ARM templates](https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/deploy-to-tenant?tabs=azure-cli)
 
-This is used for deployment at the Tenant level with resources related to AVD spread across MULTIPLE subscriptions.  You will need the appropriate Azure PowerShell modules installed and the deployment ability at the Tenant level.  
+This is used for deployment at the Tenant level with resources related to AVD spread across MULTIPLE subscriptions.  You will need the appropriate Azure PowerShell modules installed and the deployment ability at the Tenant level. The script includes adding the above role assignment for deployment.  
 [DeployToTenant.PS1](./deployEnterprise/scripts/DeployToTenant.ps1)
 
 **See [PostDeployment](./PostDeploy.md) for next steps to enable and view alerts.**
