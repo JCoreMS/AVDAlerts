@@ -11,6 +11,7 @@ param Timestamp string
 // Loop for each sub due to scope property
 resource deploymentScript_VMMetrics 'Microsoft.Resources/deploymentScripts@2020-10-01' = {
   name: 'ds-VMMetrics-${CurrentSub}'
+  tags: Tags
   location: Location
   kind: 'AzurePowerShell'
   properties: {

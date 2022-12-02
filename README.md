@@ -6,6 +6,13 @@
 
 10/20/22  
 - Revised deployment to utilize PowerShell vs Blue button in docs due to storage account parameter type.
+11/30/22
+- Removed Logic App and Runbook for getting Azure File Share storage account information due to failures if Networking has anything other than "Enabled from all Networks" configured.  
+- Added additional alerts for storage latency and adjusted from 200ms to separate alerts at 100ms and 50ms for End to End and Storage specific.  
+- Fixed issue with Tags not be created for every resource.  
+- Health check failure alerts frequency adjusted from 5 to 15 min intervals to accommodate for false alerts during deployment/ maintenance.  
+- FSLogix Profile failures now split out into alerts for 3 events (more specific)
+- Informational alert added for Host Pool Capacity at 50%
 
 ## Description
 
@@ -66,15 +73,16 @@ Table below shows the Alert Names however the number of alert rules created may 
 | AVD-HostPool-Disconnected User over XX Hours                      | 24 / 72               | Log Analytics  |  1 hour      |   2  |
 | AVD-HostPool-No Resources Available                               | Any are Sev1          | Log Analytics |  15 min      |  1   |
 | AVD-Storage-Low Space on ANF Share-XX Percent Remaining-{volumename} :two: | 5 / 15               | Metric Alerts |   1 hour    |  2/vol  |
-| AVD-Storage-Low Space on Azure File Share-XX% Remaining :two:     | 5 / 15                | Log Analytics  |   1 hour     |   2   |
 | AVD-Storage-Over 200ms Latency for Storage Act-{storacctname}     | na / 200ms            | Metric Alerts |  15 min     |  1/stor acct |
 | AVD-Storage-Possible Throttling Due to High IOPs-{storacctname}   | na / custom :three:   | Metric Alerts | 15 min        | 1/stor acct |
 | AVD-Storage-Azure Files Availability-{storacctname}               | 99 / na               | Metric Alerts | 5 min         | 1/stor acct |
 | AVD-VM-Available Memory Less Than XGB                             | 1 / 2                 | Metric Alerts | 5 min         |   2  |
-| AVD-VM-FSLogix Profile Failed (Event Log Indicated Failure)       | Any are Sev1          | Log Analytics | 5 min         |   1  |
-| AVD-VM-Health Check Failure                                       | Any are Sev1          | Log Analytics | 5 min         |   1  |
+| AVD-VM-Health Check Failure                                       | Any are Sev1          | Log Analytics | 15 min        |   1  |
 | AVD-VM-High CPU XX Percent                                        | 95 / 85               | Metric Alerts | 5 min         |   2  |
 | AVD-VM-Local Disk Free Space X%                                   | 5 / 10                | Log Analytics | 15 min        |   2  |
+| AVD-VM-FSLogix Profile-PathNotFound                               | 1                     | Log Analytics | 5 min         |   1  |
+| AVD-VM-FSLogix Profile-LessThan200mb                              | 2                     | Log Analytics | 5 min         |   1  |
+| AVD-VM-FSLogix Profile-FailedReAttach                             | 2                     | Log Analytics | 5 min         |   1  |
 
 **NOTES:**  
 :one: Alert based on Runbook for Azure Files and ANF  

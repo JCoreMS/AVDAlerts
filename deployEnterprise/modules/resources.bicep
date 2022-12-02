@@ -137,6 +137,7 @@ resource functionApp 'Microsoft.Web/sites@2021-03-01' = {
 
 resource actionGroup 'Microsoft.Insights/actionGroups@2019-06-01' = {
   name: ActionGroupName
+  tags: Tags
   location: 'global'
   properties: {
     groupShortName: 'EmailAlerts'
@@ -296,6 +297,7 @@ resource scheduledQueryRules 'Microsoft.Insights/scheduledQueryRules@2021-08-01'
 
 resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' = {
   name: AutomationAccountName
+  tags: Tags
   location: Location
   identity: {
     type: 'SystemAssigned'
@@ -306,7 +308,8 @@ resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' 
     }
   }
 }
-
+//  REMOVED due to issues with Storage Acct Network settings not being configured for public or using service endpoints
+/*
 module logicApp_Storage './logicApp_Storage.bicep' = if(length(StorageAccountResourceIds)>0) {
   name: 'LogicApp_Storage'
   dependsOn: [
@@ -321,9 +324,10 @@ module logicApp_Storage './logicApp_Storage.bicep' = if(length(StorageAccountRes
     RunbookURI: '${ScriptsRepositoryUri}${RunbookScriptGetStorage}${ScriptsRepositorySasToken}'
     StorageAccountResourceIds: StorageAccountResourceIds
     Timestamp: Timestamp
+    Tags: Tags
   }
 }
-
+*/
 module logicApp_HostPool './logicApp_HostPool.bicep' = {
   name: 'LogicApp_HostPool'
   dependsOn: [
@@ -338,6 +342,7 @@ module logicApp_HostPool './logicApp_HostPool.bicep' = {
     RunbookNameGetHostPool: RunbookNameGetHostPool
     RunbookURI: '${ScriptsRepositoryUri}${RunbookScriptGetHostPool}${ScriptsRepositorySasToken}'
     Timestamp: Timestamp
+    Tags: Tags
   }
 }
 

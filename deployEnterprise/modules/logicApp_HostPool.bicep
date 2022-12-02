@@ -6,6 +6,7 @@ param LogicAppName string
 param RunbookNameGetHostPool string
 param RunbookURI string
 param Timestamp string
+param Tags object
 
 resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' existing = {
   name: AutomationAccountName
@@ -13,6 +14,7 @@ resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' 
 
 resource runbookGetHostPoolInfo 'Microsoft.Automation/automationAccounts/runbooks@2019-06-01' = {
   name: RunbookNameGetHostPool
+  tags: Tags
   parent: automationAccount
   location: Location
   properties: {
@@ -49,6 +51,7 @@ resource variableGetHostPoolInfo 'Microsoft.Automation/automationAccounts/variab
 
 resource logicAppGetHostPoolInfo 'Microsoft.Logic/workflows@2016-06-01' = {
   name: LogicAppName
+  tags: Tags
   dependsOn: [
     automationAccount
     runbookGetHostPoolInfo

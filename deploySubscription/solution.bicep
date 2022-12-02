@@ -47,12 +47,12 @@ var ActionGroupName = 'ag-avdmetrics-${Environment}-${Location}'
 //var HostingPlanName = 'asp-avdmetrics-${Environment}-${Location}'
 var LogicAppName = 'la-avdmetrics-${Environment}-${Location}'
 var ResourceGroupName = 'rg-avdmetrics-${Environment}-${Location}'
-var RunbookNameGetStorage = 'AvdStorageLogData'
+//var RunbookNameGetStorage = 'AvdStorageLogData'
 var RunbookNameGetHostPool = 'AvdHostPoolLogData'
-var RunbookScriptGetStorage = 'Get-AzureAvdLogs.ps1'
+//var RunbookScriptGetStorage = 'Get-AzureAvdLogs.ps1'
 var RunbookScriptGetHostPool = 'Get-HostPoolInfo.ps1'
 var ScriptsRepositoryUri = 'https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/'
-var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v0.5)\n'
+var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v0.8)\n'
 var RoleAssignments = {
   DesktopVirtualizationRead: {
     Name: 'Desktop-Virtualization-Reader'
@@ -65,7 +65,7 @@ var RoleAssignments = {
 }
 // 'c12c1c16-33a1-487b-954d-41c89c60f349'  // Reader and Data Access (Storage Account Keys)
 // 'acdd72a7-3385-48ef-bd42-f606fba81ae7'  // Reader
-// '49a72310-ab8d-41df-bbb0-79b649203868'    // Desktop Virtualization Reader (May be able to replace Reader with this)
+// '49a72310-ab8d-41df-bbb0-79b649203868'  // Desktop Virtualization Reader (May be able to replace Reader with this)
 
 var LogAlerts = [
   {
@@ -262,8 +262,8 @@ var LogAlerts = [
     }
   }
   {
-    name: '${AlertNamePrefix}VM-FSLogix Profile Failed'
-    displayName: '${AlertNamePrefix}VM-FSLogix Profile Failed (Event Log Indicated Failure)'
+    name: '${AlertNamePrefix}VM-FSLogix Profile-PathNotFound'
+    displayName: '${AlertNamePrefix}VM-FSLogix Profile Failed (Path Not Found)'
     description: AlertDescriptionHeader
     severity: 1
     evaluationFrequency: 'PT5M'
@@ -271,7 +271,83 @@ var LogAlerts = [
     criteria: {
       allOf: [
         {
-          query: 'Event\n| where EventLog == "Microsoft-FSLogix-Apps/Admin"\n| where EventLevelName == "Error"\n\n'
+          query: 'Event\n| where EventLog == "Microsoft-FSLogix-Apps/Admin"\n| where EventLevelName == "Error"\n| where EventID == 40\n'
+          timeAggregation: 'Count'
+          dimensions: [
+            {
+              name: 'Computer'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'RenderedDescription'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          operator: 'GreaterThanOrEqual'
+          threshold: 1
+          failingPeriods: {
+            numberOfEvaluationPeriods: 1
+            minFailingPeriodsToAlert: 1
+          }
+        }
+      ]
+    }
+  }
+  {
+    name: '${AlertNamePrefix}VM-FSLogix Profile-LessThan200mb'
+    displayName: '${AlertNamePrefix}VM-FSLogix Profile Failed (Less Than 200mb available)'
+    description: AlertDescriptionHeader
+    severity: 2
+    evaluationFrequency: 'PT5M'
+    windowSize: 'PT5M'
+    criteria: {
+      allOf: [
+        {
+          query: 'Event\n| where EventLog == "Microsoft-FSLogix-Apps/Admin"\n| where EventLevelName == "Error"\n| where EventID == 33\n'
+          timeAggregation: 'Count'
+          dimensions: [
+            {
+              name: 'Computer'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'RenderedDescription'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          operator: 'GreaterThanOrEqual'
+          threshold: 1
+          failingPeriods: {
+            numberOfEvaluationPeriods: 1
+            minFailingPeriodsToAlert: 1
+          }
+        }
+      ]
+    }
+  }
+  {
+    name: '${AlertNamePrefix}VM-FSLogix Profile-FailedReAttach'
+    displayName: '${AlertNamePrefix}VM-FSLogix Profile Failed (Failed Re-attach for User)'
+    description: AlertDescriptionHeader
+    severity: 2
+    evaluationFrequency: 'PT5M'
+    windowSize: 'PT5M'
+    criteria: {
+      allOf: [
+        {
+          query: 'Event\n| where EventLog == "Microsoft-FSLogix-Apps/Admin"\n| where EventLevelName == "Error"\n| where EventID == 56\n'
           timeAggregation: 'Count'
           dimensions: [
             {
@@ -304,8 +380,8 @@ var LogAlerts = [
     displayName: '${AlertNamePrefix}VM-Health Check Failure'
     description: '${AlertDescriptionHeader}VM is available for use but one of the dependent resources is in a failed state'
     severity: 1
-    evaluationFrequency: 'PT5M'
-    windowSize: 'PT5M'
+    evaluationFrequency: 'PT15M'
+    windowSize: 'PT15M'
     overrideQueryTimeRange: 'P2D'
     criteria: {
       allOf: [
@@ -337,11 +413,11 @@ var LogAlerts = [
         }
       ]
     }
-  }
+  } /*
   { // Based on Runbook script Output to LAW
     name: '${AlertNamePrefix}Storage-Low Space on Azure File Share-15 Percent Remaining'
     displayName: '${AlertNamePrefix}Storage-Low Space on Azure File Share-15% Remaining'
-    description: '${AlertDescriptionHeader}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining'
+    description: '${AlertDescriptionHeader}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\nNOTE: The Runbook will FAIL if Networking for the storage account has anything other than "Enabled from all networks"\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining'
     severity: 2
     evaluationFrequency: 'PT10M'
     windowSize: 'PT1H'
@@ -388,7 +464,7 @@ var LogAlerts = [
   { // Based on Runbook script Output to LAW
     name: '${AlertNamePrefix}Storage-Low Space on Azure File Share-5 Percent Remaining'
     displayName: '${AlertNamePrefix}Storage-Low Space on Azure File Share-5% Remaining'
-    description: '${AlertDescriptionHeader}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining'
+    description: '${AlertDescriptionHeader}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\nNOTE: The Runbook will FAIL if Networking for the storage account has anything other than "Enabled from all networks"\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining'
     severity: 1
     evaluationFrequency: 'PT10M'
     windowSize: 'PT1H'
@@ -431,7 +507,7 @@ var LogAlerts = [
         }
       ]
     }
-  }
+  }*/
   { // Based on Runbook script Output to LAW
     name: '${AlertNamePrefix}HostPool-Capacity-85Percent'
     displayName: '${AlertNamePrefix}HostPool-Capacity 85%'
@@ -459,6 +535,90 @@ var LogAlerts = [
           | extend UserSessionsAvailable=toint(split(ResultDescription, '|')[8])
           | extend HostPoolPercentLoad=toint(split(ResultDescription, '|')[9])
           | where HostPoolPercentLoad >= 85         
+           '''
+          timeAggregation: 'Count'
+          dimensions: [
+            {
+              name: 'HostPoolName'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'UserSessionsTotal'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'UserSessionsDisconnected'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'UserSessionsActive'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'UserSessionsAvailable'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'HostPoolPercentLoad'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          resourceIdColumng: '_ResourceId'
+          operator: 'GreaterThanOrEqual'
+          threshold: 1
+          failingPeriods: {
+            numberOfEvaluationPeriods: 1
+            minFailingPeriodsToAlert: 1
+          }
+        }
+      ]
+    }
+  }
+  { // Based on Runbook script Output to LAW
+    name: '${AlertNamePrefix}HostPool-Capacity-50Percent'
+    displayName: '${AlertNamePrefix}HostPool-Capacity 85%'
+    description: '${AlertDescriptionHeader}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Host Pool\nOutput is:\nHostPoolName|ResourceGroup|Type|MaxSessionLimit|NumberHosts|TotalUsers|DisconnectedUser|ActiveUsers|SessionsAvailable|HostPoolPercentageLoad'
+    severity: 3
+    evaluationFrequency: 'PT5M'
+    windowSize: 'PT5M'
+    overrideQueryTimeRange: 'P2D'
+    criteria: {
+      allOf: [
+        {
+          query: '''
+          AzureDiagnostics 
+          | where Category has "JobStreams" and StreamType_s == "Output" and RunbookName_s == "AvdHostPoolLogData"
+          | sort by TimeGenerated
+          | where TimeGenerated > now() - 5m
+          | extend HostPoolName=tostring(split(ResultDescription, '|')[0])
+          | extend ResourceGroup=tostring(split(ResultDescription, '|')[1])
+          | extend Type=tostring(split(ResultDescription, '|')[2])
+          | extend MaxSessionLimit=toint(split(ResultDescription, '|')[3])
+          | extend NumberSessionHosts=toint(split(ResultDescription, '|')[4])
+          | extend UserSessionsTotal=toint(split(ResultDescription, '|')[5])
+          | extend UserSessionsDisconnected=toint(split(ResultDescription, '|')[6])
+          | extend UserSessionsActive=toint(split(ResultDescription, '|')[7])
+          | extend UserSessionsAvailable=toint(split(ResultDescription, '|')[8])
+          | extend HostPoolPercentLoad=toint(split(ResultDescription, '|')[9])
+          | where HostPoolPercentLoad >= 50         
            '''
           timeAggregation: 'Count'
           dimensions: [
@@ -604,18 +764,84 @@ var LogAlerts = [
 var MetricAlerts = {
   storageAccounts: [
     {
-      name: '${AlertNamePrefix}Storage-Over 200ms Latency for Storage Acct'
-      displayName: '${AlertNamePrefix}Storage-Over 200ms Latency for Storage Acct'
-      description: '${AlertDescriptionHeader}\nThis could indicate a lag or poor performance for user Profiles or Apps using MSIX App Attach.'
+      name: '${AlertNamePrefix}Storage-Over 50ms Latency for Storage Acct'
+      displayName: '${AlertNamePrefix}Storage-Over 50ms Latency for Storage Acct'
+      description: '${AlertDescriptionHeader}\nThis could indicate a lag or poor performance for user Profiles or Apps using MSIX App Attach.\nThis alert is specific to the Storage Account itself and does not include network latency.\nFor additional details on troubleshooting see:\n"https://learn.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#very-high-latency-for-requests"'
       severity: 2
       evaluationFrequency: 'PT15M'
       windowSize: 'PT15M'
       criteria: {
         allOf: [
           {
-            threshold: 200
+            threshold: 50
             name: 'Metric1'
             metricName: 'SuccessServerLatency'
+            operator: 'GreaterThan'
+            timeAggregation: 'Average'
+            criterionType: 'StaticThresholdCriterion'
+          }
+        ]
+        'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+      }
+      targetResourceType: 'Microsoft.Storage/storageAccounts'
+    }
+    {
+      name: '${AlertNamePrefix}Storage-Over 100ms Latency for Storage Acct'
+      displayName: '${AlertNamePrefix}Storage-Over 100ms Latency for Storage Acct'
+      description: '${AlertDescriptionHeader}\nThis could indicate a lag or poor performance for user Profiles or Apps using MSIX App Attach.\nThis alert is specific to the Storage Account itself and does not include network latency.\nFor additional details on troubleshooting see:\n"https://learn.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#very-high-latency-for-requests"'
+      severity: 1
+      evaluationFrequency: 'PT15M'
+      windowSize: 'PT15M'
+      criteria: {
+        allOf: [
+          {
+            threshold: 100
+            name: 'Metric1'
+            metricName: 'SuccessServerLatency'
+            operator: 'GreaterThan'
+            timeAggregation: 'Average'
+            criterionType: 'StaticThresholdCriterion'
+          }
+        ]
+        'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+      }
+      targetResourceType: 'Microsoft.Storage/storageAccounts'
+    }
+    {
+      name: '${AlertNamePrefix}Storage-Over 50ms Latency Between Client-Storage'
+      displayName: '${AlertNamePrefix}Storage-Over 50ms Latency Between Client-Storage'
+      description: '${AlertDescriptionHeader}\nThis could indicate a lag or poor performance for user Profiles or Apps using MSIX App Attach.\nThis is a total latency from end to end between the Host VM and Storage to include network.\nFor additional details on troubleshooting see:\n"https://learn.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#very-high-latency-for-requests"'
+      severity: 2
+      evaluationFrequency: 'PT15M'
+      windowSize: 'PT15M'
+      criteria: {
+        allOf: [
+          {
+            threshold: 50
+            name: 'Metric1'
+            metricName: 'SuccessE2ELatency'
+            operator: 'GreaterThan'
+            timeAggregation: 'Average'
+            criterionType: 'StaticThresholdCriterion'
+          }
+        ]
+        'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+      }
+      targetResourceType: 'Microsoft.Storage/storageAccounts'
+    }
+    {
+      name: '${AlertNamePrefix}Storage-Over 100ms Latency Between Client-Storage'
+      displayName: '${AlertNamePrefix}Storage-Over 100ms Latency Between Client-Storage'
+      description: '${AlertDescriptionHeader}\nThis could indicate a lag or poor performance for user Profiles or Apps using MSIX App Attach.\nThis is a total latency from end to end between the Host VM and Storage to include network.\nFor additional details on troubleshooting see:\n"https://learn.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#very-high-latency-for-requests"'
+      severity: 1
+      evaluationFrequency: 'PT15M'
+      windowSize: 'PT15M'
+      criteria: {
+        allOf: [
+          {
+            threshold: 100
+            name: 'Metric1'
+            metricName: 'SuccessE2ELatency'
             operator: 'GreaterThan'
             timeAggregation: 'Average'
             criterionType: 'StaticThresholdCriterion'
@@ -865,6 +1091,7 @@ var MetricAlerts = {
 
 resource resourceGroupAVDMetrics 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: ResourceGroupName
+  tags: Tags
   location: Location
 }
 
@@ -902,9 +1129,9 @@ module resources 'modules/resources.bicep' = {
     LogAlerts: LogAlerts
     LogicAppName: LogicAppName
     MetricAlerts: MetricAlerts
-    RunbookNameGetStorage: RunbookNameGetStorage
+    //RunbookNameGetStorage: RunbookNameGetStorage
     RunbookNameGetHostPool: RunbookNameGetHostPool
-    RunbookScriptGetStorage: RunbookScriptGetStorage
+    //RunbookScriptGetStorage: RunbookScriptGetStorage
     RunbookScriptGetHostPool: RunbookScriptGetHostPool
     ScriptsRepositoryUri: ScriptsRepositoryUri
     SessionHostsResourceGroupIds: SessionHostsResourceGroupIds

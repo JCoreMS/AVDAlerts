@@ -6,6 +6,7 @@ param RunbookNameGetStorage string
 param RunbookURI string
 param StorageAccountResourceIds array
 param Timestamp string
+param Tags object
 
 resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' existing = {
   name: AutomationAccountName
@@ -14,6 +15,7 @@ resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' 
 
 resource runbookGetStorageInfo 'Microsoft.Automation/automationAccounts/runbooks@2019-06-01' = {
   name: RunbookNameGetStorage
+  tags: Tags
   parent: automationAccount
   location: Location
   properties: {
@@ -38,6 +40,7 @@ resource webhookGetStorageInfo 'Microsoft.Automation/automationAccounts/webhooks
     }
   }
 }
+
 resource variableGetStorageInfo 'Microsoft.Automation/automationAccounts/variables@2019-06-01' = {
   name: 'WebhookURI_${runbookGetStorageInfo.name}'
   parent: automationAccount
@@ -49,6 +52,7 @@ resource variableGetStorageInfo 'Microsoft.Automation/automationAccounts/variabl
 
 resource logicAppGetStorageInfo 'Microsoft.Logic/workflows@2016-06-01' = {
   name: LogicAppName
+  tags: Tags
   dependsOn: [
     automationAccount
     runbookGetStorageInfo
