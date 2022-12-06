@@ -64,9 +64,9 @@ var LogicAppName = 'la-avdmetrics-${Environment}-${Location}'
 var ResourceGroupName = 'rg-avdmetrics-enterprise-${Environment}-${Location}'
 // var RoleName = 'Log Analytics Workspace Metrics Contributor'
 // var RoleDescription = 'This role allows a resource to write to Log Analytics Metrics.'
-var RunbookNameGetStorage = 'AvdStorageLogData'
+//var RunbookNameGetStorage = 'AvdStorageLogData'
 var RunbookNameGetHostPool = 'AvdHostPoolLogData'
-var RunbookScriptGetStorage = 'Get-StorAcctInfo.ps1'
+//var RunbookScriptGetStorage = 'Get-StorAcctInfo.ps1'
 var RunbookScriptGetHostPool = 'Get-HostPoolInfo.ps1'
 //var LogAnalyticsWorkspaceName = split(LogAnalyticsWorkspaceResourceId, '/')[8]
 var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v0.5)\n'
@@ -293,46 +293,8 @@ var LogAlerts = [
     }
   }
   {
-    name: '${AlertNamePrefix}VM-FSLogix Profile-PathNotFound'
-    displayName: '${AlertNamePrefix}VM-FSLogix Profile Failed (Path Not Found)'
-    description: AlertDescriptionHeader
-    severity: 1
-    evaluationFrequency: 'PT5M'
-    windowSize: 'PT5M'
-    criteria: {
-      allOf: [
-        {
-          query: 'Event\n| where EventLog == "Microsoft-FSLogix-Apps/Admin"\n| where EventLevelName == "Error"\n| where EventID == 40\n'
-          timeAggregation: 'Count'
-          dimensions: [
-            {
-              name: 'Computer'
-              operator: 'Include'
-              values: [
-                '*'
-              ]
-            }
-            {
-              name: 'RenderedDescription'
-              operator: 'Include'
-              values: [
-                '*'
-              ]
-            }
-          ]
-          operator: 'GreaterThanOrEqual'
-          threshold: 1
-          failingPeriods: {
-            numberOfEvaluationPeriods: 1
-            minFailingPeriodsToAlert: 1
-          }
-        }
-      ]
-    }
-  }
-  {
-    name: '${AlertNamePrefix}VM-FSLogix Profile-LessThan200mb'
-    displayName: '${AlertNamePrefix}VM-FSLogix Profile Failed (Less Than 200mb available)'
+    name: '${AlertNamePrefix}VM-FSLogix Profile-LessThan5PercentFree'
+    displayName: '${AlertNamePrefix}VM-FSLogix Profile Failed (Less Than 5% Free Space)'
     description: AlertDescriptionHeader
     severity: 2
     evaluationFrequency: 'PT5M'
@@ -369,8 +331,160 @@ var LogAlerts = [
     }
   }
   {
-    name: '${AlertNamePrefix}VM-FSLogix Profile-FailedReAttach'
-    displayName: '${AlertNamePrefix}VM-FSLogix Profile Failed (Failed Re-attach for User)'
+    name: '${AlertNamePrefix}VM-FSLogix Profile-LessThan2PercentFree'
+    displayName: '${AlertNamePrefix}VM-FSLogix Profile Failed (Less Than 2% Free Space)'
+    description: AlertDescriptionHeader
+    severity: 1
+    evaluationFrequency: 'PT5M'
+    windowSize: 'PT5M'
+    criteria: {
+      allOf: [
+        {
+          query: 'Event\n| where EventLog == "Microsoft-FSLogix-Apps/Admin"\n| where EventLevelName == "Error"\n| where EventID == 34\n'
+          timeAggregation: 'Count'
+          dimensions: [
+            {
+              name: 'Computer'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'RenderedDescription'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          operator: 'GreaterThanOrEqual'
+          threshold: 1
+          failingPeriods: {
+            numberOfEvaluationPeriods: 1
+            minFailingPeriodsToAlert: 1
+          }
+        }
+      ]
+    }
+  }
+  {
+    name: '${AlertNamePrefix}VM-FSLogix Profile-NetworkIssue'
+    displayName: '${AlertNamePrefix}VM-FSLogix Profile Failed due to Network Issue'
+    description: AlertDescriptionHeader
+    severity: 1
+    evaluationFrequency: 'PT5M'
+    windowSize: 'PT5M'
+    criteria: {
+      allOf: [
+        {
+          query: 'Event\n| where EventLog == "Microsoft-FSLogix-Apps/Admin"\n| where EventLevelName == "Error"\n| where EventID == 43\n'
+          timeAggregation: 'Count'
+          dimensions: [
+            {
+              name: 'Computer'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'RenderedDescription'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          operator: 'GreaterThanOrEqual'
+          threshold: 1
+          failingPeriods: {
+            numberOfEvaluationPeriods: 1
+            minFailingPeriodsToAlert: 1
+          }
+        }
+      ]
+    }
+  }
+  {
+    name: '${AlertNamePrefix}VM-FSLogix Profile-FailedAttachVHD'
+    displayName: '${AlertNamePrefix}VM-FSLogix Profile Disk Failed to Attach'
+    description: AlertDescriptionHeader
+    severity: 1
+    evaluationFrequency: 'PT5M'
+    windowSize: 'PT5M'
+    criteria: {
+      allOf: [
+        {
+          query: 'Event\n| where EventLog == "Microsoft-FSLogix-Apps/Admin"\n| where EventLevelName == "Error"\n| where EventID == 52 or EventID ==40\n'
+          timeAggregation: 'Count'
+          dimensions: [
+            {
+              name: 'Computer'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'RenderedDescription'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          operator: 'GreaterThanOrEqual'
+          threshold: 1
+          failingPeriods: {
+            numberOfEvaluationPeriods: 1
+            minFailingPeriodsToAlert: 1
+          }
+        }
+      ]
+    }
+  }
+  {
+    name: '${AlertNamePrefix}VM-FSLogix Profile-SerivceDisabled'
+    displayName: '${AlertNamePrefix}VM-FSLogix Profile Service Disabled'
+    description: AlertDescriptionHeader
+    severity: 1
+    evaluationFrequency: 'PT5M'
+    windowSize: 'PT5M'
+    criteria: {
+      allOf: [
+        {
+          query: 'Event\n| where EventLog == "Microsoft-FSLogix-Apps/Admin"\n| where EventLevelName == "Error"\n| where EventID == 60\n'
+          timeAggregation: 'Count'
+          dimensions: [
+            {
+              name: 'Computer'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+            {
+              name: 'RenderedDescription'
+              operator: 'Include'
+              values: [
+                '*'
+              ]
+            }
+          ]
+          operator: 'GreaterThanOrEqual'
+          threshold: 1
+          failingPeriods: {
+            numberOfEvaluationPeriods: 1
+            minFailingPeriodsToAlert: 1
+          }
+        }
+      ]
+    }
+  }
+  {
+    name: '${AlertNamePrefix}VM-FSLogix Profile-DiskCompactFailed'
+    displayName: '${AlertNamePrefix}VM-FSLogix Profile Disk Compaction Failed'
     description: AlertDescriptionHeader
     severity: 2
     evaluationFrequency: 'PT5M'
@@ -378,7 +492,7 @@ var LogAlerts = [
     criteria: {
       allOf: [
         {
-          query: 'Event\n| where EventLog == "Microsoft-FSLogix-Apps/Admin"\n| where EventLevelName == "Error"\n| where EventID == 56\n'
+          query: 'Event\n| where EventLog == "Microsoft-FSLogix-Apps/Admin"\n| where EventLevelName == "Error"\n| where EventID == 62 or EventID == 63\n'
           timeAggregation: 'Count'
           dimensions: [
             {
@@ -431,7 +545,7 @@ var LogAlerts = [
               name: 'HealthCheckDesc'
               operator: 'Include'
               values: [
-                  '*'
+                '*'
               ]
             }
           ]
@@ -565,7 +679,7 @@ var LogAlerts = [
           | extend UserSessionsActive=toint(split(ResultDescription, '|')[7])
           | extend UserSessionsAvailable=toint(split(ResultDescription, '|')[8])
           | extend HostPoolPercentLoad=toint(split(ResultDescription, '|')[9])
-          | where HostPoolPercentLoad >= 85         
+          | where HostPoolPercentLoad >= 85 and HostPoolPercentLoad < 95        
            '''
           timeAggregation: 'Count'
           dimensions: [
@@ -625,7 +739,7 @@ var LogAlerts = [
   }
   { // Based on Runbook script Output to LAW
     name: '${AlertNamePrefix}HostPool-Capacity-50Percent'
-    displayName: '${AlertNamePrefix}HostPool-Capacity 85%'
+    displayName: '${AlertNamePrefix}HostPool-Capacity 50%'
     description: '${AlertDescriptionHeader}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Host Pool\nOutput is:\nHostPoolName|ResourceGroup|Type|MaxSessionLimit|NumberHosts|TotalUsers|DisconnectedUser|ActiveUsers|SessionsAvailable|HostPoolPercentageLoad'
     severity: 3
     evaluationFrequency: 'PT5M'
@@ -649,7 +763,7 @@ var LogAlerts = [
           | extend UserSessionsActive=toint(split(ResultDescription, '|')[7])
           | extend UserSessionsAvailable=toint(split(ResultDescription, '|')[8])
           | extend HostPoolPercentLoad=toint(split(ResultDescription, '|')[9])
-          | where HostPoolPercentLoad >= 50         
+          | where HostPoolPercentLoad >= 50 and HostPoolPercentLoad < 85         
            '''
           timeAggregation: 'Count'
           dimensions: [
@@ -1136,9 +1250,9 @@ module mod_subscription_AVDAlertsResources './subAVDAlerts.bicep' = {
     LogicAppName: LogicAppName
     MetricAlerts: MetricAlerts
     ResourceGroupName: ResourceGroupName
-    RunbookNameGetStorage: RunbookNameGetStorage
+    //RunbookNameGetStorage: RunbookNameGetStorage
     RunbookNameGetHostPool: RunbookNameGetHostPool
-    RunbookScriptGetStorage: RunbookScriptGetStorage
+    //RunbookScriptGetStorage: RunbookScriptGetStorage
     RunbookScriptGetHostPool: RunbookScriptGetHostPool
     ScriptsRepositorySasToken: ScriptsRepositorySasToken
     ScriptsRepositoryUri: ScriptsRepositoryUri

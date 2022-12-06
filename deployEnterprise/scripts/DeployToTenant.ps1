@@ -12,8 +12,9 @@ Write-Host "While mulitple storage resouces can be defined, you will only be pro
 # =================================================================================================
 # Set Environment for Deployment
 # =================================================================================================
-Write-Host "Which Azure Cloud would you like to deploy to?"
+Write-Host "Getting Azure Cloud list..." -ForegroundColor Yellow
 $CloudList = (Get-AzEnvironment).Name
+Write-Host "Which Azure Cloud would you like to deploy to?"
 Foreach($cloud in $CloudList){Write-Host ($CloudList.IndexOf($cloud)+1) "-" $cloud}
 $select = Read-Host "Enter selection"
 $Environment = $CloudList[$select-1]
@@ -304,7 +305,7 @@ Write-Host "`t$Location"
 Write-Host "Log Analytics Workspace:" -foregroundcolor Cyan
 Write-Host "`t$LogAnalyticsWorkspace"
 Write-Host "Azure Files Storage:" -foregroundcolor Cyan
-Write-Host "`t$StorageAccount"
+Write-Host "`t$StorageAcct"
 Write-Host "NetApp Files Volume:" -foregroundcolor Cyan
 Write-Host "`t$ANFVolumeResource"
 Write-Host "Host Pool VM Resource Groups:" -foregroundcolor Cyan

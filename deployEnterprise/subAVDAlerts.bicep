@@ -9,9 +9,9 @@ param LogicAppName string
 param MetricAlerts object
 param ResourceGroupName string
 // param RoleAssignments object
-param RunbookNameGetStorage string
+//param RunbookNameGetStorage string
 param RunbookNameGetHostPool string
-param RunbookScriptGetStorage string
+//param RunbookScriptGetStorage string
 param RunbookScriptGetHostPool string
 @secure()
 param ScriptsRepositorySasToken string
@@ -44,9 +44,9 @@ module resources 'modules/resources.bicep' = {
     LogAlerts: LogAlerts
     LogicAppName: LogicAppName
     MetricAlerts: MetricAlerts
-    RunbookNameGetStorage: RunbookNameGetStorage
+    //RunbookNameGetStorage: RunbookNameGetStorage
     RunbookNameGetHostPool: RunbookNameGetHostPool
-    RunbookScriptGetStorage: RunbookScriptGetStorage
+    //RunbookScriptGetStorage: RunbookScriptGetStorage
     RunbookScriptGetHostPool: RunbookScriptGetHostPool
     ScriptsRepositorySasToken: ScriptsRepositorySasToken
     ScriptsRepositoryUri: ScriptsRepositoryUri

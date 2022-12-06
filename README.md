@@ -5,14 +5,16 @@
 ## Update History
 
 10/20/22  
-- Revised deployment to utilize PowerShell vs Blue button in docs due to storage account parameter type.
-11/30/22
+- Revised deployment to utilize PowerShell vs Blue button in docs due to storage account parameter type.  
+
+12/6/22  
 - Removed Logic App and Runbook for getting Azure File Share storage account information due to failures if Networking has anything other than "Enabled from all Networks" configured.  
 - Added additional alerts for storage latency and adjusted from 200ms to separate alerts at 100ms and 50ms for End to End and Storage specific.  
 - Fixed issue with Tags not be created for every resource.  
 - Health check failure alerts frequency adjusted from 5 to 15 min intervals to accommodate for false alerts during deployment/ maintenance.  
-- FSLogix Profile failures now split out into alerts for 3 events (more specific)
+- FSLogix Profile failures now split out into alerts based on common event log entries (more specific)
 - Informational alert added for Host Pool Capacity at 50%
+- Host Pool Capacity Alerts - updated to only report between thresholds to prevent duplicates
 
 ## Description
 
@@ -47,9 +49,9 @@ Names will be created with a standard 'avdmetrics' in the name and vary based on
 
 Resource Group starting with the name "rg-avdmetrics-" with the following:  
 
-- Automation Account with 2 Runbooks (1 each for Host Pool and Storage Information not otherwise available)  
+- Automation Account with a Runbook (for Host Pool Information not otherwise available)  
 - Identity for the Automation Account in which the name will start with "aa-avdmetrics-"
-- 2 Logic Apps that execute every 5 minutes (1 for each Runbook)
+- Logic App that execute every 5 minutes (Host Pool Info Runbook)
 
 The Automation Account Identity will be assigned the following roles at the Subscription level:
 
@@ -67,27 +69,28 @@ While this is highly subjective on the environment, number of triggered alerts, 
 
 Table below shows the Alert Names however the number of alert rules created may be multiple based on different severity and/or additional volume or storage name designators. For example, a deployment with a single Azure Files Storage Account and an Azure NetApp Files Volume would yield 20 alert rules created. [(Excel Table)](https://github.com/JCoreMS/AVDAlerts/raw/main/references/alerts.xlsx)
 
-| Name                                                              | Condition (Sev1 / Sev2) |  Signal Type |  Frequency   |  # Alert Rules |
-|---                                                                |---                      |---           |---           |---  
-| AVD-HostPool-Capacity :one:                                       | 95% / 85%          | Log Analytics  |  5 min       |    2  |
-| AVD-HostPool-Disconnected User over XX Hours                      | 24 / 72               | Log Analytics  |  1 hour      |   2  |
-| AVD-HostPool-No Resources Available                               | Any are Sev1          | Log Analytics |  15 min      |  1   |
-| AVD-Storage-Low Space on ANF Share-XX Percent Remaining-{volumename} :two: | 5 / 15               | Metric Alerts |   1 hour    |  2/vol  |
-| AVD-Storage-Over 200ms Latency for Storage Act-{storacctname}     | na / 200ms            | Metric Alerts |  15 min     |  1/stor acct |
-| AVD-Storage-Possible Throttling Due to High IOPs-{storacctname}   | na / custom :three:   | Metric Alerts | 15 min        | 1/stor acct |
-| AVD-Storage-Azure Files Availability-{storacctname}               | 99 / na               | Metric Alerts | 5 min         | 1/stor acct |
-| AVD-VM-Available Memory Less Than XGB                             | 1 / 2                 | Metric Alerts | 5 min         |   2  |
-| AVD-VM-Health Check Failure                                       | Any are Sev1          | Log Analytics | 15 min        |   1  |
-| AVD-VM-High CPU XX Percent                                        | 95 / 85               | Metric Alerts | 5 min         |   2  |
-| AVD-VM-Local Disk Free Space X%                                   | 5 / 10                | Log Analytics | 15 min        |   2  |
-| AVD-VM-FSLogix Profile-PathNotFound                               | 1                     | Log Analytics | 5 min         |   1  |
-| AVD-VM-FSLogix Profile-LessThan200mb                              | 2                     | Log Analytics | 5 min         |   1  |
-| AVD-VM-FSLogix Profile-FailedReAttach                             | 2                     | Log Analytics | 5 min         |   1  |
+| Name                                                              | Condition (Crit/Warn/Info) |  Signal Type |  Frequency    |  # Alert Rules |
+|---                                                                |---                    |---             |---            |---  
+| AVD-HostPool-Capacity :one:                                       | 95% / 85% / 50%       | Log Analytics  |  5 min        |  3   |
+| AVD-HostPool-Disconnected User over XX Hours                      | 24 / 72               | Log Analytics  |  1 hour       |  2   |
+| AVD-HostPool-No Resources Available                               | Any are Sev1          | Log Analytics  |  15 min       |  1   |
+| AVD-Storage-Low Space on ANF Share-XX Percent Remaining-{volumename} | 5 / 15             | Metric Alerts  |  1 hour       |  2/vol  |
+| AVD-Storage-Over XXms Latency for Storage Act-{storacctname}      | 100ms / 50ms          | Metric Alerts  |  15 min       |  2/stor acct |
+| AVD-Storage-Over XXms Latency Between Client-Storage-{storacctname}| 100ms / 50ms         | Metric Alerts  |  15 min       |  2/stor acct |
+| AVD-Storage-Possible Throttling Due to High IOPs-{storacctname}   | na / custom :two:     | Metric Alerts  |  15 min       |  1/stor acct |
+| AVD-Storage-Azure Files Availability-{storacctname}               | 99 / na               | Metric Alerts  |  5 min        |  1/stor acct |
+| AVD-VM-Available Memory Less Than XGB                             | 1 / 2                 | Metric Alerts  |  5 min        |   2  |
+| AVD-VM-Health Check Failure                                       | Any are Sev1          | Log Analytics  |  15 min       |   1  |
+| AVD-VM-High CPU XX Percent                                        | 95 / 85               | Metric Alerts  |  5 min        |   2  |
+| AVD-VM-Local Disk Free Space X%                                   | 5 / 10                | Log Analytics  |  15 min       |   2  |
+| AVD-VM-FSLogix Profile Failed (Less Than X% Free Space)           | 2 / 5                 | Log Analytics  |  5 min        |   2  |
+| AVD-VM-FSLogix Profile Failed due to Network Issue                | na                    | Log Analytics  |  5 min        |   1  |
+| AVD-VM-FSLogix Profile-PathNotFound                               | 1                     | Log Analytics  |  5 min        |   1  |
+| AVD-VM-FSLogix Profile-FailedReAttach                             | 2                     | Log Analytics  |  5 min        |   1  |
 
 **NOTES:**  
-:one: Alert based on Runbook for Azure Files and ANF  
-:two: Alert based on Runbook for AVD Host Pool information  
-:three: See the following for custom condition. Note that both Standard and Premium values are incorporated into the alert rule. ['How to create an alert if a file share is throttled'](https://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled)  
+:one: Alert based on Runbook for AVD Host Pool information  
+:two: See the following for custom condition. Note that both Standard and Premium values are incorporated into the alert rule. ['How to create an alert if a file share is throttled'](https://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled)  
 
 [**Log Analytics Query Reference**](AlertQueryReference.md)
 
@@ -103,6 +106,8 @@ This is used for deployment at the Subscription level with all resources related
 ### Tenant Level (Enterprise) based Deployment
 
 Global Admins do not have deployment privileges at the Tenant level by default. You will need to ensure you run one of the following to add your account to the Tenant Level as an Owner. (Within Cloud Shell is ideal and the fastest)  
+
+**NOTE:** Setting these permissions is included in the deployment script below so there is no need to manually run the below command.
 ```azurepowershell-interactive
 New-AzRoleAssignment -SignInName "[userId]" -Scope "/" -RoleDefinitionName "Owner"
 ```

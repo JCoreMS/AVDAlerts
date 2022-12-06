@@ -7,9 +7,9 @@ param LogAnalyticsWorkspaceResourceId string
 param LogAlerts array
 param LogicAppName string
 param MetricAlerts object
-param RunbookNameGetStorage string
+//param RunbookNameGetStorage string
 param RunbookNameGetHostPool string
-param RunbookScriptGetStorage string
+//param RunbookScriptGetStorage string
 param RunbookScriptGetHostPool string
 @secure()
 param ScriptsRepositorySasToken string
