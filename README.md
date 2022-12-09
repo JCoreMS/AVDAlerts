@@ -1,20 +1,8 @@
 # AVD Alerts Solution
 
-[Home](./README.md) | [PostDeployment](./PostDeploy.md) | [How to Change Thresholds](./ChangeAlertThreshold.md) | [Alert Query Reference](./AlertQueryReference.md) | [Excel List of Alert Rules](https://github.com/JCoreMS/AVDAlerts/raw/main/references/alerts.xlsx)
+[Home](./README.md) | [PostDeployment](./PostDeploy.md) | [How to Change Thresholds](./ChangeAlertThreshold.md) | [Alert Query Reference](./AlertQueryReference.md) | [Excel List of Alert Rules](https://github.com/JCoreMS/AVDAlerts/raw/main/references/alerts.xlsx) | [Update History](./UpdateHistory.md)
 
-## Update History
 
-10/20/22  
-- Revised deployment to utilize PowerShell vs Blue button in docs due to storage account parameter type.  
-
-12/6/22  
-- Removed Logic App and Runbook for getting Azure File Share storage account information due to failures if Networking has anything other than "Enabled from all Networks" configured.  
-- Added additional alerts for storage latency and adjusted from 200ms to separate alerts at 100ms and 50ms for End to End and Storage specific.  
-- Fixed issue with Tags not be created for every resource.  
-- Health check failure alerts frequency adjusted from 5 to 15 min intervals to accommodate for false alerts during deployment/ maintenance.  
-- FSLogix Profile failures now split out into alerts based on common event log entries (more specific)
-- Informational alert added for Host Pool Capacity at 50%
-- Host Pool Capacity Alerts - updated to only report between thresholds to prevent duplicates
 
 ## Description
 
@@ -75,6 +63,7 @@ Table below shows the Alert Names however the number of alert rules created may 
 | AVD-HostPool-Disconnected User over XX Hours                      | 24 / 72               | Log Analytics  |  1 hour       |  2   |
 | AVD-HostPool-No Resources Available                               | Any are Sev1          | Log Analytics  |  15 min       |  1   |
 | AVD-Storage-Low Space on ANF Share-XX Percent Remaining-{volumename} | 5 / 15             | Metric Alerts  |  1 hour       |  2/vol  |
+| AVD-Storage-Low Space on Azure File Share-X% Remaining-{volumename} :one:  | 5 / 15       | Log Analytics  |  1 hour       |  2/share  |
 | AVD-Storage-Over XXms Latency for Storage Act-{storacctname}      | 100ms / 50ms          | Metric Alerts  |  15 min       |  2/stor acct |
 | AVD-Storage-Over XXms Latency Between Client-Storage-{storacctname}| 100ms / 50ms         | Metric Alerts  |  15 min       |  2/stor acct |
 | AVD-Storage-Possible Throttling Due to High IOPs-{storacctname}   | na / custom :two:     | Metric Alerts  |  15 min       |  1/stor acct |
@@ -89,7 +78,7 @@ Table below shows the Alert Names however the number of alert rules created may 
 | AVD-VM-FSLogix Profile-FailedReAttach                             | 2                     | Log Analytics  |  5 min        |   1  |
 
 **NOTES:**  
-:one: Alert based on Runbook for AVD Host Pool information  
+:one: Alert based on associated Logic App and Runbook  
 :two: See the following for custom condition. Note that both Standard and Premium values are incorporated into the alert rule. ['How to create an alert if a file share is throttled'](https://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled)  
 
 [**Log Analytics Query Reference**](AlertQueryReference.md)
@@ -105,18 +94,20 @@ This is used for deployment at the Subscription level with all resources related
 
 ### Tenant Level (Enterprise) based Deployment
 
-Global Admins do not have deployment privileges at the Tenant level by default. You will need to ensure you run one of the following to add your account to the Tenant Level as an Owner. (Within Cloud Shell is ideal and the fastest)  
+This is used for deployment at the Tenant level with resources related to AVD spread across MULTIPLE subscriptions.  You will need the appropriate Azure PowerShell modules installed and the deployment ability at the Tenant level. Global Admins do not have deployment privileges at the Tenant level by default, thus the script includes adding the below role assignment for deployment.  
+[DeployToTenant.PS1](./deployEnterprise/scripts/DeployToTenant.ps1)
 
-**NOTE:** Setting these permissions is included in the deployment script below so there is no need to manually run the below command.
+**Note:** The above deployment script for the Tenant will add your account to the Tenant Level as an Owner. You can also accomplish this manually by running one of the following. (Within Cloud Shell is ideal and the fastest)  
+Reference: [Tenant deployments with ARM templates](https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/deploy-to-tenant?tabs=azure-cli)
+
 ```azurepowershell-interactive
 New-AzRoleAssignment -SignInName "[userId]" -Scope "/" -RoleDefinitionName "Owner"
 ```
 ```azurecli-interactive
 az role assignment create --assignee "[userId]" --scope "/" --role "Owner"
 ```
-Reference: [Tenant deployments with ARM templates](https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/deploy-to-tenant?tabs=azure-cli)
 
-This is used for deployment at the Tenant level with resources related to AVD spread across MULTIPLE subscriptions.  You will need the appropriate Azure PowerShell modules installed and the deployment ability at the Tenant level. The script includes adding the above role assignment for deployment.  
-[DeployToTenant.PS1](./deployEnterprise/scripts/DeployToTenant.ps1)
 
-**See [PostDeployment](./PostDeploy.md) for next steps to enable and view alerts.**
+### [PostDeployment](./PostDeploy.md)
+
+See the above linked section for information on how to enable and view the alerts created.

@@ -47,25 +47,26 @@ var ActionGroupName = 'ag-avdmetrics-${Environment}-${Location}'
 //var HostingPlanName = 'asp-avdmetrics-${Environment}-${Location}'
 var LogicAppName = 'la-avdmetrics-${Environment}-${Location}'
 var ResourceGroupName = 'rg-avdmetrics-${Environment}-${Location}'
-//var RunbookNameGetStorage = 'AvdStorageLogData'
+var RunbookNameGetStorage = 'AvdStorageLogData'
 var RunbookNameGetHostPool = 'AvdHostPoolLogData'
-//var RunbookScriptGetStorage = 'Get-AzureAvdLogs.ps1'
+var RunbookScriptGetStorage = 'Get-StorAcctInfov2.ps1'
 var RunbookScriptGetHostPool = 'Get-HostPoolInfo.ps1'
 var ScriptsRepositoryUri = 'https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/'
-var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v0.8)\n'
+var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v0.9)\n'
 var RoleAssignments = {
   DesktopVirtualizationRead: {
     Name: 'Desktop-Virtualization-Reader'
     GUID: '49a72310-ab8d-41df-bbb0-79b649203868'
   }
-  StoreKeyRead: {
-    Name: 'Storage-Acct-Key-Reader-Data-Access'
-    GUID: 'c12c1c16-33a1-487b-954d-41c89c60f349'
+  StoreAcctContrib: {
+    Name: 'Storage-Account-Contributor'
+    GUID: '17d1049b-9a84-46fb-8f53-869881c3d3ab'
   }
 }
 // 'c12c1c16-33a1-487b-954d-41c89c60f349'  // Reader and Data Access (Storage Account Keys)
 // 'acdd72a7-3385-48ef-bd42-f606fba81ae7'  // Reader
 // '49a72310-ab8d-41df-bbb0-79b649203868'  // Desktop Virtualization Reader (May be able to replace Reader with this)
+// '17d1049b-9a84-46fb-8f53-869881c3d3ab'  // Storage Account Contributor
 
 var LogAlerts = [
   {
@@ -527,7 +528,7 @@ var LogAlerts = [
         }
       ]
     }
-  } /*
+  }
   { // Based on Runbook script Output to LAW
     name: '${AlertNamePrefix}Storage-Low Space on Azure File Share-15 Percent Remaining'
     displayName: '${AlertNamePrefix}Storage-Low Space on Azure File Share-15% Remaining'
@@ -621,7 +622,7 @@ var LogAlerts = [
         }
       ]
     }
-  }*/
+  }
   { // Based on Runbook script Output to LAW
     name: '${AlertNamePrefix}HostPool-Capacity-85Percent'
     displayName: '${AlertNamePrefix}HostPool-Capacity 85%'
@@ -1242,9 +1243,9 @@ module resources 'modules/resources.bicep' = {
     LogAlerts: LogAlerts
     LogicAppName: LogicAppName
     MetricAlerts: MetricAlerts
-    //RunbookNameGetStorage: RunbookNameGetStorage
+    RunbookNameGetStorage: RunbookNameGetStorage
     RunbookNameGetHostPool: RunbookNameGetHostPool
-    //RunbookScriptGetStorage: RunbookScriptGetStorage
+    RunbookScriptGetStorage: RunbookScriptGetStorage
     RunbookScriptGetHostPool: RunbookScriptGetHostPool
     ScriptsRepositoryUri: ScriptsRepositoryUri
     SessionHostsResourceGroupIds: SessionHostsResourceGroupIds

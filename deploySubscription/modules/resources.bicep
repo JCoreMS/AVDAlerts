@@ -10,9 +10,9 @@ param LogAlerts array
 //param LogAnalyticsWorkspaceName string
 param LogicAppName string
 param MetricAlerts object
-//param RunbookNameGetStorage string
+param RunbookNameGetStorage string
 param RunbookNameGetHostPool string
-//param RunbookScriptGetStorage string
+param RunbookScriptGetStorage string
 param RunbookScriptGetHostPool string
 param ScriptsRepositoryUri string
 param SessionHostsResourceGroupIds array
@@ -292,8 +292,7 @@ resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' 
     }
   }
 }
-//  REMOVED due to issues with Storage Acct Network settings not being configured for public or using service endpoints
-/*
+
 module logicApp_Storage './logicApp_Storage.bicep' = if(length(StorageAccountResourceIds)>0) {
   name: 'LogicApp_Storage'
   params: {
@@ -307,7 +306,7 @@ module logicApp_Storage './logicApp_Storage.bicep' = if(length(StorageAccountRes
     Timestamp: Timestamp
     Tags: Tags
   }
-} */
+}
 
 module logicApp_HostPool './logicApp_HostPool.bicep' = {
   name: 'LogicApp_HostPool'

@@ -38,7 +38,7 @@ Foreach ($storageAcct in $storageAccts) {
 	Set-AzContext -SubscriptionId ($storageAcct -split '/')[2] | Out-Null
 	$resourceGroup = ($storageAcct -split '/')[4]
 	$storageAcctName = ($storageAcct -split '/')[8]
-	Write-Host "Working on Storage:" $storageAcctName "in" $resourceGroup
+	# Write-Host "Working on Storage:" $storageAcctName "in" $resourceGroup
 	# $accountKey = (Get-AzStorageAccountKey -ResourceGroupName $resourceGroup -Name $storageAcctName)[0].Value
 	# $ctx = New-AzStorageContext -StorageAccountName $storageAcctName -StorageAccountKey $accountKey
 	$ctx = (Get-AzStorageAccount -ResourceGroupName $resourceGroup -Name $storageAcctName).Context

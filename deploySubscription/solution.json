@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.12.40.16777",
-      "templateHash": "14834672447943625164"
+      "version": "0.13.1.58284",
+      "templateHash": "12139208721680531235"
     }
   },
   "parameters": {
@@ -78,18 +78,20 @@
     "ActionGroupName": "[format('ag-avdmetrics-{0}-{1}', parameters('Environment'), parameters('Location'))]",
     "LogicAppName": "[format('la-avdmetrics-{0}-{1}', parameters('Environment'), parameters('Location'))]",
     "ResourceGroupName": "[format('rg-avdmetrics-{0}-{1}', parameters('Environment'), parameters('Location'))]",
+    "RunbookNameGetStorage": "AvdStorageLogData",
     "RunbookNameGetHostPool": "AvdHostPoolLogData",
+    "RunbookScriptGetStorage": "Get-StorAcctInfov2.ps1",
     "RunbookScriptGetHostPool": "Get-HostPoolInfo.ps1",
     "ScriptsRepositoryUri": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/",
-    "AlertDescriptionHeader": "Automated AVD Alert Deployment Solution (v0.8)\n",
+    "AlertDescriptionHeader": "Automated AVD Alert Deployment Solution (v0.9)\n",
     "RoleAssignments": {
       "DesktopVirtualizationRead": {
         "Name": "Desktop-Virtualization-Reader",
         "GUID": "49a72310-ab8d-41df-bbb0-79b649203868"
       },
-      "StoreKeyRead": {
-        "Name": "Storage-Acct-Key-Reader-Data-Access",
-        "GUID": "c12c1c16-33a1-487b-954d-41c89c60f349"
+      "StoreAcctContrib": {
+        "Name": "Storage-Account-Contributor",
+        "GUID": "17d1049b-9a84-46fb-8f53-869881c3d3ab"
       }
     },
     "LogAlerts": [
@@ -410,7 +412,7 @@
         "criteria": {
           "allOf": [
             {
-              "query": "Event\n| where EventLog == \"Microsoft-FSLogix-Apps/Admin\"\n| where EventLevelName == \"Error\"\n| where EventID == 52 or EventID ==40\n",
+              "query": "Event\n| where EventLog == \"Microsoft-FSLogix-Apps/Admin\"\n| where EventLevelName == \"Error\"\n| where EventID == 52 or EventID == 40\n",
               "timeAggregation": "Count",
               "dimensions": [
                 {
@@ -543,6 +545,72 @@
                   ]
                 }
               ],
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "[format('{0}Storage-Low Space on Azure File Share-15 Percent Remaining', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}Storage-Low Space on Azure File Share-15% Remaining', parameters('AlertNamePrefix'))]",
+        "description": "[format('{0}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\nNOTE: The Runbook will FAIL if Networking for the storage account has anything other than \"Enabled from all networks\"\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining', variables('AlertDescriptionHeader'))]",
+        "severity": 2,
+        "evaluationFrequency": "PT10M",
+        "windowSize": "PT1H",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "          AzureDiagnostics \r\n          | where Category has \"JobStreams\" and StreamType_s == \"Output\" and RunbookName_s == \"AvdStorageLogData\"\r\n          | sort by TimeGenerated\r\n          //  StorageType / Subscription / RG / StorAcct / Share / Quota / GB Used / %Available\r\n          | extend StorageType=split(ResultDescription, ',')[0]\r\n          | extend Subscription=split(ResultDescription, ',')[1]\r\n          | extend ResourceGroup=split(ResultDescription, ',')[2]\r\n          | extend StorageAccount=split(ResultDescription, ',')[3]\r\n          | extend Share=split(ResultDescription, ',')[4]\r\n          | extend GBShareQuota=split(ResultDescription, ',')[5]\r\n          | extend GBUsed=split(ResultDescription, ',')[6]\r\n          | extend PercentAvailable=split(ResultDescription, ',')[7]\r\n          | where PercentAvailable <= 15.00 and PercentAvailable < 5.00          \r\n           ",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "ResultDescription",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "resourceIdColumng": "_ResourceId",
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "[format('{0}Storage-Low Space on Azure File Share-5 Percent Remaining', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}Storage-Low Space on Azure File Share-5% Remaining', parameters('AlertNamePrefix'))]",
+        "description": "[format('{0}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\nNOTE: The Runbook will FAIL if Networking for the storage account has anything other than \"Enabled from all networks\"\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining', variables('AlertDescriptionHeader'))]",
+        "severity": 1,
+        "evaluationFrequency": "PT10M",
+        "windowSize": "PT1H",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "          AzureDiagnostics \r\n          | where Category has \"JobStreams\" and StreamType_s == \"Output\" and RunbookName_s == \"AvdStorageLogData\"\r\n          | sort by TimeGenerated\r\n          //  StorageType / Subscription / RG / StorAcct / Share / Quota / GB Used / %Available\r\n          | extend StorageType=split(ResultDescription, ',')[0]\r\n          | extend Subscription=split(ResultDescription, ',')[1]\r\n          | extend ResourceGroup=split(ResultDescription, ',')[2]\r\n          | extend StorageAccount=split(ResultDescription, ',')[3]\r\n          | extend Share=split(ResultDescription, ',')[4]\r\n          | extend GBShareQuota=split(ResultDescription, ',')[5]\r\n          | extend GBUsed=split(ResultDescription, ',')[6]\r\n          | extend PercentAvailable=split(ResultDescription, ',')[7]\r\n          | where PercentAvailable <= 5.00          \r\n           ",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "ResultDescription",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "resourceIdColumng": "_ResourceId",
               "operator": "GreaterThanOrEqual",
               "threshold": 1,
               "failingPeriods": {
@@ -1119,8 +1187,14 @@
           "MetricAlerts": {
             "value": "[variables('MetricAlerts')]"
           },
+          "RunbookNameGetStorage": {
+            "value": "[variables('RunbookNameGetStorage')]"
+          },
           "RunbookNameGetHostPool": {
             "value": "[variables('RunbookNameGetHostPool')]"
+          },
+          "RunbookScriptGetStorage": {
+            "value": "[variables('RunbookScriptGetStorage')]"
           },
           "RunbookScriptGetHostPool": {
             "value": "[variables('RunbookScriptGetHostPool')]"
@@ -1150,8 +1224,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.12.40.16777",
-              "templateHash": "12907414039688428518"
+              "version": "0.13.1.58284",
+              "templateHash": "9420236551300581506"
             }
           },
           "parameters": {
@@ -1179,7 +1253,13 @@
             "MetricAlerts": {
               "type": "object"
             },
+            "RunbookNameGetStorage": {
+              "type": "string"
+            },
             "RunbookNameGetHostPool": {
+              "type": "string"
+            },
+            "RunbookScriptGetStorage": {
               "type": "string"
             },
             "RunbookScriptGetHostPool": {
@@ -1367,8 +1447,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.12.40.16777",
-                      "templateHash": "1484786900621706015"
+                      "version": "0.13.1.58284",
+                      "templateHash": "2375360075578996356"
                     }
                   },
                   "parameters": {
@@ -1462,8 +1542,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.12.40.16777",
-                      "templateHash": "14417966309568199545"
+                      "version": "0.13.1.58284",
+                      "templateHash": "10666228962444097168"
                     }
                   },
                   "parameters": {
@@ -1558,8 +1638,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.12.40.16777",
-                      "templateHash": "9200656796617427252"
+                      "version": "0.13.1.58284",
+                      "templateHash": "10835377862491583644"
                     }
                   },
                   "parameters": {
@@ -1621,6 +1701,173 @@
               ]
             },
             {
+              "condition": "[greater(length(parameters('StorageAccountResourceIds')), 0)]",
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "LogicApp_Storage",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "AutomationAccountName": {
+                    "value": "[parameters('AutomationAccountName')]"
+                  },
+                  "CloudEnvironment": {
+                    "value": "[variables('CloudEnvironment')]"
+                  },
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "LogicAppName": {
+                    "value": "[format('{0}-Storage', parameters('LogicAppName'))]"
+                  },
+                  "RunbookNameGetStorage": {
+                    "value": "[parameters('RunbookNameGetStorage')]"
+                  },
+                  "RunbookURI": {
+                    "value": "[format('{0}{1}', parameters('ScriptsRepositoryUri'), parameters('RunbookScriptGetStorage'))]"
+                  },
+                  "StorageAccountResourceIds": {
+                    "value": "[parameters('StorageAccountResourceIds')]"
+                  },
+                  "Timestamp": {
+                    "value": "[parameters('Timestamp')]"
+                  },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.13.1.58284",
+                      "templateHash": "11018639492190730941"
+                    }
+                  },
+                  "parameters": {
+                    "AutomationAccountName": {
+                      "type": "string"
+                    },
+                    "CloudEnvironment": {
+                      "type": "string"
+                    },
+                    "Location": {
+                      "type": "string"
+                    },
+                    "LogicAppName": {
+                      "type": "string"
+                    },
+                    "RunbookNameGetStorage": {
+                      "type": "string"
+                    },
+                    "RunbookURI": {
+                      "type": "string"
+                    },
+                    "StorageAccountResourceIds": {
+                      "type": "array"
+                    },
+                    "Timestamp": {
+                      "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Automation/automationAccounts/runbooks",
+                      "apiVersion": "2019-06-01",
+                      "name": "[format('{0}/{1}', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage'))]",
+                      "tags": "[parameters('Tags')]",
+                      "location": "[parameters('Location')]",
+                      "properties": {
+                        "runbookType": "PowerShell",
+                        "logProgress": false,
+                        "logVerbose": false,
+                        "publishContentLink": {
+                          "uri": "[parameters('RunbookURI')]",
+                          "version": "1.0.0.0"
+                        }
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Automation/automationAccounts/webhooks",
+                      "apiVersion": "2015-10-31",
+                      "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]",
+                      "properties": {
+                        "isEnabled": true,
+                        "expiryTime": "[dateTimeAdd(parameters('Timestamp'), 'P5Y')]",
+                        "runbook": {
+                          "name": "[parameters('RunbookNameGetStorage')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Automation/automationAccounts/variables",
+                      "apiVersion": "2019-06-01",
+                      "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetStorage')))]",
+                      "properties": {
+                        "value": "[format('\"{0}\"', reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss'))), '2015-10-31').uri)]",
+                        "isEncrypted": false
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage'))]",
+                        "[resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Logic/workflows",
+                      "apiVersion": "2016-06-01",
+                      "name": "[parameters('LogicAppName')]",
+                      "tags": "[parameters('Tags')]",
+                      "location": "[parameters('Location')]",
+                      "properties": {
+                        "state": "Enabled",
+                        "definition": {
+                          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                          "actions": {
+                            "HTTP": {
+                              "type": "Http",
+                              "inputs": {
+                                "method": "POST",
+                                "uri": "[replace(reference(resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetStorage'))), '2019-06-01').value, '\"', '')]",
+                                "body": {
+                                  "CloudEnvironment": "[parameters('CloudEnvironment')]",
+                                  "StorageAccountResourceIDs": "[parameters('StorageAccountResourceIds')]"
+                                }
+                              }
+                            }
+                          },
+                          "triggers": {
+                            "Recurrence": {
+                              "type": "Recurrence",
+                              "recurrence": {
+                                "frequency": "Minute",
+                                "interval": 5
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage'))]",
+                        "[resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetStorage')))]",
+                        "[resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]"
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2020-10-01",
               "name": "LogicApp_HostPool",
@@ -1664,8 +1911,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.12.40.16777",
-                      "templateHash": "1910916848552389793"
+                      "version": "0.13.1.58284",
+                      "templateHash": "14829701636570749618"
                     }
                   },
                   "parameters": {
