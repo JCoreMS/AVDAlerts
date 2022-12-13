@@ -1,10 +1,12 @@
-[Home](./README.md) | [PostDeployment](./PostDeploy.md) | [How to Change Thresholds](./ChangeAlertThreshold.md) | [Alert Query Reference](./AlertQueryReference.md) | [Excel List of Alert Rules](https://github.com/JCoreMS/AVDAlerts/raw/main/references/alerts.xlsx)
+[Home](./README.md) | [PostDeployment](./PostDeploy.md) | [How to Change Thresholds](./ChangeAlertThreshold.md) | [Alert Reference](./AlertReference.md) | [Excel List of Alert Rules](https://github.com/JCoreMS/AVDAlerts/raw/main/references/alerts.xlsx)
 
-# Alert Query Reference
+# Alert Reference
 
-The following are the queries used in the solution.  
+The following are the Alert Queries and Metrics utilized in the solution and common for monitoring and AVD environment.  
 
-## AVD-HostPool-Capacity-XXPercent
+## Log Analytics Query Based Alerts
+
+### AVD-HostPool-Capacity-XXPercent
 
 This query is also based on the output of the Runbook for AVD Host Pool information that is the AzureDiagnostics table.
 
@@ -26,12 +28,14 @@ AzureDiagnostics
 | where HostPoolPercentLoad >= 85  //value to use for percentage       
 ```
 
-## AVD-HostPool-Disconnected User over XX Hours
+### AVD-HostPool-Disconnected User over XX Hours
+
+Simply replace the 24h reference in the 2 locations noted below.  
 
 ```
 // Session duration 
 // Lists users by session duration in the last 24 hours. 
-// The "State" provides information on the connection stage of an actitivity.
+// The "State" provides information on the connection stage of an activity.
 // The delta between "Connected" and "Completed" provides the connection time for a specific connection.
 WVDConnections 
 | where TimeGenerated > ago(24h) 
@@ -51,7 +55,7 @@ WVDConnections
 | sort by Duration desc
 ```
 
-## AVD-HostPool-No Resources Available
+### AVD-HostPool-No Resources Available
 
 ```
 WVDConnections 
@@ -79,7 +83,7 @@ WVDConnections
 | where Errors[0].CodeSymbolic == "ConnectionFailedNoHealthyRdshAvailable"
 ```
 
-## AVD-Storage-Low Space on Azure File Share-XX% Remaining
+### AVD-Storage-Low Space on Azure File Share-XX% Remaining
 
 This query is also based on the output of the Runbook for Azure Files and ANF Storage information that is the AzureDiagnostics table.
 
@@ -101,15 +105,28 @@ AzureDiagnostics
 | where PercentAvailable <= 15.00 and PercentAvailable < 5.00  
 ```
 
-## AVD-VM-FSLogix Profile Failed (Event Log Indicated Failure)
+### AVD-VM-FSLogix Profile Specific Events
+
+| FSLogix Issue  |  Event ID(s) |
+|----------------|-----------   |
+| Profile Space Low - less than 5%  |  33  |
+| Profile Space Low - less than 2%  |  34  |
+| Profile Network Issue             |  43  |
+| Profile Failed VHD Attach         |  40 or 52 |
+| FSLogix Service Disabled          |  60  |
+| FSLogix Disk Compaction Failed    |  62 or 63 |
+
+Query example in which you would simply change the event ID number.  For those that involve 2 Event IDs you can change the last line to include those via something like...  
+'|where EventID == 40 or EventID == 52'  
 
 ```
 Event
 | where EventLog == "Microsoft-FSLogix-Apps/Admin"
 | where EventLevelName == "Error"
+| where EventID == 33
 ```
 
-## AVD-VM-Local Disk Free Space XX% Remaining
+### AVD-VM-Local Disk Free Space XX% Remaining
 
 ```
 Perf
@@ -119,3 +136,37 @@ Perf
 | where InstanceName !contains "_Total"
 | where CounterValue <= 10.00
 ```
+
+## Metric based Alerts
+
+The following are typical metric based alerts that are commonly used in monitoring AVD. For those with 2 values or a range, the intent is to create 2 alerts that may reflect a warning versus a more critical event.  While the proposed values are recommended, it is highly dependant on your environment.  
+
+| Alert Item                                        | Resource Target   |   Metric             |    Time Aggregation  |
+|-----------------                                  |------------------ |------------          |-------------         |
+| AVD-Storage-Over 50 to 100ms Latency for Storage Acct | Storage Account | SuccessServerLatency  | Average over 15 minutes over 50 to 100ms |
+| AVD-Storage-Over 50 to 100ms Latency Between Client-Storage | Storage Account | SuccessE2ELatency  | Average over 15 minutes  |
+| AVD-Storage-Azure Files Availability  | Storage Account | Availability  | Anything less than 99%  |
+| AVD-Storage-Possible Throttling Due to High IOPs :one:  | Storage Account | Transactions | Average over 15 minutes |
+| AVD-Storage-Low Space on ANF Share-95 to 85 Percent Remaining | Azure NetApp Volume | VolumeConsumedSizePercentage | Average over 1 hour |
+| AVD-VM-High CPU 85 to 95 Percent | Virtual Machine | Percentage CPU  | Average over 5 minutes |
+| AVD-VM-Available Memory Less Than 2GB or 1GB  | Virtual Machine | Available Memory Bytes | Average over 5 minutes |
+
+:one:
+For the Azure Files Possible Throttling alert you will also need to include specific dimensions and values. These values will not show in the drop down if they have never been triggered. Thus you will need to manually create them based on the below names and values.  
+
+- name: 'ResponseType'  (For Standard File Shares SKU)
+- values:  
+    - 'SuccessWithThrottling'
+    - 'SuccessWithShareIopsThrottling'
+    - 'ClientShareIopsThrottlingError'
+
+- name: 'FileShare'  (For Premium File Shares SKU)
+- values:
+    - 'SuccessWithShareEgressThrottling'
+    - 'SuccessWithShareIngressThrottling'
+    - 'SuccessWithShareIopsThrottling'
+    - 'ClientShareEgressThrottlingError'
+    - 'ClientShareIngressThrottlingError'
+    - 'ClientShareIopsThrottlingError'
+
+Reference for above: https://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled

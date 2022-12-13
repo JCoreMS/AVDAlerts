@@ -74,8 +74,8 @@ Table below shows the Alert Names however the number of alert rules created may 
 | AVD-VM-Local Disk Free Space X%                                   | 5 / 10                | Log Analytics  |  15 min       |   2  |
 | AVD-VM-FSLogix Profile Failed (Less Than X% Free Space)           | 2 / 5                 | Log Analytics  |  5 min        |   2  |
 | AVD-VM-FSLogix Profile Failed due to Network Issue                | na                    | Log Analytics  |  5 min        |   1  |
-| AVD-VM-FSLogix Profile-PathNotFound                               | 1                     | Log Analytics  |  5 min        |   1  |
-| AVD-VM-FSLogix Profile-FailedReAttach                             | 2                     | Log Analytics  |  5 min        |   1  |
+| AVD-VM-FSLogix Profile-PathNotFound                               | na                    | Log Analytics  |  5 min        |   1  |
+| AVD-VM-FSLogix Profile-FailedReAttach                             | na                    | Log Analytics  |  5 min        |   1  |
 
 **NOTES:**  
 :one: Alert based on associated Logic App and Runbook  

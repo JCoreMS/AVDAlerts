@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.13.1.58284",
-      "templateHash": "12139208721680531235"
+      "templateHash": "3651900932685759232"
     }
   },
   "parameters": {
@@ -1225,7 +1225,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.13.1.58284",
-              "templateHash": "9420236551300581506"
+              "templateHash": "2912170877669121800"
             }
           },
           "parameters": {
@@ -1746,7 +1746,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.13.1.58284",
-                      "templateHash": "11018639492190730941"
+                      "templateHash": "14129952282149670233"
                     }
                   },
                   "parameters": {
@@ -1781,7 +1781,7 @@
                   "resources": [
                     {
                       "type": "Microsoft.Automation/automationAccounts/runbooks",
-                      "apiVersion": "2019-06-01",
+                      "apiVersion": "2018-06-30",
                       "name": "[format('{0}/{1}', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage'))]",
                       "tags": "[parameters('Tags')]",
                       "location": "[parameters('Location')]",
@@ -1797,7 +1797,7 @@
                     },
                     {
                       "type": "Microsoft.Automation/automationAccounts/webhooks",
-                      "apiVersion": "2015-10-31",
+                      "apiVersion": "2018-06-30",
                       "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]",
                       "properties": {
                         "isEnabled": true,
@@ -1811,21 +1811,8 @@
                       ]
                     },
                     {
-                      "type": "Microsoft.Automation/automationAccounts/variables",
-                      "apiVersion": "2019-06-01",
-                      "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetStorage')))]",
-                      "properties": {
-                        "value": "[format('\"{0}\"', reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss'))), '2015-10-31').uri)]",
-                        "isEncrypted": false
-                      },
-                      "dependsOn": [
-                        "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage'))]",
-                        "[resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]"
-                      ]
-                    },
-                    {
                       "type": "Microsoft.Logic/workflows",
-                      "apiVersion": "2016-06-01",
+                      "apiVersion": "2019-05-01",
                       "name": "[parameters('LogicAppName')]",
                       "tags": "[parameters('Tags')]",
                       "location": "[parameters('Location')]",
@@ -1838,7 +1825,7 @@
                               "type": "Http",
                               "inputs": {
                                 "method": "POST",
-                                "uri": "[replace(reference(resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetStorage'))), '2019-06-01').value, '\"', '')]",
+                                "uri": "[reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss'))), '2018-06-30').uri]",
                                 "body": {
                                   "CloudEnvironment": "[parameters('CloudEnvironment')]",
                                   "StorageAccountResourceIDs": "[parameters('StorageAccountResourceIds')]"
@@ -1859,11 +1846,24 @@
                       },
                       "dependsOn": [
                         "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage'))]",
-                        "[resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetStorage')))]",
                         "[resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]"
                       ]
                     }
-                  ]
+                  ],
+                  "outputs": {
+                    "RunbookURI": {
+                      "type": "string",
+                      "value": "[parameters('RunbookURI')]"
+                    },
+                    "webhookname": {
+                      "type": "string",
+                      "value": "[format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss'))]"
+                    },
+                    "RunbookProp": {
+                      "type": "object",
+                      "value": "[reference(resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage')), '2018-06-30')]"
+                    }
+                  }
                 }
               }
             },

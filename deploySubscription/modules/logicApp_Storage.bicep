@@ -13,7 +13,7 @@ resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' 
 }
 
 
-resource runbookGetStorageInfo 'Microsoft.Automation/automationAccounts/runbooks@2019-06-01' = {
+resource runbookGetStorageInfo 'Microsoft.Automation/automationAccounts/runbooks@2018-06-30' = {
   name: RunbookNameGetStorage
   tags: Tags
   parent: automationAccount
@@ -29,7 +29,7 @@ resource runbookGetStorageInfo 'Microsoft.Automation/automationAccounts/runbooks
   }
 }
 
-resource webhookGetStorageInfo 'Microsoft.Automation/automationAccounts/webhooks@2015-10-31' = {
+resource webhookGetStorageInfo 'Microsoft.Automation/automationAccounts/webhooks@2018-06-30' = {
   name: '${runbookGetStorageInfo.name}_${dateTimeAdd(Timestamp, 'PT0H', 'yyyyMMddhhmmss')}'
   parent: automationAccount
   properties: {
@@ -41,22 +41,12 @@ resource webhookGetStorageInfo 'Microsoft.Automation/automationAccounts/webhooks
   }
 }
 
-resource variableGetStorageInfo 'Microsoft.Automation/automationAccounts/variables@2019-06-01' = {
-  name: 'WebhookURI_${runbookGetStorageInfo.name}'
-  parent: automationAccount
-  properties: {
-    value: '"${webhookGetStorageInfo.properties.uri}"'
-    isEncrypted: false
-  }
-}
-
-resource logicAppGetStorageInfo 'Microsoft.Logic/workflows@2016-06-01' = {
+resource logicAppGetStorageInfo 'Microsoft.Logic/workflows@2019-05-01' = {
   name: LogicAppName
   tags: Tags
   dependsOn: [
     automationAccount
     runbookGetStorageInfo
-    webhookGetStorageInfo
   ]
   location: Location
   properties: {
@@ -68,7 +58,7 @@ resource logicAppGetStorageInfo 'Microsoft.Logic/workflows@2016-06-01' = {
           type: 'Http'
           inputs: {
             method: 'POST'
-            uri: replace(variableGetStorageInfo.properties.value, '"', '')
+            uri: webhookGetStorageInfo.properties.uri
             body: {
               CloudEnvironment: CloudEnvironment
               StorageAccountResourceIDs: StorageAccountResourceIds
@@ -88,3 +78,6 @@ resource logicAppGetStorageInfo 'Microsoft.Logic/workflows@2016-06-01' = {
     }
   }
 }
+output RunbookURI string = RunbookURI
+output webhookname string = webhookGetStorageInfo.name
+output RunbookProp object = runbookGetStorageInfo.properties

@@ -18,4 +18,4 @@
 
 - Updated Azure File Share Info Runbook Script to resolve authentication issues when Storage Network Firewall settings specify Specific VNets
 - Re-enable Logic App and Runbook deployments and add Azure Files based alerts back to solution and update documentation
-- Remove Data Access Read Role and change to SMB Share Read
+- Remove Data Access Read Role and change to Storage Account Contributor
