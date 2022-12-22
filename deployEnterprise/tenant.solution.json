@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.13.1.58284",
-      "templateHash": "8667978256196343067"
+      "version": "0.11.1.770",
+      "templateHash": "18219515108397718512"
     }
   },
   "parameters": {
@@ -1248,8 +1248,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.13.1.58284",
-              "templateHash": "9177375819681548133"
+              "version": "0.11.1.770",
+              "templateHash": "8097764145519914117"
             }
           },
           "parameters": {
@@ -1391,8 +1391,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.13.1.58284",
-                      "templateHash": "17168457599042260797"
+                      "version": "0.11.1.770",
+                      "templateHash": "5277137822811112645"
                     }
                   },
                   "parameters": {
@@ -1597,8 +1597,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.13.1.58284",
-                              "templateHash": "8592017683294544812"
+                              "version": "0.11.1.770",
+                              "templateHash": "6563355537415563829"
                             }
                           },
                           "parameters": {
@@ -1656,7 +1656,7 @@
                                 "description": "[parameters('MetricAlerts').virtualMachines[copyIndex()].description]",
                                 "severity": "[parameters('MetricAlerts').virtualMachines[copyIndex()].severity]",
                                 "enabled": false,
-                                "scopes": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('ds-VMMetrics-{0}', parameters('CurrentSub'))), '2020-10-01').outputs.Scope]",
+                                "scopes": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('ds-VMMetrics-{0}', parameters('CurrentSub')))).outputs.Scope]",
                                 "evaluationFrequency": "[parameters('MetricAlerts').virtualMachines[copyIndex()].evaluationFrequency]",
                                 "windowSize": "[parameters('MetricAlerts').virtualMachines[copyIndex()].windowSize]",
                                 "criteria": "[parameters('MetricAlerts').virtualMachines[copyIndex()].criteria]",
@@ -1718,8 +1718,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.13.1.58284",
-                              "templateHash": "2375360075578996356"
+                              "version": "0.11.1.770",
+                              "templateHash": "3124844117659942349"
                             }
                           },
                           "parameters": {
@@ -1813,8 +1813,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.13.1.58284",
-                              "templateHash": "10666228962444097168"
+                              "version": "0.11.1.770",
+                              "templateHash": "9653405393002664869"
                             }
                           },
                           "parameters": {
@@ -1909,8 +1909,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.13.1.58284",
-                              "templateHash": "10835377862491583644"
+                              "version": "0.11.1.770",
+                              "templateHash": "5074591341755448092"
                             }
                           },
                           "parameters": {
@@ -2016,8 +2016,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.13.1.58284",
-                              "templateHash": "11018639492190730941"
+                              "version": "0.11.1.770",
+                              "templateHash": "12074904794404315417"
                             }
                           },
                           "parameters": {
@@ -2086,7 +2086,7 @@
                               "apiVersion": "2019-06-01",
                               "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetStorage')))]",
                               "properties": {
-                                "value": "[format('\"{0}\"', reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss'))), '2015-10-31').uri)]",
+                                "value": "[format('\"{0}\"', reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))).uri)]",
                                 "isEncrypted": false
                               },
                               "dependsOn": [
@@ -2109,7 +2109,7 @@
                                       "type": "Http",
                                       "inputs": {
                                         "method": "POST",
-                                        "uri": "[replace(reference(resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetStorage'))), '2019-06-01').value, '\"', '')]",
+                                        "uri": "[replace(reference(resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetStorage')))).value, '\"', '')]",
                                         "body": {
                                           "CloudEnvironment": "[parameters('CloudEnvironment')]",
                                           "StorageAccountResourceIDs": "[parameters('StorageAccountResourceIds')]"
@@ -2185,8 +2185,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.13.1.58284",
-                              "templateHash": "6172298124708649691"
+                              "version": "0.11.1.770",
+                              "templateHash": "12973565470903197588"
                             }
                           },
                           "parameters": {
@@ -2255,7 +2255,7 @@
                               "apiVersion": "2019-06-01",
                               "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetHostPool')))]",
                               "properties": {
-                                "value": "[format('\"{0}\"', reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetHostPool'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss'))), '2015-10-31').uri)]",
+                                "value": "[format('\"{0}\"', reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetHostPool'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))).uri)]",
                                 "isEncrypted": false
                               },
                               "dependsOn": [
@@ -2278,7 +2278,7 @@
                                       "type": "Http",
                                       "inputs": {
                                         "method": "POST",
-                                        "uri": "[replace(reference(resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetHostPool'))), '2019-06-01').value, '\"', '')]",
+                                        "uri": "[replace(reference(resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetHostPool')))).value, '\"', '')]",
                                         "body": {
                                           "AVDHostSubIDs": "[parameters('AVDHostSubIDs')]",
                                           "CloudEnvironment": "[parameters('CloudEnvironment')]"
@@ -2327,7 +2327,7 @@
           "outputs": {
             "automationAccountPrincipalId": {
               "type": "string",
-              "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', 'MonitoringResourcesDeployment'), '2020-10-01').outputs.automationAccountPrincipalId.value]"
+              "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', 'MonitoringResourcesDeployment')).outputs.automationAccountPrincipalId.value]"
             }
           }
         }
@@ -2355,7 +2355,7 @@
             "value": "[variables('RoleAssignments')]"
           },
           "PrincipalId": {
-            "value": "[reference(subscriptionResourceId(parameters('DeployToSub'), 'Microsoft.Resources/deployments', 'sub-AVDAlertsResources'), '2020-10-01').outputs.automationAccountPrincipalId.value]"
+            "value": "[reference(subscriptionResourceId(parameters('DeployToSub'), 'Microsoft.Resources/deployments', 'sub-AVDAlertsResources')).outputs.automationAccountPrincipalId.value]"
           }
         },
         "template": {
@@ -2364,8 +2364,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.13.1.58284",
-              "templateHash": "7588498810036337900"
+              "version": "0.11.1.770",
+              "templateHash": "15405262558966459413"
             }
           },
           "parameters": {
@@ -2423,7 +2423,7 @@
             "value": "[variables('RoleAssignments')]"
           },
           "PrincipalId": {
-            "value": "[reference(subscriptionResourceId(parameters('DeployToSub'), 'Microsoft.Resources/deployments', 'sub-AVDAlertsResources'), '2020-10-01').outputs.automationAccountPrincipalId.value]"
+            "value": "[reference(subscriptionResourceId(parameters('DeployToSub'), 'Microsoft.Resources/deployments', 'sub-AVDAlertsResources')).outputs.automationAccountPrincipalId.value]"
           }
         },
         "template": {
@@ -2432,8 +2432,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.13.1.58284",
-              "templateHash": "719947090154044092"
+              "version": "0.11.1.770",
+              "templateHash": "11867986240647750451"
             }
           },
           "parameters": {
@@ -2488,7 +2488,7 @@
             "value": "[variables('RoleAssignments')]"
           },
           "PrincipalId": {
-            "value": "[reference(subscriptionResourceId(parameters('DeployToSub'), 'Microsoft.Resources/deployments', 'sub-AVDAlertsResources'), '2020-10-01').outputs.automationAccountPrincipalId.value]"
+            "value": "[reference(subscriptionResourceId(parameters('DeployToSub'), 'Microsoft.Resources/deployments', 'sub-AVDAlertsResources')).outputs.automationAccountPrincipalId.value]"
           }
         },
         "template": {
@@ -2497,8 +2497,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.13.1.58284",
-              "templateHash": "10235641745354171740"
+              "version": "0.11.1.770",
+              "templateHash": "14207181666380795886"
             }
           },
           "parameters": {
