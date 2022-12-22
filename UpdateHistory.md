@@ -1,5 +1,13 @@
 # Update History
 
+12/22/22
+
+- Correct issue with ARM templates due to missing URI for Logic App HTTP action (See Issues for details)
+
+12/5/22
+
+- Update FSLogix alerts
+
 10/20/22  
 
 - Revised deployment to utilize PowerShell vs Blue button in docs due to storage account parameter type.  
