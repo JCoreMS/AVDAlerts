@@ -1,6 +1,6 @@
 # AVD Alerts Solution
 
-[Home](./README.md) | [PostDeployment](./PostDeploy.md) | [How to Change Thresholds](./ChangeAlertThreshold.md) | [Alert Query Reference](./AlertQueryReference.md) | [Excel List of Alert Rules](https://github.com/JCoreMS/AVDAlerts/raw/main/references/alerts.xlsx) | [Update History](./UpdateHistory.md)
+[Home](./README.md) | [PostDeployment](./PostDeploy.md) | [How to Change Thresholds](./ChangeAlertThreshold.md) | [Alert Reference](./AlertReference.md) | [Excel List of Alert Rules](https://github.com/JCoreMS/AVDAlerts/raw/main/references/alerts.xlsx) | [Update History](./UpdateHistory.md)
 
 **Note:**  
 Deployments from 12/5/2022 to 12/22/2022 may not have working Logic Apps for AzFiles and Host Pool data. The HTTP action may be missing the webhook URI. Please redeploy or manually create another webhook within the Runbook for each and update the Logic App HTTP action URI.  
@@ -82,7 +82,7 @@ Table below shows the Alert Names however the number of alert rules created may 
 :one: Alert based on associated Logic App and Runbook  
 :two: See the following for custom condition. Note that both Standard and Premium values are incorporated into the alert rule. ['How to create an alert if a file share is throttled'](https://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled)  
 
-[**Log Analytics Query Reference**](AlertQueryReference.md)
+[**Alert Reference**](AlertReference.md)
 
 ## Deployment / Installation
 
