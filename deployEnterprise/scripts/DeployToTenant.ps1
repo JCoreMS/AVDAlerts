@@ -53,15 +53,16 @@ Clear-Host
 # =================================================================================================
 # Set Tenant for Deployment
 # =================================================================================================
-Write-Host "Which Azure Tenant would you like to deploy to?"
 [array]$Tenants = Get-AzTenant
-Foreach($Tenant in $Tenants){
-    Write-Host ($Tenants.Indexof($Tenant)+1) "-" $Tenant.Name
- }
-$TenantSelection = Read-Host "Enter selection"
-$TenantId = ($Tenants[$TenantSelection-1]).Id
-Clear-Host
-
+If ($Tenants.count -gt 1){
+    Write-Host "Which Azure Tenant would you like to deploy to?"
+    Foreach($Tenant in $Tenants){
+        Write-Host ($Tenants.Indexof($Tenant)+1) "-" $Tenant.Name
+    }
+    $TenantSelection = Read-Host "Enter selection"
+    $TenantId = ($Tenants[$TenantSelection-1]).Id
+    Clear-Host
+}
 # =================================================================================================
 # Check Tenant Level Permissions - Owner
 # =================================================================================================
