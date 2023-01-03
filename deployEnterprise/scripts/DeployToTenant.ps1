@@ -5,6 +5,34 @@ $WarningPreference = 'SilentlyContinue'
 $filetimestamp = Get-Date -Format "MM.dd.yyyy_THH.mm" 
 $OutputFile = './Parameters_' + $filetimestamp + '.json'
 
+# FUNCTIONS
+#======================================================================================================================================
+function SetUserTenantOwner {   # Sets user provided as Tenant Owner, exits if failed
+    param ([string]$CurrUser)
+    $Error.Clear()
+    $ApplyOwner = Read-Host "Would you like to add your account?`nNote: Requires Global Admin Role (Y or N)"
+    If ($ApplyOwner.toupper() -eq 'Y'){
+        Write-Host "-- Adding Owner at Tenant level for $CurrUser" -ForegroundColor Yellow
+        New-AzRoleAssignment -SignInName $CurrUser -Scope "/" -RoleDefinitionName "Owner" | Out-Null
+        If ($Error.Count -gt 0){
+            Write-Host ">> Failed to assign $CurrUser as owner at the Tenant!  <<" -ForegroundColor Red
+            Write-Host "   $Error[0]"
+            Write-Host "   Please see the following for more information:"
+            Write-Host "   https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/deploy-to-tenant?tabs=azure-cli#required-access"
+            Exit
+        }
+    }
+    If ($ApplyOwner.toupper() -eq 'N'){
+        Write-Host "Required Permissions need to be configured by a Global Admin prior to deployment." -ForegroundColor Red
+        Write-Host "   Please see the following for more information:"
+        Write-Host "   https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/deploy-to-tenant?tabs=azure-cli#required-access"
+        Exit
+    }
+    $Error.Clear()
+}
+#======================================================================================================================================
+
+# START
 Write-Host "This script will help you collect the following information and build out your parameters file for deployment."
 Write-Host "While mulitple storage resouces can be defined, you will only be prompted for a single option via this script" -ForegroundColor Yellow
 
@@ -21,7 +49,6 @@ $Environment = $CloudList[$select-1]
 Write-Host "Connecting to Azure... (Look for minimized or hidden window)" -ForegroundColor Yellow
 Connect-AzAccount -Environment $Environment | Out-Null
 Clear-Host
-
 
 # =================================================================================================
 # Set Tenant for Deployment
@@ -41,11 +68,26 @@ Clear-Host
 Write-Host "Checking Tenant Permissions..."
 $CurrUser = (get-azcontext).account.id
 $TenantPerms = get-azroleassignment | where-object Scope -eq "/" | where-object RoleDefinitionName -eq "Owner"
-If ($TenantPerms -eq $null){
-    Write-Host "-- Adding Owner at Tenant level for $CurrUser" -ForegroundColor Yellow
-    New-AzRoleAssignment -SignInName $CurrUser -Scope "/" -RoleDefinitionName "Owner" | Out-Null
-}
 
+# If no groups or users at root - prompt to add
+If($TenantPerms.Count -eq 0){SetUserTenantOwner $CurrUser}
+
+# Else search list for user and if not found list groups and verify/add
+If ($TenantPerms.Count -ne 0){
+    $UserFound = 0
+    foreach($item in $TenantPerms){
+        If($item.SignInName -eq $CurrUser){
+            $UserFound = 1
+            Write-Host "Found User with Owner Role at Tenant Level" -ForegroundColor Green
+        }
+    }
+    If ($UserFound -eq 0) {   # If User not found list groups if any
+        Foreach($item in $TenantPerms){Write-Host $item.DisplayName " - " $item.SignInName | Where-Object $item.ObjectType -eq 'Group'}
+        $GroupMember = Read-Host "Is your account a member of the above Groups? (Y or N)"
+        # If not a member of any groups then execute adding single user
+        If ($GroupMember.ToUpper -eq 'N'){SetUserTenantOwner $CurrUser}
+    }
+}
 
 # =================================================================================================
 # Set Subscription for Deployment
