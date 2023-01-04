@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.11.1.770",
-      "templateHash": "18219515108397718512"
+      "version": "0.12.1.58429",
+      "templateHash": "9362084426095770611"
     }
   },
   "parameters": {
@@ -1169,7 +1169,57 @@
           "targetResourceType": "microsoft.compute/virtualmachines"
         }
       ]
-    }
+    },
+    "ActivityLogAlerts": [
+      {
+        "name": "[format('{0}SvcHealth-Service Issue', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}SvcHealth-Serivice Issue', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "anyof": [
+          {
+            "field": "properties.incidentType",
+            "equals": "Incident"
+          }
+        ]
+      },
+      {
+        "name": "[format('{0}SvcHealth-Planned Maintenance', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}SvcHealth-Planned Maintenance', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "anyOf": [
+          {
+            "field": "properties.incidentType",
+            "equals": "Maintenance"
+          }
+        ]
+      },
+      {
+        "name": "[format('{0}SvcHealth-Health Advisory', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}SvcHealth-HealthAdvisory', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "anyOf": [
+          {
+            "field": "properties.incidentType",
+            "equals": "Informational"
+          },
+          {
+            "field": "properties.incidentType",
+            "equals": "ActionRequired"
+          }
+        ]
+      },
+      {
+        "name": "[format('{0}SvcHealth-Security', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}SvcHealth-Security', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "anyOf": [
+          {
+            "field": "properties.incidentType",
+            "equals": "Security"
+          }
+        ]
+      }
+    ]
   },
   "resources": [
     {
@@ -1184,6 +1234,9 @@
         },
         "mode": "Incremental",
         "parameters": {
+          "ActivityLogAlerts": {
+            "value": "[variables('ActivityLogAlerts')]"
+          },
           "AutomationAccountName": {
             "value": "[variables('AutomationAccountName')]"
           },
@@ -1248,13 +1301,16 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.11.1.770",
-              "templateHash": "8097764145519914117"
+              "version": "0.12.1.58429",
+              "templateHash": "9863961624794741655"
             }
           },
           "parameters": {
             "AutomationAccountName": {
               "type": "string"
+            },
+            "ActivityLogAlerts": {
+              "type": "array"
             },
             "DistributionGroup": {
               "type": "string"
@@ -1330,6 +1386,9 @@
                 },
                 "mode": "Incremental",
                 "parameters": {
+                  "ActivityLogAlerts": {
+                    "value": "[parameters('ActivityLogAlerts')]"
+                  },
                   "AutomationAccountName": {
                     "value": "[parameters('AutomationAccountName')]"
                   },
@@ -1391,13 +1450,16 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.11.1.770",
-                      "templateHash": "5277137822811112645"
+                      "version": "0.12.1.58429",
+                      "templateHash": "5477892344563133636"
                     }
                   },
                   "parameters": {
                     "ActionGroupName": {
                       "type": "string"
+                    },
+                    "ActivityLogAlerts": {
+                      "type": "array"
                     },
                     "ANFVolumeResourceIds": {
                       "type": "array"
@@ -1597,8 +1659,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.11.1.770",
-                              "templateHash": "6563355537415563829"
+                              "version": "0.12.1.58429",
+                              "templateHash": "7751403575258327628"
                             }
                           },
                           "parameters": {
@@ -1656,7 +1718,7 @@
                                 "description": "[parameters('MetricAlerts').virtualMachines[copyIndex()].description]",
                                 "severity": "[parameters('MetricAlerts').virtualMachines[copyIndex()].severity]",
                                 "enabled": false,
-                                "scopes": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('ds-VMMetrics-{0}', parameters('CurrentSub')))).outputs.Scope]",
+                                "scopes": "[reference(resourceId('Microsoft.Resources/deploymentScripts', format('ds-VMMetrics-{0}', parameters('CurrentSub'))), '2020-10-01').outputs.Scope]",
                                 "evaluationFrequency": "[parameters('MetricAlerts').virtualMachines[copyIndex()].evaluationFrequency]",
                                 "windowSize": "[parameters('MetricAlerts').virtualMachines[copyIndex()].windowSize]",
                                 "criteria": "[parameters('MetricAlerts').virtualMachines[copyIndex()].criteria]",
@@ -1718,8 +1780,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.11.1.770",
-                              "templateHash": "3124844117659942349"
+                              "version": "0.12.1.58429",
+                              "templateHash": "10944765811122401012"
                             }
                           },
                           "parameters": {
@@ -1813,8 +1875,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.11.1.770",
-                              "templateHash": "9653405393002664869"
+                              "version": "0.12.1.58429",
+                              "templateHash": "14697204898755784375"
                             }
                           },
                           "parameters": {
@@ -1873,6 +1935,121 @@
                       ]
                     },
                     {
+                      "condition": "[not(empty(variables('AVDHostSubIDs')))]",
+                      "copy": {
+                        "name": "activityLogAlerts",
+                        "count": "[length(range(0, length(variables('AVDHostSubIDs'))))]"
+                      },
+                      "type": "Microsoft.Resources/deployments",
+                      "apiVersion": "2020-10-01",
+                      "name": "[format('ActivityLogAlerts_{0}', variables('AVDHostSubIDs')[range(0, length(variables('AVDHostSubIDs')))[copyIndex()]])]",
+                      "properties": {
+                        "expressionEvaluationOptions": {
+                          "scope": "inner"
+                        },
+                        "mode": "Incremental",
+                        "parameters": {
+                          "ActivityLogAlerts": {
+                            "value": "[parameters('ActivityLogAlerts')]"
+                          },
+                          "CloudEnvironment": {
+                            "value": "[variables('CloudEnvironment')]"
+                          },
+                          "AVDHostSubID": {
+                            "value": "[variables('AVDHostSubIDs')[range(0, length(variables('AVDHostSubIDs')))[copyIndex()]]]"
+                          },
+                          "Tags": {
+                            "value": "[parameters('Tags')]"
+                          },
+                          "ActionGroupID": {
+                            "value": "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+                          }
+                        },
+                        "template": {
+                          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                          "contentVersion": "1.0.0.0",
+                          "metadata": {
+                            "_generator": {
+                              "name": "bicep",
+                              "version": "0.12.1.58429",
+                              "templateHash": "3484538165778243074"
+                            }
+                          },
+                          "parameters": {
+                            "ActivityLogAlerts": {
+                              "type": "array"
+                            },
+                            "CloudEnvironment": {
+                              "type": "string"
+                            },
+                            "AVDHostSubID": {
+                              "type": "string"
+                            },
+                            "Tags": {
+                              "type": "object"
+                            },
+                            "ActionGroupID": {
+                              "type": "string"
+                            }
+                          },
+                          "resources": [
+                            {
+                              "condition": "[equals(parameters('CloudEnvironment'), 'AzureCloud')]",
+                              "copy": {
+                                "name": "activityLogAlerts",
+                                "count": "[length(range(0, length(parameters('ActivityLogAlerts'))))]"
+                              },
+                              "type": "Microsoft.Insights/activityLogAlerts",
+                              "apiVersion": "2020-10-01",
+                              "name": "[format('{0}-SubID-{1}', parameters('ActivityLogAlerts')[range(0, length(parameters('ActivityLogAlerts')))[copyIndex()]].name, parameters('AVDHostSubID'))]",
+                              "location": "Global",
+                              "tags": "[parameters('Tags')]",
+                              "properties": {
+                                "scopes": [
+                                  "[format('/subscriptions/{0}', parameters('AVDHostSubID'))]"
+                                ],
+                                "condition": {
+                                  "allOf": [
+                                    {
+                                      "field": "category",
+                                      "equals": "ServiceHealth"
+                                    },
+                                    {
+                                      "anyOf": "[parameters('ActivityLogAlerts')[range(0, length(parameters('ActivityLogAlerts')))[copyIndex()]].anyof]"
+                                    },
+                                    {
+                                      "field": "properties.impactedServices[*].ServiceName",
+                                      "containsAny": [
+                                        "Windows Virtual Desktop"
+                                      ]
+                                    }
+                                  ]
+                                },
+                                "actions": {
+                                  "actionGroups": [
+                                    {
+                                      "actionGroupId": "[parameters('ActionGroupID')]"
+                                    }
+                                  ]
+                                },
+                                "description": "[parameters('ActivityLogAlerts')[range(0, length(parameters('ActivityLogAlerts')))[copyIndex()]].description]",
+                                "enabled": false
+                              }
+                            }
+                          ],
+                          "outputs": {
+                            "currSub": {
+                              "type": "string",
+                              "value": "[parameters('AVDHostSubID')]"
+                            }
+                          }
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+                      ]
+                    },
+                    {
                       "condition": "[not(empty(parameters('StorageAccountResourceIds')))]",
                       "copy": {
                         "name": "fileServicesMetric",
@@ -1909,8 +2086,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.11.1.770",
-                              "templateHash": "5074591341755448092"
+                              "version": "0.12.1.58429",
+                              "templateHash": "5177889146539875279"
                             }
                           },
                           "parameters": {
@@ -2016,8 +2193,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.11.1.770",
-                              "templateHash": "12074904794404315417"
+                              "version": "0.12.1.58429",
+                              "templateHash": "6063411037552918158"
                             }
                           },
                           "parameters": {
@@ -2086,7 +2263,7 @@
                               "apiVersion": "2019-06-01",
                               "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetStorage')))]",
                               "properties": {
-                                "value": "[format('\"{0}\"', reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))).uri)]",
+                                "value": "[format('\"{0}\"', reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss'))), '2015-10-31').uri)]",
                                 "isEncrypted": false
                               },
                               "dependsOn": [
@@ -2109,7 +2286,7 @@
                                       "type": "Http",
                                       "inputs": {
                                         "method": "POST",
-                                        "uri": "[replace(reference(resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetStorage')))).value, '\"', '')]",
+                                        "uri": "[replace(reference(resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetStorage'))), '2019-06-01').value, '\"', '')]",
                                         "body": {
                                           "CloudEnvironment": "[parameters('CloudEnvironment')]",
                                           "StorageAccountResourceIDs": "[parameters('StorageAccountResourceIds')]"
@@ -2185,8 +2362,8 @@
                           "metadata": {
                             "_generator": {
                               "name": "bicep",
-                              "version": "0.11.1.770",
-                              "templateHash": "12973565470903197588"
+                              "version": "0.12.1.58429",
+                              "templateHash": "2050641686755067243"
                             }
                           },
                           "parameters": {
@@ -2255,7 +2432,7 @@
                               "apiVersion": "2019-06-01",
                               "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetHostPool')))]",
                               "properties": {
-                                "value": "[format('\"{0}\"', reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetHostPool'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))).uri)]",
+                                "value": "[format('\"{0}\"', reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetHostPool'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss'))), '2015-10-31').uri)]",
                                 "isEncrypted": false
                               },
                               "dependsOn": [
@@ -2278,7 +2455,7 @@
                                       "type": "Http",
                                       "inputs": {
                                         "method": "POST",
-                                        "uri": "[replace(reference(resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetHostPool')))).value, '\"', '')]",
+                                        "uri": "[replace(reference(resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetHostPool'))), '2019-06-01').value, '\"', '')]",
                                         "body": {
                                           "AVDHostSubIDs": "[parameters('AVDHostSubIDs')]",
                                           "CloudEnvironment": "[parameters('CloudEnvironment')]"
@@ -2327,7 +2504,7 @@
           "outputs": {
             "automationAccountPrincipalId": {
               "type": "string",
-              "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', 'MonitoringResourcesDeployment')).outputs.automationAccountPrincipalId.value]"
+              "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', 'MonitoringResourcesDeployment'), '2020-10-01').outputs.automationAccountPrincipalId.value]"
             }
           }
         }
@@ -2355,7 +2532,7 @@
             "value": "[variables('RoleAssignments')]"
           },
           "PrincipalId": {
-            "value": "[reference(subscriptionResourceId(parameters('DeployToSub'), 'Microsoft.Resources/deployments', 'sub-AVDAlertsResources')).outputs.automationAccountPrincipalId.value]"
+            "value": "[reference(subscriptionResourceId(parameters('DeployToSub'), 'Microsoft.Resources/deployments', 'sub-AVDAlertsResources'), '2020-10-01').outputs.automationAccountPrincipalId.value]"
           }
         },
         "template": {
@@ -2364,8 +2541,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.11.1.770",
-              "templateHash": "15405262558966459413"
+              "version": "0.12.1.58429",
+              "templateHash": "2601666110904234537"
             }
           },
           "parameters": {
@@ -2423,7 +2600,7 @@
             "value": "[variables('RoleAssignments')]"
           },
           "PrincipalId": {
-            "value": "[reference(subscriptionResourceId(parameters('DeployToSub'), 'Microsoft.Resources/deployments', 'sub-AVDAlertsResources')).outputs.automationAccountPrincipalId.value]"
+            "value": "[reference(subscriptionResourceId(parameters('DeployToSub'), 'Microsoft.Resources/deployments', 'sub-AVDAlertsResources'), '2020-10-01').outputs.automationAccountPrincipalId.value]"
           }
         },
         "template": {
@@ -2432,8 +2609,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.11.1.770",
-              "templateHash": "11867986240647750451"
+              "version": "0.12.1.58429",
+              "templateHash": "14019477397792936649"
             }
           },
           "parameters": {
@@ -2488,7 +2665,7 @@
             "value": "[variables('RoleAssignments')]"
           },
           "PrincipalId": {
-            "value": "[reference(subscriptionResourceId(parameters('DeployToSub'), 'Microsoft.Resources/deployments', 'sub-AVDAlertsResources')).outputs.automationAccountPrincipalId.value]"
+            "value": "[reference(subscriptionResourceId(parameters('DeployToSub'), 'Microsoft.Resources/deployments', 'sub-AVDAlertsResources'), '2020-10-01').outputs.automationAccountPrincipalId.value]"
           }
         },
         "template": {
@@ -2497,8 +2674,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.11.1.770",
-              "templateHash": "14207181666380795886"
+              "version": "0.12.1.58429",
+              "templateHash": "4380051520460026039"
             }
           },
           "parameters": {

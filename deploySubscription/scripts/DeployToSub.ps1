@@ -164,6 +164,8 @@ Clear-Host
 #Azure Storage Accounts
 # =================================================================================================
 Write-Host "Getting Azure Storage Accounts..."
+$StorageAccts = $null
+$StorageAcct = $null
 [array]$StorageAccts = Get-AzStorageAccount
 IF($StorageAccts.count -gt 0){
     $i=1
@@ -171,12 +173,14 @@ IF($StorageAccts.count -gt 0){
         Write-Host $i" -"($StorAcct.StorageAccountName)
         $i++
         }
-    $response = Read-Host "Select the number corresponding to the Storage Account containing AVD related file shares"
+    Write-Host "Select the number corresponding to the Storage Account containing AVD related file shares"
+    $response = Read-Host "For multiples seperate each number with a comma (i.e. 1,3,4)`n"
     if(!$response){
         $StorageAcct = @()
         }
     else{
-        $StorageAcct = @("$($StorageAccts[$response-1].Id)")
+        $selection = $response -split ","
+        foreach($entry in $selection){$StorageAcct += @("$($StorageAccts[$entry-1].Id)")}
         }
 }
 ELSE {
@@ -189,6 +193,8 @@ Clear-Host
 #ANF Volumes
 # =================================================================================================
 Write-Host "Getting Azure NetApp Filer Pools\Volumes..."
+$ANFVolumeResources = $null
+$ANFVolumeResource = $null
      # Need RG, AccountName and Pool Name
 [array]$ANFVolumeResources = Get-AzResource -ResourceType 'Microsoft.NetApp/netAppAccounts/capacityPools/volumes'
 IF($ANFVolumeResources.count -eq 0){
@@ -205,10 +211,11 @@ Else{
         Write-Host $i" - "$ANFPool"\"$ANFVolName
         $i++
         }
-    Write-Host "(** If you need multiple please select only 1 and review/ edit the paramters file **)" -foregroundcolor Yellow
-    $response = Read-Host "Select the number corresponding to the ANF Volume containing AVD related file shares"
-
-    [array]$ANFVolumeResource = $ANFVolumeResources[$response-1].ResourceId
+    Write-Host "Select the number corresponding to the Azure NetApp Capacity Pool / Volume."
+    $response = Read-Host "For multiples seperate each number with a comma (i.e. 1,3,4)`n"
+    
+    $selection = $response -split ","
+    foreach($entry in $selection){[array]$ANFVolumeResource += $ANFVolumeResources[$entry-1].ResourceId}
 }
 Clear-Host
 
@@ -273,7 +280,6 @@ $JSON = $Parameters | ConvertTo-Json -Depth 5
 $JSON | Out-File $OutputFile
 Clear-Host
 
-
 # Write Output for awareness
 Write-Host "Azure Parameters information saved as... `n$OutputFile" -foregroundcolor Green
 
@@ -302,7 +308,7 @@ Write-Output $Tags
 Pause
 
 # Launch Deployment
-$ToDeploy = Read-Host "Deploy Now? (Y or N)"
+$ToDeploy = Read-Host "`nDeploy Now? (Y or N)"
 If($ToDeploy.ToUpper() -eq 'Y'){
     Write-Host "Launching Deployment..."
     New-AzDeployment -Name "AVD-Alerts-Solution" -TemplateUri https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/solution.json -TemplateParameterFile $OutputFile -Location $Location -Verbose

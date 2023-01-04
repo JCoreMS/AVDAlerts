@@ -1230,10 +1230,62 @@ var MetricAlerts = {
   ] */
 }
 
+var ActivityLogAlerts = [
+  {
+    name: '${AlertNamePrefix}SvcHealth-Service Issue'
+    displayName: '${AlertNamePrefix}SvcHealth-Serivice Issue'
+    description: AlertDescriptionHeader
+    anyof: [
+      {
+        field: 'properties.incidentType'
+        equals: 'Incident'
+      }
+    ]
+  }
+  {
+    name: '${AlertNamePrefix}SvcHealth-Planned Maintenance'
+    displayName: '${AlertNamePrefix}SvcHealth-Planned Maintenance'
+    description: AlertDescriptionHeader
+    anyOf: [
+      {
+        field: 'properties.incidentType'
+        equals: 'Maintenance'
+      }
+    ]
+  }
+  {
+    name: '${AlertNamePrefix}SvcHealth-Health Advisory'
+    displayName: '${AlertNamePrefix}SvcHealth-HealthAdvisory'
+    description: AlertDescriptionHeader
+    anyOf: [
+      {
+        field: 'properties.incidentType'
+        equals: 'Informational'
+      }
+      {
+        field: 'properties.incidentType'
+        equals: 'ActionRequired'
+      }
+    ]
+  }
+  {
+    name: '${AlertNamePrefix}SvcHealth-Security'
+    displayName: '${AlertNamePrefix}SvcHealth-Security'
+    description: AlertDescriptionHeader
+    anyOf: [
+      {
+        field: 'properties.incidentType'
+        equals: 'Security'
+      }
+    ]
+  }
+]
+
 module mod_subscription_AVDAlertsResources './subAVDAlerts.bicep' = {
   name: 'sub-AVDAlertsResources'
   scope: subscription(DeployToSub)
   params: {
+    ActivityLogAlerts: ActivityLogAlerts
     AutomationAccountName: AutomationAccountName
     DistributionGroup: DistributionGroup
     //FunctionAppName: FunctionAppName

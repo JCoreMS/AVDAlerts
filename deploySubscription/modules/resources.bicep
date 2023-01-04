@@ -1,4 +1,5 @@
 param ActionGroupName string
+param ActivityLogAlerts array
 param AutomationAccountName string
 param DistributionGroup string
 //param FunctionAppName string
@@ -278,6 +279,45 @@ resource scheduledQueryRules 'Microsoft.Insights/scheduledQueryRules@2021-08-01'
     windowSize: LogAlerts[i].windowSize
   }
 }]
+
+// Currently only deploys IF Cloud Environment is Azure Commercial Cloud
+resource activityLogAlerts 'Microsoft.Insights/activityLogAlerts@2020-10-01' = [for i in range(0, length(ActivityLogAlerts)): if(CloudEnvironment == 'AzureCloud') {
+  name: ActivityLogAlerts[i].name
+  location: 'Global'
+  tags: Tags
+  properties: {
+    scopes: [
+      '/subscriptions/${SubscriptionId}'
+    ]
+    condition: {
+      allOf: [
+        {
+          field: 'category'
+          equals: 'ServiceHealth'
+        }
+        {
+          anyOf: ActivityLogAlerts[i].anyof
+        }
+        {
+          field: 'properties.impactedServices[*].ServiceName'
+          containsAny: [
+            'Windows Virtual Desktop'
+          ]
+        }
+      ]
+    }
+    actions: {
+      actionGroups: [
+        {
+        actionGroupId: actionGroup.id
+        }
+      ]
+    }
+    description: ActivityLogAlerts[i].description
+    enabled: false
+  }
+}]
+
 
 resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' = {
   name: AutomationAccountName

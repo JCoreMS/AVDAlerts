@@ -1204,6 +1204,57 @@ var MetricAlerts = {
   ] */
 }
 
+var ActivityLogAlerts = [
+  {
+    name: '${AlertNamePrefix}SerivceHealth-Service Issue'
+    displayName: '${AlertNamePrefix}SerivceHealth-Serivice Issue'
+    description: AlertDescriptionHeader
+    anyof: [
+      {
+        field: 'properties.incidentType'
+        equals: 'Incident'
+      }
+    ]
+  }
+  {
+    name: '${AlertNamePrefix}SerivceHealth-Planned Maintenance'
+    displayName: '${AlertNamePrefix}SerivceHealth-Planned Maintenance'
+    description: AlertDescriptionHeader
+    anyOf: [
+      {
+        field: 'properties.incidentType'
+        equals: 'Maintenance'
+      }
+    ]
+  }
+  {
+    name: '${AlertNamePrefix}SerivceHealth-Health Advisory'
+    displayName: '${AlertNamePrefix}SerivceHealth-HealthAdvisory'
+    description: AlertDescriptionHeader
+    anyOf: [
+      {
+        field: 'properties.incidentType'
+        equals: 'Informational'
+      }
+      {
+        field: 'properties.incidentType'
+        equals: 'ActionRequired'
+      }
+    ]
+  }
+  {
+    name: '${AlertNamePrefix}SerivceHealth-Security'
+    displayName: '${AlertNamePrefix}SerivceHealth-Security'
+    description: AlertDescriptionHeader
+    anyOf: [
+      {
+        field: 'properties.incidentType'
+        equals: 'Security'
+      }
+    ]
+  }
+]
+
 resource resourceGroupAVDMetrics 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: ResourceGroupName
   tags: Tags
@@ -1234,6 +1285,7 @@ module resources 'modules/resources.bicep' = {
   name: 'MonitoringResourcesDeployment'
   scope: resourceGroupAVDMetrics
   params: {
+    ActivityLogAlerts: ActivityLogAlerts
     AutomationAccountName: AutomationAccountName
     DistributionGroup: DistributionGroup
     //FunctionAppName: FunctionAppName
