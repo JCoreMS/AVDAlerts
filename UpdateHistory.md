@@ -27,3 +27,9 @@
 - Updated Azure File Share Info Runbook Script to resolve authentication issues when Storage Network Firewall settings specify Specific VNets
 - Re-enable Logic App and Runbook deployments and add Azure Files based alerts back to solution and update documentation
 - Remove Data Access Read Role and change to Storage Account Contributor
+
+1/4/23
+
+- Added AVD Service Health alerts (Only deployed for Azure Commercial as not yet available in Azure US Gov)
+- Updated deployment scripts to allow multiple selection for Azure Files and ANF resources
+- Updated documentation for added alerts

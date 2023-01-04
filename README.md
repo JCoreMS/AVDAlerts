@@ -77,10 +77,15 @@ Table below shows the Alert Names however the number of alert rules created may 
 | AVD-VM-FSLogix Profile Failed due to Network Issue                | na                    | Log Analytics  |  5 min        |   1  |
 | AVD-VM-FSLogix Profile-PathNotFound                               | na                    | Log Analytics  |  5 min        |   1  |
 | AVD-VM-FSLogix Profile-FailedReAttach                             | na                    | Log Analytics  |  5 min        |   1  |
+| AVD-ServiceHealth-Health Advisory                                 | na                    | Service Health |  na           |   4  |
+| AVD-ServiceHealth-Planned Maintenance                             | na                    | Service Health |  na           |   4  |
+| AVD-ServiceHealth-Security                                        | na                    | Service Health |  na           |   4  |
+| AVD-ServiceHealth-Service Issue                                   | na                    | Service Health |  na           |   4  |
 
 **NOTES:**  
 :one: Alert based on associated Logic App and Runbook  
 :two: See the following for custom condition. Note that both Standard and Premium values are incorporated into the alert rule. ['How to create an alert if a file share is throttled'](https://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled)  
+Service Health - The alert severity cannot be set or changed from 'Verbose'  
 
 [**Alert Reference**](AlertReference.md)
 
