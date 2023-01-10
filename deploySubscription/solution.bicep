@@ -37,6 +37,8 @@ param StorageAccountResourceIds array = []
 @description('The Resource IDs for the Azure NetApp Volumes used for FSLogix profile storage.')
 param ANFVolumeResourceIds array = []
 
+@description('Resource Group Name to deploy AVD Alert resources to. (new or existing) If not set default will be rg-avdmetrics-<environment>-<region>')
+param UserResourceGroup string
 //param Timestamp string = utcNow('yyyyMMddhhmmss')
 
 param Tags object = {}
@@ -1256,7 +1258,7 @@ var ActivityLogAlerts = [
 ]
 
 resource resourceGroupAVDMetrics 'Microsoft.Resources/resourceGroups@2021-04-01' = {
-  name: ResourceGroupName
+  name: ((!empty(UserResourceGroup))) ? UserResourceGroup : ResourceGroupName
   tags: Tags
   location: Location
 }

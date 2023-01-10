@@ -17,6 +17,9 @@
         "LogAnalyticsWorkspaceResourceId": {
             "value": ""
         },
+        "UserResourceGroup":{
+            "value": ""
+        },
         "SessionHostsResourceGroupIds": {
             "value": [
                 ""

@@ -74,6 +74,29 @@ Write-Host "Connect-AzAccount; get-AzLocation | fl Location"
 $Location = Read-Host "Enter the Azure deployment location (e.g. eastus)"
 Clear-Host
 
+# =================================================================================================
+# Resource Group Name to be used
+# =================================================================================================
+Write-Host "By default a Resource Group will be created 'rg-avdmetrics-<environment>-<region>'"
+Write-Host "Would you like to define you're own Resource Group Name or use an Existing?"
+$selection = Read-Host "Y, N or E (existing)"
+If($selection.ToUpper() -eq 'Y'){
+    Write-Host "Some examples are: rg-eastus2-avdmetrics, rg-avdalerts-eus2"
+    $RGName = Read-Host "Resource Group Name"
+}
+If($selection.ToUpper() -eq 'E'){
+    $RGList = Get-AzResourceGroup
+    $i = 1
+    Write-Host "Select one of your existing Resource Groups:"
+    Foreach($Item in $RGList){
+        Write-Host $i" -"($Item.ResourceGroupName)" ("($Item.Location)")"
+        $i++
+    }
+    $selection = Read-Host "Resource Group"
+    $RGName = $RGList[$selection-1].ResourceGroupName
+}
+Clear-Host
+
 
 # =================================================================================================
 # Environment to deploy (Prod, Dev, Test)
@@ -262,6 +285,9 @@ $Parameters = [pscustomobject][ordered]@{
         LogAnalyticsWorkspaceResourceId = [pscustomobject][ordered]@{
             value = $LogAnalyticsWorkspace
         }
+        UserResourceGroup = [pscustomobject][ordered]@{
+            value = $RGName
+        }
         SessionHostsResourceGroupIds = [pscustomobject][ordered]@{
             value = $AVDResourceIDs
         }
@@ -297,6 +323,8 @@ Write-Host "Location:" -foregroundcolor Cyan
 Write-Host "`t$Location"
 Write-Host "Log Analytics Workspace:" -foregroundcolor Cyan
 Write-Host "`t$LogAnalyticsWorkspace"
+Write-Host "Resource Group Name (if custom):" -foregroundcolor Cyan
+Write-Host "`t$RGName"
 Write-Host "Azure Files Storage:" -foregroundcolor Cyan
 Write-Host "`t$StorageAcct"
 Write-Host "NetApp Files Volume:" -foregroundcolor Cyan
