@@ -33,3 +33,9 @@
 - Added AVD Service Health alerts (Only deployed for Azure Commercial as not yet available in Azure US Gov)
 - Updated deployment scripts to allow multiple selection for Azure Files and ANF resources
 - Updated documentation for added alerts
+
+1/11/23
+
+- Deploy scripts now allow custom or manual Resource Group input
+- Corrected issue where Log Analtyics role assignment needed for Enterprise deployment (Tenant Level)
+- Minor deploy script updates for ease of use
