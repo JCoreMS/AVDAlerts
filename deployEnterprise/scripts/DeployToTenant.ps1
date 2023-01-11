@@ -1,5 +1,6 @@
 $ErrorActionPreference = 'Stop'
 $WarningPreference = 'SilentlyContinue'
+$templateURI = 'https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deployEnterprise/tenant.solution.json'
 
 # VARIABLES
 $filetimestamp = Get-Date -Format "MM.dd.yyyy_THH.mm" 
@@ -63,6 +64,7 @@ If ($Tenants.count -gt 1){
     $TenantId = ($Tenants[$TenantSelection-1]).Id
     Clear-Host
 }
+else{$TenantId = $Tenants[0].Id}
 # =================================================================================================
 # Check Tenant Level Permissions - Owner
 # =================================================================================================
@@ -92,6 +94,7 @@ If ($TenantPerms.Count -ne 0){
         If ($GroupMember.ToUpper -eq 'N'){SetUserTenantOwner $CurrUser}
     }
 }
+else{Write-Host "User has OWner Role at Tenant Level" -ForegroundColor Green}
 
 # =================================================================================================
 # Set Subscription for Deployment
@@ -385,11 +388,11 @@ Write-Host "`t$LogAnalyticsWorkspace"
 Write-Host "Resource Group Name (if custom):" -foregroundcolor Cyan
 Write-Host "`t$RGName"
 Write-Host "Azure Files Storage:" -foregroundcolor Cyan
-Write-Host "`t$StorageAcct"
+foreach($item in $StorageAcct){Write-Host "`t$item"}
 Write-Host "NetApp Files Volume:" -foregroundcolor Cyan
-Write-Host "`t$ANFVolumeResource"
+foreach($item in $ANFVolumeResource){Write-Host "`t$item"}
 Write-Host "Host Pool VM Resource Groups:" -foregroundcolor Cyan
-Write-Host "`t$AVDResourceIDs"
+foreach($item in $AVDResourceIDs){Write-Host "`t$item"}
 Write-Host "Tags for resources:" -foregroundcolor Cyan
 Write-Output $Tags
 Pause
@@ -398,10 +401,10 @@ Pause
 $ToDeploy = Read-Host "`nDeploy Now? (Y or N)"
 If($ToDeploy.ToUpper() -eq 'Y'){
     Write-Host "Launching Deployment..."
-    New-AzTenantDeployment -Name "AVD-Alerts-Solution" -TemplateUri https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deployEnterprise/tenant.solution.json -TemplateParameterFile $OutputFile -Location $Location -Verbose
+    New-AzTenantDeployment -Name "AVD-Alerts-Solution" -TemplateUri $templateURI -TemplateParameterFile $OutputFile -Location $Location -Verbose
 }
 else {
     Write-Host "Exiting..." -ForegroundColor Yellow
     Write-Host "Please use the following to deploy with your pre-created Paramaters file: $OutputFile"
-    Write-Host """New-AzTenantDeployment -Name "AVD-Alerts-Solution" -TemplateUri https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deployEnterprise/tenant.solution.json -TemplateParameterFile $OutputFile -Location $Location"""
+    Write-Host """New-AzTenantDeployment -Name "AVD-Alerts-Solution" -TemplateUri $templateURI -TemplateParameterFile $OutputFile -Location $Location"""
 }

@@ -1,5 +1,6 @@
 $ErrorActionPreference = 'Stop'
 $WarningPreference = 'SilentlyContinue'
+$templateURI = 'https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/solution.json'
 
 # VARIABLES
 $filetimestamp = Get-Date -Format "MM.dd.yyyy_THH.mm" 
@@ -36,7 +37,7 @@ If ($Tenants.count -gt 1){
     $TenantId = ($Tenants[$TenantSelection-1]).Id
     Clear-Host
 }
-
+else{$TenantId = $Tenants[0].Id}
 
 # =================================================================================================
 # Set Subscription for Deployment
@@ -282,11 +283,11 @@ $Parameters = [pscustomobject][ordered]@{
         Location =  [pscustomobject][ordered]@{
             value = $Location
         }
-        LogAnalyticsWorkspaceResourceId = [pscustomobject][ordered]@{
-            value = $LogAnalyticsWorkspace
-        }
         UserResourceGroup = [pscustomobject][ordered]@{
             value = $RGName
+        }
+        LogAnalyticsWorkspaceResourceId = [pscustomobject][ordered]@{
+            value = $LogAnalyticsWorkspace
         }
         SessionHostsResourceGroupIds = [pscustomobject][ordered]@{
             value = $AVDResourceIDs
@@ -313,6 +314,8 @@ Write-Host "Azure Parameters information saved as... `n$OutputFile" -foregroundc
 Clear-Host
 Write-Host "Summary of Selections" -ForegroundColor Green
 Write-Host "====================================================================================" -ForegroundColor Green
+Write-Host "Subscription for Alerts Solution:" -ForegroundColor Cyan
+Write-Host "`t$SubId"
 Write-Host "AVD Alert Name Prefix:" -ForegroundColor Cyan
 Write-Host "`t$AlertNamePrefix"
 Write-Host "Email for Alerts:" -foregroundcolor Cyan
@@ -326,11 +329,11 @@ Write-Host "`t$LogAnalyticsWorkspace"
 Write-Host "Resource Group Name (if custom):" -foregroundcolor Cyan
 Write-Host "`t$RGName"
 Write-Host "Azure Files Storage:" -foregroundcolor Cyan
-Write-Host "`t$StorageAcct"
+foreach($item in $StorageAcct){Write-Host "`t$item"}
 Write-Host "NetApp Files Volume:" -foregroundcolor Cyan
-Write-Host "`t$ANFVolumeResource"
+foreach($item in $ANFVolumeResource){Write-Host "`t$item"}
 Write-Host "Host Pool VM Resource Groups:" -foregroundcolor Cyan
-Write-Host "`t$AVDResourceIDs"
+foreach($item in $AVDResourceIDs){Write-Host "`t$item"}
 Write-Host "Tags for resources:" -foregroundcolor Cyan
 Write-Output $Tags
 Pause
@@ -339,10 +342,10 @@ Pause
 $ToDeploy = Read-Host "`nDeploy Now? (Y or N)"
 If($ToDeploy.ToUpper() -eq 'Y'){
     Write-Host "Launching Deployment..."
-    New-AzDeployment -Name "AVD-Alerts-Solution" -TemplateUri https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/solution.json -TemplateParameterFile $OutputFile -Location $Location -Verbose
+    New-AzDeployment -Name "AVD-Alerts-Solution" -TemplateUri $templateURI -TemplateParameterFile $OutputFile -Location $Location -Verbose
 }
 else {
     Write-Host "Exiting..." -ForegroundColor Yellow
     Write-Host "Please use the following to deploy with your pre-created Paramaters file: $OutputFile"
-    Write-Host """New-AzDeployment -Name "AVD-Alerts-Solution" -TemplateUri https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/solution.json -TemplateParameterFile $OutputFile -Location $Location"""
+    Write-Host """New-AzDeployment -Name "AVD-Alerts-Solution" -TemplateUri $templateURI -TemplateParameterFile $OutputFile -Location $Location"""
 }

@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.12.1.58429",
-      "templateHash": "9362084426095770611"
+      "templateHash": "13303371413330450448"
     }
   },
   "parameters": {
@@ -96,6 +96,12 @@
         "description": "The Resource IDs for the Azure NetApp Volumes used for FSLogix profile storage in the same region."
       }
     },
+    "UserResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource Group Name to deploy AVD Alert resources to. (new or existing) If not set default will be rg-avdmetrics-<environment>-<region>"
+      }
+    },
     "Tags": {
       "type": "object",
       "defaultValue": {}
@@ -133,6 +139,10 @@
       "StoreAcctContrib": {
         "Name": "Storage-Account-Contributor",
         "GUID": "17d1049b-9a84-46fb-8f53-869881c3d3ab"
+      },
+      "LogAnalyticsContributor": {
+        "Name": "LogAnalytics-Contributor",
+        "GUID": "92aaf0da-9dab-42b6-94a3-d43ce8d16293"
       }
     },
     "LogAlerts": [
@@ -1259,7 +1269,7 @@
             "value": "[variables('MetricAlerts')]"
           },
           "ResourceGroupName": {
-            "value": "[variables('ResourceGroupName')]"
+            "value": "[if(not(empty(parameters('UserResourceGroup'))), parameters('UserResourceGroup'), variables('ResourceGroupName'))]"
           },
           "RunbookNameGetStorage": {
             "value": "[variables('RunbookNameGetStorage')]"
@@ -2675,7 +2685,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.12.1.58429",
-              "templateHash": "4380051520460026039"
+              "templateHash": "3376879573259212486"
             }
           },
           "parameters": {
@@ -2693,10 +2703,10 @@
             {
               "type": "Microsoft.Authorization/roleAssignments",
               "apiVersion": "2020-10-01-preview",
-              "name": "[guid(parameters('CurrentSub'), parameters('RoleAssignments').StoreKeyRead.Name)]",
+              "name": "[guid(parameters('CurrentSub'), parameters('RoleAssignments').StoreAcctContrib.Name)]",
               "properties": {
                 "principalId": "[parameters('PrincipalId')]",
-                "roleDefinitionId": "[resourceId(parameters('CurrentSub'), 'Microsoft.Authorization/roleDefinition', parameters('RoleAssignments').StoreKeyRead.GUID)]",
+                "roleDefinitionId": "[resourceId(parameters('CurrentSub'), 'Microsoft.Authorization/roleDefinition', parameters('RoleAssignments').StoreAcctContrib.GUID)]",
                 "principalType": "ServicePrincipal"
               }
             }

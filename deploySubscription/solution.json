@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.12.1.58429",
-      "templateHash": "1697645043445893946"
+      "templateHash": "3641357204297704508"
     }
   },
   "parameters": {
@@ -68,6 +68,12 @@
         "description": "The Resource IDs for the Azure NetApp Volumes used for FSLogix profile storage."
       }
     },
+    "UserResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource Group Name to deploy AVD Alert resources to. (new or existing) If not set default will be rg-avdmetrics-<environment>-<region>"
+      }
+    },
     "Tags": {
       "type": "object",
       "defaultValue": {}
@@ -92,6 +98,10 @@
       "StoreAcctContrib": {
         "Name": "Storage-Account-Contributor",
         "GUID": "17d1049b-9a84-46fb-8f53-869881c3d3ab"
+      },
+      "LogAnalyticsContributor": {
+        "Name": "LogAnalytics-Contributor",
+        "GUID": "92aaf0da-9dab-42b6-94a3-d43ce8d16293"
       }
     },
     "LogAlerts": [
@@ -1184,7 +1194,7 @@
     {
       "type": "Microsoft.Resources/resourceGroups",
       "apiVersion": "2021-04-01",
-      "name": "[variables('ResourceGroupName')]",
+      "name": "[if(not(empty(parameters('UserResourceGroup'))), parameters('UserResourceGroup'), variables('ResourceGroupName'))]",
       "tags": "[parameters('Tags')]",
       "location": "[parameters('Location')]"
     },
@@ -1198,18 +1208,18 @@
       "name": "[guid(subscription().id, variables('AutomationAccountName'), items(variables('RoleAssignments'))[copyIndex()].value.Name)]",
       "properties": {
         "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', items(variables('RoleAssignments'))[copyIndex()].value.GUID)]",
-        "principalId": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupName')), 'Microsoft.Resources/deployments', 'MonitoringResourcesDeployment'), '2020-10-01').outputs.automationAccountPrincipalId.value]",
+        "principalId": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(not(empty(parameters('UserResourceGroup'))), parameters('UserResourceGroup'), variables('ResourceGroupName'))), 'Microsoft.Resources/deployments', 'MonitoringResourcesDeployment'), '2020-10-01').outputs.automationAccountPrincipalId.value]",
         "principalType": "ServicePrincipal"
       },
       "dependsOn": [
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, variables('ResourceGroupName')), 'Microsoft.Resources/deployments', 'MonitoringResourcesDeployment')]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(not(empty(parameters('UserResourceGroup'))), parameters('UserResourceGroup'), variables('ResourceGroupName'))), 'Microsoft.Resources/deployments', 'MonitoringResourcesDeployment')]"
       ]
     },
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-10-01",
       "name": "MonitoringResourcesDeployment",
-      "resourceGroup": "[variables('ResourceGroupName')]",
+      "resourceGroup": "[if(not(empty(parameters('UserResourceGroup'))), parameters('UserResourceGroup'), variables('ResourceGroupName'))]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -2144,7 +2154,7 @@
         }
       },
       "dependsOn": [
-        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', variables('ResourceGroupName'))]"
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', if(not(empty(parameters('UserResourceGroup'))), parameters('UserResourceGroup'), variables('ResourceGroupName')))]"
       ]
     }
   ]

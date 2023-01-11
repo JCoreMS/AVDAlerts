@@ -64,11 +64,16 @@ var RoleAssignments = {
     Name: 'Storage-Account-Contributor'
     GUID: '17d1049b-9a84-46fb-8f53-869881c3d3ab'
   }
+  LogAnalyticsContributor: {
+    Name: 'LogAnalytics-Contributor'
+    GUID: '92aaf0da-9dab-42b6-94a3-d43ce8d16293'
+  }
 }
 // 'c12c1c16-33a1-487b-954d-41c89c60f349'  // Reader and Data Access (Storage Account Keys)
 // 'acdd72a7-3385-48ef-bd42-f606fba81ae7'  // Reader
 // '49a72310-ab8d-41df-bbb0-79b649203868'  // Desktop Virtualization Reader (May be able to replace Reader with this)
 // '17d1049b-9a84-46fb-8f53-869881c3d3ab'  // Storage Account Contributor
+// '92aaf0da-9dab-42b6-94a3-d43ce8d16293'  // Log Analtyics Contributor - allows writing to workspace for Host Pool and Storage Logic Apps
 
 var LogAlerts = [
   {
