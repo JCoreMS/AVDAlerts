@@ -29,7 +29,7 @@ resource runbookGetStorageInfo 'Microsoft.Automation/automationAccounts/runbooks
   }
 }
 
-resource webhookGetStorageInfo 'Microsoft.Automation/automationAccounts/webhooks@2018-06-30' = {
+resource webhookGetStorageInfo 'Microsoft.Automation/automationAccounts/webhooks@2015-10-31' = {
   name: '${runbookGetStorageInfo.name}_${dateTimeAdd(Timestamp, 'PT0H', 'yyyyMMddhhmmss')}'
   parent: automationAccount
   properties: {
@@ -41,7 +41,7 @@ resource webhookGetStorageInfo 'Microsoft.Automation/automationAccounts/webhooks
   }
 }
 
-resource logicAppGetStorageInfo 'Microsoft.Logic/workflows@2019-05-01' = {
+resource logicAppGetStorageInfo 'Microsoft.Logic/workflows@2016-06-01' = {
   name: LogicAppName
   tags: Tags
   dependsOn: [

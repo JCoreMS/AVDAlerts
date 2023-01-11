@@ -3,7 +3,7 @@
 [Home](./README.md) | [PostDeployment](./PostDeploy.md) | [How to Change Thresholds](./ChangeAlertThreshold.md) | [Alert Reference](./AlertReference.md) | [Excel List of Alert Rules](https://github.com/JCoreMS/AVDAlerts/raw/main/references/alerts.xlsx) | [Update History](./UpdateHistory.md)
 
 **Note:**  
-Deployments from 12/5/2022 to 12/22/2022 may not have working Logic Apps for AzFiles and Host Pool data. The HTTP action may be missing the webhook URI. Please redeploy or manually create another webhook within the Runbook for each and update the Logic App HTTP action URI.  
+Deployments from 12/5/2022 to 1/11/2022 may not have working Logic Apps for AzFiles and Host Pool data. The HTTP action may be missing the webhook URI. Please redeploy or manually create another webhook within the Runbook for each and update the Logic App HTTP action URI.  
 
 ## Description
 

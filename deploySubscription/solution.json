@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.12.1.58429",
-      "templateHash": "3641357204297704508"
+      "version": "0.6.18.56646",
+      "templateHash": "15619244900458266467"
     }
   },
   "parameters": {
@@ -1208,7 +1208,7 @@
       "name": "[guid(subscription().id, variables('AutomationAccountName'), items(variables('RoleAssignments'))[copyIndex()].value.Name)]",
       "properties": {
         "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', items(variables('RoleAssignments'))[copyIndex()].value.GUID)]",
-        "principalId": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(not(empty(parameters('UserResourceGroup'))), parameters('UserResourceGroup'), variables('ResourceGroupName'))), 'Microsoft.Resources/deployments', 'MonitoringResourcesDeployment'), '2020-10-01').outputs.automationAccountPrincipalId.value]",
+        "principalId": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(not(empty(parameters('UserResourceGroup'))), parameters('UserResourceGroup'), variables('ResourceGroupName'))), 'Microsoft.Resources/deployments', 'MonitoringResourcesDeployment')).outputs.automationAccountPrincipalId.value]",
         "principalType": "ServicePrincipal"
       },
       "dependsOn": [
@@ -1287,8 +1287,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.12.1.58429",
-              "templateHash": "15043226277201272750"
+              "version": "0.6.18.56646",
+              "templateHash": "8989307935480000480"
             }
           },
           "parameters": {
@@ -1559,8 +1559,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.12.1.58429",
-                      "templateHash": "10944765811122401012"
+                      "version": "0.6.18.56646",
+                      "templateHash": "10834147542948769685"
                     }
                   },
                   "parameters": {
@@ -1654,8 +1654,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.12.1.58429",
-                      "templateHash": "14697204898755784375"
+                      "version": "0.6.18.56646",
+                      "templateHash": "14235708487999680327"
                     }
                   },
                   "parameters": {
@@ -1750,8 +1750,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.12.1.58429",
-                      "templateHash": "5177889146539875279"
+                      "version": "0.6.18.56646",
+                      "templateHash": "11820763061937584282"
                     }
                   },
                   "parameters": {
@@ -1857,8 +1857,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.12.1.58429",
-                      "templateHash": "15529525080626019772"
+                      "version": "0.6.18.56646",
+                      "templateHash": "8304930640632806430"
                     }
                   },
                   "parameters": {
@@ -1909,7 +1909,7 @@
                     },
                     {
                       "type": "Microsoft.Automation/automationAccounts/webhooks",
-                      "apiVersion": "2018-06-30",
+                      "apiVersion": "2015-10-31",
                       "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]",
                       "properties": {
                         "isEnabled": true,
@@ -1924,7 +1924,7 @@
                     },
                     {
                       "type": "Microsoft.Logic/workflows",
-                      "apiVersion": "2019-05-01",
+                      "apiVersion": "2016-06-01",
                       "name": "[parameters('LogicAppName')]",
                       "tags": "[parameters('Tags')]",
                       "location": "[parameters('Location')]",
@@ -1937,7 +1937,7 @@
                               "type": "Http",
                               "inputs": {
                                 "method": "POST",
-                                "uri": "[reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss'))), '2018-06-30').uri]",
+                                "uri": "[reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))).uri]",
                                 "body": {
                                   "CloudEnvironment": "[parameters('CloudEnvironment')]",
                                   "StorageAccountResourceIDs": "[parameters('StorageAccountResourceIds')]"
@@ -1973,7 +1973,7 @@
                     },
                     "RunbookProp": {
                       "type": "object",
-                      "value": "[reference(resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage')), '2018-06-30')]"
+                      "value": "[reference(resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage')))]"
                     }
                   }
                 }
@@ -2023,8 +2023,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.12.1.58429",
-                      "templateHash": "6100869043767912193"
+                      "version": "0.6.18.56646",
+                      "templateHash": "4522764728373874239"
                     }
                   },
                   "parameters": {
@@ -2093,7 +2093,7 @@
                       "apiVersion": "2019-06-01",
                       "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetHostPool')))]",
                       "properties": {
-                        "value": "[format('\"{0}\"', reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetHostPool'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss'))), '2015-10-31').uri)]",
+                        "value": "[format('\"{0}\"', reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetHostPool'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))).uri)]",
                         "isEncrypted": false
                       },
                       "dependsOn": [
@@ -2115,7 +2115,7 @@
                               "type": "Http",
                               "inputs": {
                                 "method": "POST",
-                                "uri": "[replace(reference(resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetHostPool'))), '2019-06-01').value, '\"', '')]",
+                                "uri": "[replace(reference(resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetHostPool')))).value, '\"', '')]",
                                 "body": {
                                   "CloudEnvironment": "[parameters('CloudEnvironment')]",
                                   "SubscriptionId": "[parameters('SubscriptionId')]"
