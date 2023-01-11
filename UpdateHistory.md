@@ -1,16 +1,26 @@
 # Update History
 
+1/11/23
+
+- Deploy scripts now allow custom, existing Resource Group input
+- Corrected issue where Log Analtyics role assignment needed for Enterprise deployment (Tenant Level)
+- Minor deploy script updates for ease of use
+
+1/4/23
+
+- Added AVD Service Health alerts (Only deployed for Azure Commercial as not yet available in Azure US Gov)
+- Updated deployment scripts to allow multiple selection for Azure Files and ANF resources
+- Updated documentation for added alerts
+
 12/22/22
 
 - Correct issue with ARM templates due to missing URI for Logic App HTTP action (See Issues for details)
 
-12/5/22
+12/8/22
 
-- Update FSLogix alerts
-
-10/20/22  
-
-- Revised deployment to utilize PowerShell vs Blue button in docs due to storage account parameter type.  
+- Updated Azure File Share Info Runbook Script to resolve authentication issues when Storage Network Firewall settings specify Specific VNets
+- Re-enable Logic App and Runbook deployments and add Azure Files based alerts back to solution and update documentation
+- Remove Data Access Read Role and change to Storage Account Contributor
 
 12/6/22  
 
@@ -22,20 +32,10 @@
 - Informational alert added for Host Pool Capacity at 50%
 - Host Pool Capacity Alerts - updated to only report between thresholds to prevent duplicates
 
-12/8/22
+12/5/22
 
-- Updated Azure File Share Info Runbook Script to resolve authentication issues when Storage Network Firewall settings specify Specific VNets
-- Re-enable Logic App and Runbook deployments and add Azure Files based alerts back to solution and update documentation
-- Remove Data Access Read Role and change to Storage Account Contributor
+- Update FSLogix alerts
 
-1/4/23
+10/20/22  
 
-- Added AVD Service Health alerts (Only deployed for Azure Commercial as not yet available in Azure US Gov)
-- Updated deployment scripts to allow multiple selection for Azure Files and ANF resources
-- Updated documentation for added alerts
-
-1/11/23
-
-- Deploy scripts now allow custom or manual Resource Group input
-- Corrected issue where Log Analtyics role assignment needed for Enterprise deployment (Tenant Level)
-- Minor deploy script updates for ease of use
+- Revised deployment to utilize PowerShell vs Blue button in docs due to storage account parameter type.
