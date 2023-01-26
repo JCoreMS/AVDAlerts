@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 $WarningPreference = 'SilentlyContinue'
-$templateURI = 'https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deployEnterprise/tenant.solution.json'
+$templateURI = 'https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deployEnterprise/solution.json'
 
 # VARIABLES
 $filetimestamp = Get-Date -Format "MM.dd.yyyy_THH.mm" 
@@ -328,6 +328,22 @@ Else {
     foreach ($entry in $selection) { [array]$ANFVolumeResource += $ANFVolumeResources[$entry - 1].ResourceId }
 }
 Clear-Host
+# =================================================================================================
+# Get Management Group for deployment    
+# =================================================================================================
+
+Write-Host "Deployment is at the Management Group Scope." -ForegroundColor Yellow
+$ManagementGrps = Get-AzManagementGroup
+$i=1
+Foreach($mggrp in $ManagementGrps){
+    $MgmtName = $mggrp.DisplayName
+    Write-Host $i" - "$MgmtName
+    $i++
+}
+$response = Read-Host "Select the Management Group you have the Owner Role and/or want to scope the deployment from."
+$MgmtGroupId = $ManagementGrps[$response-1].Name
+$MgmtGroupName = $ManagementGrps[$response-1].DisplayName
+
 
 # =================================================================================================
 # Desired Tags   
@@ -403,6 +419,8 @@ Write-Host "Azure Parameters information saved as... `n$OutputFile" -foregroundc
 Clear-Host
 Write-Host "Summary of Selections" -ForegroundColor Green
 Write-Host "====================================================================================" -ForegroundColor Green
+Write-Host "          Management Group:  $MgmtGroupName"
+Write-Host "====================================================================================" -ForegroundColor Green
 Write-Host "Subscription for Alerts Solution:" -ForegroundColor Cyan
 Write-Host "`t$DeployToSubId"
 Write-Host "AVD Alert Name Prefix:" -ForegroundColor Cyan
@@ -427,14 +445,16 @@ Write-Host "Tags for resources:" -foregroundcolor Cyan
 Write-Output $Tags
 Pause
 
+
+
 # Launch Deployment
 $ToDeploy = Read-Host "`nDeploy Now? (Y or N)"
 If ($ToDeploy.ToUpper() -eq 'Y') {
     Write-Host "Launching Deployment..."
-    New-AzTenantDeployment -Name "AVD-Alerts-Solution" -TemplateUri $templateURI -TemplateParameterFile $OutputFile -Location $Location -Verbose
+    New-AzManagementGroupDeployment -Name "AVD-Alerts-Solution" -ManagementGroupId $MgmtGroupId -TemplateUri $templateURI -TemplateParameterFile $OutputFile -Location $Location -Verbose
 }
 else {
     Write-Host "Exiting..." -ForegroundColor Yellow
     Write-Host "Please use the following to deploy with your pre-created Paramaters file: $OutputFile"
-    Write-Host """New-AzTenantDeployment -Name "AVD-Alerts-Solution" -TemplateUri $templateURI -TemplateParameterFile $OutputFile -Location $Location"""
+    Write-Host """New-AzManagementGroupDeployment -Name "AVD-Alerts-Solution" -ManagementGroupId $MgmtGroupId -TemplateUri $templateURI -TemplateParameterFile $OutputFile -Location $Location"""
 }

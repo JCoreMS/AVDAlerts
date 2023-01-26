@@ -1,4 +1,4 @@
-targetScope = 'tenant'
+targetScope = 'managementGroup'
 /*   TO BE ADDED
 @description('Determine if you would like to set all deployed alerts to auto-resolve.')
 param SetAutoResolve bool = true
