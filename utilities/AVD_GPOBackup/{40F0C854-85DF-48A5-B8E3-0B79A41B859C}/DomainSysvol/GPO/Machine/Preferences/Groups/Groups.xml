@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Groups clsid="{3125E937-EB16-4b4c-9934-544FC6D24D26}"><Group clsid="{6D4A79E4-529C-4481-ABD0-F5BD7EA93BA7}" name="FSLogix ODFC Exclude List" image="2" changed="2022-12-20 17:42:43" uid="{C60F8E94-ECDF-4D30-A3A1-53C3BA4A98E0}"><Properties action="U" newName="" description="" deleteAllUsers="0" deleteAllGroups="0" removeAccounts="0" groupName="FSLogix ODFC Exclude List"/></Group>
+	<Group clsid="{6D4A79E4-529C-4481-ABD0-F5BD7EA93BA7}" name="FSLogix Profile Exclude List" image="2" changed="2022-12-20 17:43:12" uid="{E1C678C6-75A8-4106-B795-1A54A2B021B0}" userContext="0" removePolicy="0"><Properties action="U" newName="" description="" deleteAllUsers="0" deleteAllGroups="0" removeAccounts="0" groupName="FSLogix Profile Exclude List"/></Group>
+</Groups>

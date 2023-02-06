@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<NTServices clsid="{2CFB484A-4E96-4b5d-A0B6-093D2F91E6AE}"><NTService clsid="{AB6F0B67-341F-4e51-92F9-005FBFBA1A43}" name="PeerDistSvc" image="4" changed="2022-12-20 18:20:22" uid="{FA4DD491-6BFB-451E-802C-0D42E68042C0}" userContext="0" removePolicy="0"><Properties startupType="DISABLED" serviceName="PeerDistSvc" timeout="30"/></NTService>
+	<NTService clsid="{AB6F0B67-341F-4e51-92F9-005FBFBA1A43}" name="DoSvc" image="4" changed="2022-12-20 18:19:44" uid="{B9461A94-2C48-4DCD-A298-A4A8C12EA81C}"><Properties startupType="DISABLED" serviceName="DoSvc" timeout="30"/></NTService>
+	<NTService clsid="{AB6F0B67-341F-4e51-92F9-005FBFBA1A43}" name="WdiServiceHost" image="4" changed="2022-12-20 18:20:49" uid="{E8D35536-0D5F-42C4-ABE5-BFD43D74576F}"><Properties startupType="DISABLED" serviceName="WdiServiceHost" timeout="30"/></NTService>
+	<NTService clsid="{AB6F0B67-341F-4e51-92F9-005FBFBA1A43}" name="icssvc" image="4" changed="2022-12-20 18:21:16" uid="{41F9B4B9-FEEA-4097-90CB-D402D22BC91E}"><Properties startupType="DISABLED" serviceName="icssvc" timeout="30"/></NTService>
+	<NTService clsid="{AB6F0B67-341F-4e51-92F9-005FBFBA1A43}" name="XblAuthManager" image="4" changed="2022-12-20 18:21:46" uid="{E132570A-76A1-45A8-802F-AE75D52047E1}"><Properties startupType="DISABLED" serviceName="XblAuthManager" timeout="30"/></NTService>
+	<NTService clsid="{AB6F0B67-341F-4e51-92F9-005FBFBA1A43}" name="XblGameSave" image="4" changed="2022-12-20 18:22:03" uid="{8795AB03-D06D-4BB0-B34B-B2F753A65F80}"><Properties startupType="DISABLED" serviceName="XblGameSave" timeout="30"/></NTService>
+	<NTService clsid="{AB6F0B67-341F-4e51-92F9-005FBFBA1A43}" name="XboxNetApiSvc" image="4" changed="2022-12-20 18:22:26" uid="{2C4233E1-B518-48C4-B328-FF6AB6B3F9A6}"><Properties startupType="DISABLED" serviceName="XboxNetApiSvc" timeout="30"/></NTService>
+</NTServices>
