@@ -41,17 +41,18 @@ Foreach ($itemID in $AVDResourceIDs) {
             }            
         }
         $HostPoolInfo += @(
-        [PSCustomObject]@{
-            HostPoolResID = $HostPoolResID
-            VMResourceGroupID = $VMRGResID
-            VMResIDs = $VMResIDs
-            }
+            "{"
+                """HostPoolResID"": $HostPoolResID,"
+                """VMResourceGroupID"": $VMRGResID,"
+                """VMResIDs"": ["
+                    $VMResIDs
+                "]"
+            "}"
         )
+
         $VMResIDs = @()    
     }
 }
-$AllVMRGs = @()
-foreach($RG in $HostPoolInfo.VMResIDs){$AllVMRGs += $RG}
-$HPInfo = $HostPoolInfo | ConvertTo-Json
-$DeploymentScriptOutputs["HostPoolInfo"] = $HPInfo
-$DeploymentScriptOutputs["AllVMRGs"] = $AllVMRGs
+
+
+$DeploymentScriptOutputs["HostPoolInfo"] = $HostPoolInfo
