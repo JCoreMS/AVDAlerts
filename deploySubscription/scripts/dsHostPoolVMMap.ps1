@@ -52,6 +52,6 @@ Foreach ($itemID in $AVDResourceIDs) {
 }
 $AllVMRGs = @()
 foreach($RG in $HostPoolInfo.VMResIDs){$AllVMRGs += $RG}
-
-$DeploymentScriptOutputs["HostPoolInfo"] = $HostPoolInfo
+$HPInfo = $HostPoolInfo | ConvertTo-Json
+$DeploymentScriptOutputs["HostPoolInfo"] = $HPInfo
 $DeploymentScriptOutputs["AllVMRGs"] = $AllVMRGs
