@@ -29,6 +29,20 @@ var CloudEnvironment = environment().name
 
 //var LogAnalyticsRG = split(LogAnalyticsWorkspaceResourceId, '/')[4]
 
+resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' = {
+  name: AutomationAccountName
+  tags: Tags
+  location: Location
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    sku: {
+      name: 'Free'
+    }
+  }
+}
+
 // Commenting out the Function App resources until Custom Metrics / Logs is supported in Azure US Government
 /* resource hostingPlan 'Microsoft.Web/serverfarms@2021-03-01' = {
   name: HostingPlanName
@@ -318,20 +332,6 @@ resource activityLogAlerts 'Microsoft.Insights/activityLogAlerts@2020-10-01' = [
   }
 }]
 
-
-resource automationAccount 'Microsoft.Automation/automationAccounts@2021-06-22' = {
-  name: AutomationAccountName
-  tags: Tags
-  location: Location
-  identity: {
-    type: 'SystemAssigned'
-  }
-  properties: {
-    sku: {
-      name: 'Free'
-    }
-  }
-}
 
 module logicApp_Storage './logicApp_Storage.bicep' = if(length(StorageAccountResourceIds)>0) {
   name: 'LogicApp_Storage'
