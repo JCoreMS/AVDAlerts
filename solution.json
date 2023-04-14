@@ -1,0 +1,2988 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.11.1.770",
+      "templateHash": "18086446972444491793"
+    }
+  },
+  "parameters": {
+    "_ArtifactsLocation": {
+      "type": "string",
+      "defaultValue": "https://storavdlabeus2.blob.core.windows.net/postdeployscripts/",
+      "metadata": {
+        "description": "Location of needed scripts to deploy solution."
+      }
+    },
+    "_ArtifactsLocationSasToken": {
+      "type": "secureString",
+      "metadata": {
+        "description": "SaS token if needed for script location."
+      }
+    },
+    "AlertNamePrefix": {
+      "type": "string",
+      "defaultValue": "AVD",
+      "metadata": {
+        "description": "Alert Name Prefix (Dash will be added after prefix for you.)"
+      }
+    },
+    "DistributionGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "The Distribution Group that will receive email alerts for AVD."
+      }
+    },
+    "Environment": {
+      "type": "string",
+      "defaultValue": "t",
+      "metadata": {
+        "description": "The environment is which these resources will be deployed, i.e. Test, Production, Development."
+      },
+      "allowedValues": [
+        "d",
+        "p",
+        "t"
+      ]
+    },
+    "HostPools": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "Comma seperated string of Host Pool IDs"
+      }
+    },
+    "Location": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure Region for Resources."
+      }
+    },
+    "LogAnalyticsWorkspaceResourceId": {
+      "type": "string",
+      "metadata": {
+        "description": "The Resource ID for the Log Analytics Workspace."
+      }
+    },
+    "ResourceGroupName": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource Group to deploy the Alerts Solution in."
+      }
+    },
+    "SessionHostsResourceGroupIds": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "The Resource Group ID for the AVD session host VMs."
+      }
+    },
+    "StorageAccountResourceIds": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "The Resource IDs for the Azure Files Storage Accounts used for FSLogix profile storage."
+      }
+    },
+    "ANFVolumeResourceIds": {
+      "type": "array",
+      "defaultValue": [],
+      "metadata": {
+        "description": "The Resource IDs for the Azure NetApp Volumes used for FSLogix profile storage."
+      }
+    },
+    "Tags": {
+      "type": "object",
+      "defaultValue": {}
+    },
+    "Timestamp": {
+      "type": "string",
+      "defaultValue": "[utcNow()]"
+    }
+  },
+  "variables": {
+    "copy": [
+      {
+        "name": "HostPoolSubIdsAll",
+        "count": "[length(parameters('HostPools'))]",
+        "input": "[split(parameters('HostPools')[copyIndex('HostPoolSubIdsAll')], '/')[2]]"
+      },
+      {
+        "name": "HostPoolRGsAll",
+        "count": "[length(parameters('HostPools'))]",
+        "input": "[split(parameters('HostPools')[copyIndex('HostPoolRGsAll')], '/')[4]]"
+      },
+      {
+        "name": "SessionHostRGsAll",
+        "count": "[length(parameters('SessionHostsResourceGroupIds'))]",
+        "input": "[split(parameters('SessionHostsResourceGroupIds')[copyIndex('SessionHostRGsAll')], '/')[4]]"
+      },
+      {
+        "name": "StorAcctRGsAll",
+        "count": "[length(parameters('StorageAccountResourceIds'))]",
+        "input": "[split(parameters('StorageAccountResourceIds')[copyIndex('StorAcctRGsAll')], '/')[4]]"
+      }
+    ],
+    "ActionGroupName": "[format('ag-avdmetrics-{0}-{1}', parameters('Environment'), parameters('Location'))]",
+    "AlertDescriptionHeader": "Automated AVD Alert Deployment Solution (v2.0.0)\n",
+    "AutomationAccountName": "[format('aa-avdmetrics-{0}-{1}', parameters('Environment'), parameters('Location'))]",
+    "HostPoolSubIds": "[union(variables('HostPoolSubIdsAll'), createArray())]",
+    "HostPoolRGs": "[union(variables('HostPoolRGsAll'), createArray())]",
+    "LogicAppName": "[format('la-avdmetrics-{0}-{1}', parameters('Environment'), parameters('Location'))]",
+    "RunbookNameGetStorage": "AvdStorageLogData",
+    "RunbookNameGetHostPool": "AvdHostPoolLogData",
+    "RunbookScriptGetStorage": "Get-StorAcctInfov2.ps1",
+    "RunbookScriptGetHostPool": "Get-HostPoolInfo.ps1",
+    "ScriptsRepositoryUri": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/",
+    "SessionHostRGs": "[union(variables('SessionHostRGsAll'), createArray())]",
+    "StorAcctRGs": "[union(variables('StorAcctRGsAll'), createArray())]",
+    "UsrManagedIdentityName": "id-ds-avdAlerts-Deployment",
+    "DesktopReadRoleRGs": "[union(variables('HostPoolRGs'), variables('SessionHostRGs'))]",
+    "RoleAssignments": {
+      "DesktopVirtualizationRead": {
+        "Name": "Desktop-Virtualization-Reader",
+        "GUID": "49a72310-ab8d-41df-bbb0-79b649203868"
+      },
+      "StoreAcctContrib": {
+        "Name": "Storage-Account-Contributor",
+        "GUID": "17d1049b-9a84-46fb-8f53-869881c3d3ab"
+      },
+      "LogAnalyticsContributor": {
+        "Name": "LogAnalytics-Contributor",
+        "GUID": "92aaf0da-9dab-42b6-94a3-d43ce8d16293"
+      }
+    },
+    "LogAlertsHostPool": [
+      {
+        "name": "[format('{0}-HostPool-Capacity-85Percent (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-HostPool-Capacity 85% (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "description": "[format('{0}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Host Pool\nOutput is:\nHostPoolName|ResourceGroup|Type|MaxSessionLimit|NumberHosts|TotalUsers|DisconnectedUser|ActiveUsers|SessionsAvailable|HostPoolPercentageLoad', variables('AlertDescriptionHeader'))]",
+        "severity": 2,
+        "evaluationFrequency": "PT1M",
+        "windowSize": "PT5M",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "          AzureDiagnostics \r\n          | where Category has \"JobStreams\" and StreamType_s == \"Output\" and RunbookName_s == \"AvdHostPoolLogData\"\r\n          | sort by TimeGenerated\r\n          | where TimeGenerated > now() - 5m\r\n          | extend HostPoolName=tostring(split(ResultDescription, '|')[0])\r\n          | extend ResourceGroup=tostring(split(ResultDescription, '|')[1])\r\n          | extend Type=tostring(split(ResultDescription, '|')[2])\r\n          | extend MaxSessionLimit=toint(split(ResultDescription, '|')[3])\r\n          | extend NumberSessionHosts=toint(split(ResultDescription, '|')[4])\r\n          | extend UserSessionsTotal=toint(split(ResultDescription, '|')[5])\r\n          | extend UserSessionsDisconnected=toint(split(ResultDescription, '|')[6])\r\n          | extend UserSessionsActive=toint(split(ResultDescription, '|')[7])\r\n          | extend UserSessionsAvailable=toint(split(ResultDescription, '|')[8])\r\n          | extend HostPoolPercentLoad=toint(split(ResultDescription, '|')[9])\r\n          | where HostPoolPercentLoad >= 85 and HostPoolPercentLoad < 95\r\n          | where HostPoolName == 'xHostPoolNamex'\r\n           ",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "HostPoolName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "UserSessionsTotal",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "UserSessionsDisconnected",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "UserSessionsActive",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "UserSessionsAvailable",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "HostPoolPercentLoad",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "resourceIdColumng": "_ResourceId",
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "[format('{0}-HostPool-Capacity-50Percent (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-HostPool-Capacity 50% (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "description": "[format('{0}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Host Pool\nOutput is:\nHostPoolName|ResourceGroup|Type|MaxSessionLimit|NumberHosts|TotalUsers|DisconnectedUser|ActiveUsers|SessionsAvailable|HostPoolPercentageLoad', variables('AlertDescriptionHeader'))]",
+        "severity": 3,
+        "evaluationFrequency": "PT1M",
+        "windowSize": "PT5M",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "          AzureDiagnostics \r\n          | where Category has \"JobStreams\" and StreamType_s == \"Output\" and RunbookName_s == \"AvdHostPoolLogData\"\r\n          | sort by TimeGenerated\r\n          | where TimeGenerated > now() - 5m\r\n          | extend HostPoolName=tostring(split(ResultDescription, '|')[0])\r\n          | extend ResourceGroup=tostring(split(ResultDescription, '|')[1])\r\n          | extend Type=tostring(split(ResultDescription, '|')[2])\r\n          | extend MaxSessionLimit=toint(split(ResultDescription, '|')[3])\r\n          | extend NumberSessionHosts=toint(split(ResultDescription, '|')[4])\r\n          | extend UserSessionsTotal=toint(split(ResultDescription, '|')[5])\r\n          | extend UserSessionsDisconnected=toint(split(ResultDescription, '|')[6])\r\n          | extend UserSessionsActive=toint(split(ResultDescription, '|')[7])\r\n          | extend UserSessionsAvailable=toint(split(ResultDescription, '|')[8])\r\n          | extend HostPoolPercentLoad=toint(split(ResultDescription, '|')[9])\r\n          | where HostPoolPercentLoad >= 50 and HostPoolPercentLoad < 85\r\n          | where HostPoolName == 'xHostPoolNamex'         \r\n           ",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "HostPoolName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "UserSessionsTotal",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "UserSessionsDisconnected",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "UserSessionsActive",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "UserSessionsAvailable",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "HostPoolPercentLoad",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "resourceIdColumng": "_ResourceId",
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "[format('{0}-HostPool-Capacity-95Percent (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-HostPool-Capacity 95% (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "description": "[format('{0}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\n-->Last Number in the string is the Percentage Remaining for the Host Pool\nOutput is:\nHostPoolName|ResourceGroup|Type|MaxSessionLimit|NumberHosts|TotalUsers|DisconnectedUser|ActiveUsers|SessionsAvailable|HostPoolPercentageLoad', variables('AlertDescriptionHeader'))]",
+        "severity": 1,
+        "evaluationFrequency": "PT1M",
+        "windowSize": "PT5M",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "          AzureDiagnostics \r\n          | where Category has \"JobStreams\" and StreamType_s == \"Output\" and RunbookName_s == \"AvdHostPoolLogData\"\r\n          | sort by TimeGenerated\r\n          | where TimeGenerated > now() - 5m\r\n          | extend HostPoolName=tostring(split(ResultDescription, '|')[0])\r\n          | extend ResourceGroup=tostring(split(ResultDescription, '|')[1])\r\n          | extend Type=tostring(split(ResultDescription, '|')[2])\r\n          | extend MaxSessionLimit=toint(split(ResultDescription, '|')[3])\r\n          | extend NumberSessionHosts=toint(split(ResultDescription, '|')[4])\r\n          | extend UserSessionsTotal=toint(split(ResultDescription, '|')[5])\r\n          | extend UserSessionsDisconnected=toint(split(ResultDescription, '|')[6])\r\n          | extend UserSessionsActive=toint(split(ResultDescription, '|')[7])\r\n          | extend UserSessionsAvailable=toint(split(ResultDescription, '|')[8])\r\n          | extend HostPoolPercentLoad=toint(split(ResultDescription, '|')[9])\r\n          | where HostPoolPercentLoad >= 95 \r\n          | where HostPoolName == 'xHostPoolNamex'        \r\n           ",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "HostPoolName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "UserSessionsTotal",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "UserSessionsDisconnected",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "UserSessionsActive",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "UserSessionsAvailable",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "HostPoolPercentLoad",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "resourceIdColumng": "_ResourceId",
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "[format('{0}-HostPool-No Resources Available (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-HostPool-No Resources Available (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "severity": 1,
+        "evaluationFrequency": "PT15M",
+        "windowSize": "PT15M",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "WVDConnections \n| where TimeGenerated > ago (15m) \n| where _ResourceId contains \"xHostPoolNamex\" \n| project-away TenantId,SourceSystem  \n| summarize arg_max(TimeGenerated, *), StartTime =  min(iff(State== 'Started', TimeGenerated , datetime(null) )), ConnectTime = min(iff(State== 'Connected', TimeGenerated , datetime(null) ))   by CorrelationId  \n| join kind=leftouter (WVDErrors\n    |summarize Errors=makelist(pack('Code', Code, 'CodeSymbolic', CodeSymbolic, 'Time', TimeGenerated, 'Message', Message ,'ServiceError', ServiceError, 'Source', Source)) by CorrelationId  \n    ) on CorrelationId\n| join kind=leftouter (WVDCheckpoints\n    | summarize Checkpoints=makelist(pack('Time', TimeGenerated, 'Name', Name, 'Parameters', Parameters, 'Source', Source)) by CorrelationId  \n    | mv-apply Checkpoints on (  \n        order by todatetime(Checkpoints['Time']) asc\n        | summarize Checkpoints=makelist(Checkpoints)\n        )\n    ) on CorrelationId  \n| project-away CorrelationId1, CorrelationId2  \n| order by TimeGenerated desc\n| where Errors[0].CodeSymbolic == \"ConnectionFailedNoHealthyRdshAvailable\"\n\n",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "UserName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "SessionHostName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "[format('{0}-HostPool-Disconnected User over 24 Hours (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-HostPool-Disconnected User over 24 Hours (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "severity": 2,
+        "evaluationFrequency": "PT1H",
+        "windowSize": "PT1H",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "// Session duration \n// Lists users by session duration in the last 24 hours. \n// The \"State\" provides information on the connection stage of an activity.\n// The delta between \"Connected\" and \"Completed\" provides the connection time for a specific connection.\nWVDConnections \n| where TimeGenerated > ago(24h) \n| where State == \"Connected\" \n| where _ResourceId contains \"xHostPoolNamex\" \n| project CorrelationId , UserName, ConnectionType, StartTime=TimeGenerated, SessionHostName\n| join (WVDConnections  \n    | where State == \"Completed\"  \n    | project EndTime=TimeGenerated, CorrelationId)  \n    on CorrelationId  \n| project Duration = EndTime - StartTime, ConnectionType, UserName, SessionHostName\n| where Duration >= timespan(24:00:00)\n| sort by Duration desc",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "UserName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "SessionHostName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "[format('{0}-HostPool-Disconnected User over 72 Hours (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-HostPool-Disconnected User over 72 Hours (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "severity": 1,
+        "evaluationFrequency": "PT1H",
+        "windowSize": "PT1H",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "// Session duration \n// Lists users by session duration in the last 24 hours. \n// The \"State\" provides information on the connection stage of an activity.\n// The delta between \"Connected\" and \"Completed\" provides the connection time for a specific connection.\nWVDConnections \n| where TimeGenerated > ago(24h) \n| where State == \"Connected\" \n| where _ResourceId contains \"xHostPoolNamex\"  \n| project CorrelationId , UserName, ConnectionType, StartTime=TimeGenerated, SessionHostName\n| join (WVDConnections  \n    | where State == \"Completed\"  \n    | project EndTime=TimeGenerated, CorrelationId)  \n    on CorrelationId  \n| project Duration = EndTime - StartTime, ConnectionType, UserName, SessionHostName\n| where Duration >= timespan(72:00:00)\n| sort by Duration desc",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "UserName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "SessionHostName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "[format('{0}-HostPool-VM-Local Disk Free Space 10 Percent (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-HostPool-VM-Local Disk Free Space 10 Percent (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "severity": 2,
+        "evaluationFrequency": "PT15M",
+        "windowSize": "PT15M",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "          Perf\r\n          | where TimeGenerated > ago(15m)\r\n          | where ObjectName == \"LogicalDisk\" and CounterName == \"% Free Space\"\r\n          | where InstanceName !contains \"D:\"\r\n          | where InstanceName  !contains \"_Total\"| where CounterValue <= 10.00\r\n          | parse _ResourceId with \"/subscriptions/\" subscription \"/resourcegroups/\" ResourceGroup \"/providers/microsoft.compute/virtualmachines/\" ComputerName\r\n          | project ComputerName, CounterValue, subscription, ResourceGroup, TimeGenerated\r\n          | join kind = leftouter\r\n          (\r\n              WVDAgentHealthStatus\r\n              | where TimeGenerated > ago(15m)\r\n              | where _ResourceId contains \"xHostPoolNamex\"\r\n              | parse _ResourceId with \"/subscriptions/\" subscriptionAgentHealth \"/resourcegroups/\" ResourceGroupAgentHealth \"/providers/microsoft.desktopvirtualization/hostpools/\" HostPool\r\n              | parse SessionHostResourceId with \"/subscriptions/\" VMsubscription \"/resourceGroups/\" VMresourceGroup \"/providers/Microsoft.Compute/virtualMachines/\" ComputerName\r\n              | project VMresourceGroup, ComputerName, HostPool\r\n              ) on ComputerName\r\n          ",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "ComputerName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "VMresourceGroup",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "HostPool",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "[format('{0}-HostPool-VM-Local Disk Free Space 5 Percent (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-HostPool-VM-Local Disk Free Space 5 Percent (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "severity": 1,
+        "evaluationFrequency": "PT15M",
+        "windowSize": "PT15M",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "          Perf\r\n          | where TimeGenerated > ago(15m)\r\n          | where ObjectName == \"LogicalDisk\" and CounterName == \"% Free Space\"\r\n          | where InstanceName !contains \"D:\"\r\n          | where InstanceName  !contains \"_Total\"| where CounterValue <= 5.00\r\n          | parse _ResourceId with \"/subscriptions/\" subscription \"/resourcegroups/\" ResourceGroup \"/providers/microsoft.compute/virtualmachines/\" ComputerName\r\n          | project ComputerName, CounterValue, subscription, ResourceGroup, TimeGenerated\r\n          | join kind = leftouter\r\n          (\r\n              WVDAgentHealthStatus\r\n              | where TimeGenerated > ago(15m)\r\n              | where _ResourceId contains \"xHostPoolNamex\"\r\n              | parse _ResourceId with \"/subscriptions/\" subscriptionAgentHealth \"/resourcegroups/\" ResourceGroupAgentHealth \"/providers/microsoft.desktopvirtualization/hostpools/\" HostPool\r\n              | parse SessionHostResourceId with \"/subscriptions/\" VMsubscription \"/resourceGroups/\" VMresourceGroup \"/providers/Microsoft.Compute/virtualMachines/\" ComputerName\r\n              | project VMresourceGroup, ComputerName, HostPool\r\n              ) on ComputerName\r\n          ",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "ComputerName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "VMresourceGroup",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "HostPool",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "[format('{0}-HostPool-VM-FSLogix Profile-LessThan5PercentFree (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-HostPool-VM-FSLogix Profile Less Than 5% Free Space (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "severity": 2,
+        "evaluationFrequency": "PT5M",
+        "windowSize": "PT5M",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "Event\n| where EventLog == \"Microsoft-FSLogix-Apps/Admin\"\n| where EventLevelName == \"Warning\"\n| where EventID == 34\n| where _ResourceId contains \"xHostPoolNamex\"\n| parse _ResourceId with \"/subscriptions/\" subscription \"/resourcegroups/\" ResourceGroup \"/providers/microsoft.compute/virtualmachines/\" ComputerName\n| project ComputerName, RenderedDescription, subscription, ResourceGroup, TimeGenerated\n| join kind = leftouter\n    (\n    WVDAgentHealthStatus\n   // | where TimeGenerated > ago(15m)\n    | parse _ResourceId with \"/subscriptions/\" subscriptionAgentHealth \"/resourcegroups/\" ResourceGroupAgentHealth \"/providers/microsoft.desktopvirtualization/hostpools/\" HostPool\n    | parse SessionHostResourceId with \"/subscriptions/\" VMsubscription \"/resourceGroups/\" VMresourceGroup \"/providers/Microsoft.Compute/virtualMachines/\" ComputerName\n    | project VMresourceGroup, ComputerName, HostPool\n    )\n    on ComputerName\n\n",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "ComputerName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "RenderedDescription",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "VMresourceGroup",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "HostPool",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "[format('{0}-HostPool-VM-FSLogix Profile-LessThan2PercentFree (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-HostPool-VM-FSLogix Profile Less Than 2% Free Space (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "severity": 1,
+        "evaluationFrequency": "PT5M",
+        "windowSize": "PT5M",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "Event\n| where EventLog == \"Microsoft-FSLogix-Apps/Admin\"\n| where EventLevelName == \"Error\"\n| where EventID == 33\n| where _ResourceId contains \"xHostPoolNamex\"\n| parse _ResourceId with \"/subscriptions/\" subscription \"/resourcegroups/\" ResourceGroup \"/providers/microsoft.compute/virtualmachines/\" ComputerName\n| project ComputerName, RenderedDescription, subscription, ResourceGroup, TimeGenerated\n| join kind = leftouter\n    (\n    WVDAgentHealthStatus\n   // | where TimeGenerated > ago(15m)\n    | parse _ResourceId with \"/subscriptions/\" subscriptionAgentHealth \"/resourcegroups/\" ResourceGroupAgentHealth \"/providers/microsoft.desktopvirtualization/hostpools/\" HostPool\n    | parse SessionHostResourceId with \"/subscriptions/\" VMsubscription \"/resourceGroups/\" VMresourceGroup \"/providers/Microsoft.Compute/virtualMachines/\" ComputerName\n    | project VMresourceGroup, ComputerName, HostPool\n    )\n    on ComputerName\n\n",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "ComputerName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "RenderedDescription",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "VMresourceGroup",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "HostPool",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "[format('{0}-HostPool-VM-FSLogix Profile-NetworkIssue (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-HostPool-VM-FSLogix Profile Failed due to Network Issue (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "severity": 1,
+        "evaluationFrequency": "PT5M",
+        "windowSize": "PT5M",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "Event\n| where EventLog == \"Microsoft-FSLogix-Apps/Admin\"\n| where EventLevelName == \"Error\"\n| where EventID == 43\n| where _ResourceId contains \"xHostPoolNamex\"\n| parse _ResourceId with \"/subscriptions/\" subscription \"/resourcegroups/\" ResourceGroup \"/providers/microsoft.compute/virtualmachines/\" ComputerName\n| project ComputerName, RenderedDescription, subscription, ResourceGroup, TimeGenerated\n| join kind = leftouter\n    (\n    WVDAgentHealthStatus\n   // | where TimeGenerated > ago(15m)\n    | parse _ResourceId with \"/subscriptions/\" subscriptionAgentHealth \"/resourcegroups/\" ResourceGroupAgentHealth \"/providers/microsoft.desktopvirtualization/hostpools/\" HostPool\n    | parse SessionHostResourceId with \"/subscriptions/\" VMsubscription \"/resourceGroups/\" VMresourceGroup \"/providers/Microsoft.Compute/virtualMachines/\" ComputerName\n    | project VMresourceGroup, ComputerName, HostPool\n    )\n    on ComputerName\n\n",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "ComputerName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "RenderedDescription",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "VMresourceGroup",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "HostPool",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "[format('{0}-HostPool-VM-FSLogix Profile-FailedAttachVHD (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-HostPool-VM-FSLogix Profile Disk Failed to Attach (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "severity": 1,
+        "evaluationFrequency": "PT5M",
+        "windowSize": "PT5M",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "Event\n| where EventLog == \"Microsoft-FSLogix-Apps/Admin\"\n| where EventLevelName == \"Error\"\n| where EventID == 52 or EventID == 40\n| where _ResourceId contains \"xHostPoolNamex\"\n| parse _ResourceId with \"/subscriptions/\" subscription \"/resourcegroups/\" ResourceGroup \"/providers/microsoft.compute/virtualmachines/\" ComputerName\n| project ComputerName, RenderedDescription, subscription, ResourceGroup, TimeGenerated\n| join kind = leftouter\n    (\n    WVDAgentHealthStatus\n   // | where TimeGenerated > ago(15m)\n    | parse _ResourceId with \"/subscriptions/\" subscriptionAgentHealth \"/resourcegroups/\" ResourceGroupAgentHealth \"/providers/microsoft.desktopvirtualization/hostpools/\" HostPool\n    | parse SessionHostResourceId with \"/subscriptions/\" VMsubscription \"/resourceGroups/\" VMresourceGroup \"/providers/Microsoft.Compute/virtualMachines/\" ComputerName\n    | project VMresourceGroup, ComputerName, HostPool\n    )\n    on ComputerName\n\n",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "ComputerName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "RenderedDescription",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "VMresourceGroup",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "HostPool",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "[format('{0}-HostPool-VM-FSLogix Profile-SerivceDisabled (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-HostPool-VM-FSLogix Profile Service Disabled (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "severity": 1,
+        "evaluationFrequency": "PT5M",
+        "windowSize": "PT5M",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "Event\n| where EventLog == \"Microsoft-FSLogix-Apps/Admin\"\n| where EventLevelName == \"Warning\"\n| where EventID == 60\n| where _ResourceId contains \"xHostPoolNamex\"\n| parse _ResourceId with \"/subscriptions/\" subscription \"/resourcegroups/\" ResourceGroup \"/providers/microsoft.compute/virtualmachines/\" ComputerName\n| project ComputerName, RenderedDescription, subscription, ResourceGroup, TimeGenerated\n| join kind = leftouter\n    (\n    WVDAgentHealthStatus\n   // | where TimeGenerated > ago(15m)\n    | parse _ResourceId with \"/subscriptions/\" subscriptionAgentHealth \"/resourcegroups/\" ResourceGroupAgentHealth \"/providers/microsoft.desktopvirtualization/hostpools/\" HostPool\n    | parse SessionHostResourceId with \"/subscriptions/\" VMsubscription \"/resourceGroups/\" VMresourceGroup \"/providers/Microsoft.Compute/virtualMachines/\" ComputerName\n    | project VMresourceGroup, ComputerName, HostPool\n    )\n    on ComputerName\n\n",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "ComputerName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "RenderedDescription",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "VMresourceGroup",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "HostPool",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "[format('{0}-HostPool-VM-FSLogix Profile-DiskCompactFailed (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-HostPool-VM-FSLogix Profile Disk Compaction Failed (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "severity": 2,
+        "evaluationFrequency": "PT5M",
+        "windowSize": "PT5M",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "Event\n| where EventLog == \"Microsoft-FSLogix-Apps/Admin\"\n| where EventLevelName == \"Error\"\n| where EventID == 62 or EventID == 63\n| where _ResourceId contains \"xHostPoolNamex\"\n| parse _ResourceId with \"/subscriptions/\" subscription \"/resourcegroups/\" ResourceGroup \"/providers/microsoft.compute/virtualmachines/\" ComputerName\n| project ComputerName, RenderedDescription, subscription, ResourceGroup, TimeGenerated\n| join kind = leftouter\n    (\n    WVDAgentHealthStatus\n   // | where TimeGenerated > ago(15m)\n    | parse _ResourceId with \"/subscriptions/\" subscriptionAgentHealth \"/resourcegroups/\" ResourceGroupAgentHealth \"/providers/microsoft.desktopvirtualization/hostpools/\" HostPool\n    | parse SessionHostResourceId with \"/subscriptions/\" VMsubscription \"/resourceGroups/\" VMresourceGroup \"/providers/Microsoft.Compute/virtualMachines/\" ComputerName\n    | project VMresourceGroup, ComputerName, HostPool\n    )\n    on ComputerName\n\n",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "ComputerName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "RenderedDescription",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "VMresourceGroup",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "HostPool",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "[format('{0}-HostPool-VM-FSLogix Profile-DiskInUse (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-HostPool-VM-FSLogix Profile Disk Attached to another VM (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "severity": 2,
+        "evaluationFrequency": "PT5M",
+        "windowSize": "PT5M",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "Event\n| where EventLog == \"Microsoft-FSLogix-Apps/Operational\"\n| where EventLevelName == \"Warning\"\n| where EventID == 51\n| where _ResourceId contains \"xHostPoolNamex\"\n| parse _ResourceId with \"/subscriptions/\" subscription \"/resourcegroups/\" ResourceGroup \"/providers/microsoft.compute/virtualmachines/\" ComputerName\n| project ComputerName, RenderedDescription, subscription, ResourceGroup, TimeGenerated\n| join kind = leftouter\n    (\n    WVDAgentHealthStatus\n   // | where TimeGenerated > ago(15m)\n    | parse _ResourceId with \"/subscriptions/\" subscriptionAgentHealth \"/resourcegroups/\" ResourceGroupAgentHealth \"/providers/microsoft.desktopvirtualization/hostpools/\" HostPool\n    | parse SessionHostResourceId with \"/subscriptions/\" VMsubscription \"/resourceGroups/\" VMresourceGroup \"/providers/Microsoft.Compute/virtualMachines/\" ComputerName\n    | project VMresourceGroup, ComputerName, HostPool\n    )\n    on ComputerName\n\n",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "ComputerName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "RenderedDescription",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "VMresourceGroup",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "HostPool",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "[format('{0}-HostPool-VM-Health Check Failure (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-HostPool-VM-Health Check Failure (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "description": "[format('{0}VM is available for use but one of the dependent resources is in a failed state for hostpool xHostPoolNamex', variables('AlertDescriptionHeader'))]",
+        "severity": 1,
+        "evaluationFrequency": "PT15M",
+        "windowSize": "PT15M",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "// HealthChecks of SessionHost \n// Renders a summary of SessionHost health status. \nlet MapToDesc = (idx: long) {\n    case(idx == 0, \"DomainJoin\",\n    idx == 1, \"DomainTrust\",\n    idx == 2, \"FSLogix\",\n    idx == 3, \"SxSStack\",\n    idx == 4, \"URLCheck\",\n    idx == 5, \"GenevaAgent\",\n    idx == 6, \"DomainReachable\",\n    idx == 7, \"WebRTCRedirector\",\n    idx == 8, \"SxSStackEncryption\",\n    idx == 9, \"IMDSReachable\",\n    idx == 10, \"MSIXPackageStaging\",\n    \"InvalidIndex\")\n};\nWVDAgentHealthStatus\n| where TimeGenerated > ago(10m)\n| where Status != 'Available'\n| where AllowNewSessions = True\n| extend CheckFailed = parse_json(SessionHostHealthCheckResult)\n| mv-expand CheckFailed\n| where CheckFailed.AdditionalFailureDetails.ErrorCode != 0\n| extend HealthCheckName = tolong(CheckFailed.HealthCheckName)\n| extend HealthCheckResult = tolong(CheckFailed.HealthCheckResult)\n| extend HealthCheckDesc = MapToDesc(HealthCheckName)\n| where HealthCheckDesc != 'InvalidIndex'\n| where _ResourceId contains \"xHostPoolNamex\"\n| parse _ResourceId with \"/subscriptions/\" subscription \"/resourcegroups/\" HostPoolResourceGroup \"/providers/microsoft.desktopvirtualization/hostpools/\" HostPool\n| parse SessionHostResourceId with \"/subscriptions/\" HostSubscription \"/resourceGroups/\" SessionHostRG \" /providers/Microsoft.Compute/virtualMachines/\" SessionHostName\n",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "SessionHostName",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "HealthCheckDesc",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "HostPool",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                },
+                {
+                  "name": "SessionHostRG",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "LogAlerts": [
+      {
+        "name": "[format('{0}-Storage-Low Space on Azure File Share-15 Percent Remaining', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-Storage-Low Space on Azure File Share-15% Remaining', parameters('AlertNamePrefix'))]",
+        "description": "[format('{0}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\nNOTE: The Runbook will FAIL if Networking for the storage account has anything other than \"Enabled from all networks\"\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining', variables('AlertDescriptionHeader'))]",
+        "severity": 2,
+        "evaluationFrequency": "PT10M",
+        "windowSize": "PT1H",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "          AzureDiagnostics \r\n          | where Category has \"JobStreams\" and StreamType_s == \"Output\" and RunbookName_s == \"AvdStorageLogData\"\r\n          | sort by TimeGenerated\r\n          //  StorageType / Subscription / RG / StorAcct / Share / Quota / GB Used / %Available\r\n          | extend StorageType=split(ResultDescription, ',')[0]\r\n          | extend Subscription=split(ResultDescription, ',')[1]\r\n          | extend ResourceGroup=split(ResultDescription, ',')[2]\r\n          | extend StorageAccount=split(ResultDescription, ',')[3]\r\n          | extend Share=split(ResultDescription, ',')[4]\r\n          | extend GBShareQuota=split(ResultDescription, ',')[5]\r\n          | extend GBUsed=split(ResultDescription, ',')[6]\r\n          | extend PercentAvailable=split(ResultDescription, ',')[7]\r\n          | where PercentAvailable <= 15.00 and PercentAvailable < 5.00          \r\n           ",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "ResultDescription",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "resourceIdColumng": "_ResourceId",
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "[format('{0}-Storage-Low Space on Azure File Share-5 Percent Remaining', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-Storage-Low Space on Azure File Share-5% Remaining', parameters('AlertNamePrefix'))]",
+        "description": "[format('{0}This alert is based on the Action Account and Runbook that populates the Log Analytics specificed with the AVD Metrics Deployment Solution.\nNOTE: The Runbook will FAIL if Networking for the storage account has anything other than \"Enabled from all networks\"\n-->Last Number in the string is the Percentage Remaining for the Share.\nOutput: ResultsDescription\nStorageType,Subscription,ResourceGroup,StorageAccount,ShareName,Quota,GBUsed,PercentRemaining', variables('AlertDescriptionHeader'))]",
+        "severity": 1,
+        "evaluationFrequency": "PT10M",
+        "windowSize": "PT1H",
+        "overrideQueryTimeRange": "P2D",
+        "criteria": {
+          "allOf": [
+            {
+              "query": "          AzureDiagnostics \r\n          | where Category has \"JobStreams\" and StreamType_s == \"Output\" and RunbookName_s == \"AvdStorageLogData\"\r\n          | sort by TimeGenerated\r\n          //  StorageType / Subscription / RG / StorAcct / Share / Quota / GB Used / %Available\r\n          | extend StorageType=split(ResultDescription, ',')[0]\r\n          | extend Subscription=split(ResultDescription, ',')[1]\r\n          | extend ResourceGroup=split(ResultDescription, ',')[2]\r\n          | extend StorageAccount=split(ResultDescription, ',')[3]\r\n          | extend Share=split(ResultDescription, ',')[4]\r\n          | extend GBShareQuota=split(ResultDescription, ',')[5]\r\n          | extend GBUsed=split(ResultDescription, ',')[6]\r\n          | extend PercentAvailable=split(ResultDescription, ',')[7]\r\n          | where PercentAvailable <= 5.00          \r\n           ",
+              "timeAggregation": "Count",
+              "dimensions": [
+                {
+                  "name": "ResultDescription",
+                  "operator": "Include",
+                  "values": [
+                    "*"
+                  ]
+                }
+              ],
+              "resourceIdColumng": "_ResourceId",
+              "operator": "GreaterThanOrEqual",
+              "threshold": 1,
+              "failingPeriods": {
+                "numberOfEvaluationPeriods": 1,
+                "minFailingPeriodsToAlert": 1
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "MetricAlerts": {
+      "storageAccounts": [
+        {
+          "name": "[format('{0}-Storage-Over 50ms Latency for Storage Acct', parameters('AlertNamePrefix'))]",
+          "displayName": "[format('{0}-Storage-Over 50ms Latency for Storage Acct', parameters('AlertNamePrefix'))]",
+          "description": "[format('{0}\nThis could indicate a lag or poor performance for user Profiles or Apps using MSIX App Attach.\nThis alert is specific to the Storage Account itself and does not include network latency.\nFor additional details on troubleshooting see:\n\"https://learn.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#very-high-latency-for-requests\"', variables('AlertDescriptionHeader'))]",
+          "severity": 2,
+          "evaluationFrequency": "PT15M",
+          "windowSize": "PT15M",
+          "criteria": {
+            "allOf": [
+              {
+                "threshold": 50,
+                "name": "Metric1",
+                "metricName": "SuccessServerLatency",
+                "operator": "GreaterThan",
+                "timeAggregation": "Average",
+                "criterionType": "StaticThresholdCriterion"
+              }
+            ],
+            "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+          },
+          "targetResourceType": "Microsoft.Storage/storageAccounts"
+        },
+        {
+          "name": "[format('{0}-Storage-Over 100ms Latency for Storage Acct', parameters('AlertNamePrefix'))]",
+          "displayName": "[format('{0}-Storage-Over 100ms Latency for Storage Acct', parameters('AlertNamePrefix'))]",
+          "description": "[format('{0}\nThis could indicate a lag or poor performance for user Profiles or Apps using MSIX App Attach.\nThis alert is specific to the Storage Account itself and does not include network latency.\nFor additional details on troubleshooting see:\n\"https://learn.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#very-high-latency-for-requests\"', variables('AlertDescriptionHeader'))]",
+          "severity": 1,
+          "evaluationFrequency": "PT15M",
+          "windowSize": "PT15M",
+          "criteria": {
+            "allOf": [
+              {
+                "threshold": 100,
+                "name": "Metric1",
+                "metricName": "SuccessServerLatency",
+                "operator": "GreaterThan",
+                "timeAggregation": "Average",
+                "criterionType": "StaticThresholdCriterion"
+              }
+            ],
+            "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+          },
+          "targetResourceType": "Microsoft.Storage/storageAccounts"
+        },
+        {
+          "name": "[format('{0}-Storage-Over 50ms Latency Between Client-Storage', parameters('AlertNamePrefix'))]",
+          "displayName": "[format('{0}-Storage-Over 50ms Latency Between Client-Storage', parameters('AlertNamePrefix'))]",
+          "description": "[format('{0}\nThis could indicate a lag or poor performance for user Profiles or Apps using MSIX App Attach.\nThis is a total latency from end to end between the Host VM and Storage to include network.\nFor additional details on troubleshooting see:\n\"https://learn.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#very-high-latency-for-requests\"', variables('AlertDescriptionHeader'))]",
+          "severity": 2,
+          "evaluationFrequency": "PT15M",
+          "windowSize": "PT15M",
+          "criteria": {
+            "allOf": [
+              {
+                "threshold": 50,
+                "name": "Metric1",
+                "metricName": "SuccessE2ELatency",
+                "operator": "GreaterThan",
+                "timeAggregation": "Average",
+                "criterionType": "StaticThresholdCriterion"
+              }
+            ],
+            "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+          },
+          "targetResourceType": "Microsoft.Storage/storageAccounts"
+        },
+        {
+          "name": "[format('{0}-Storage-Over 100ms Latency Between Client-Storage', parameters('AlertNamePrefix'))]",
+          "displayName": "[format('{0}-Storage-Over 100ms Latency Between Client-Storage', parameters('AlertNamePrefix'))]",
+          "description": "[format('{0}\nThis could indicate a lag or poor performance for user Profiles or Apps using MSIX App Attach.\nThis is a total latency from end to end between the Host VM and Storage to include network.\nFor additional details on troubleshooting see:\n\"https://learn.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#very-high-latency-for-requests\"', variables('AlertDescriptionHeader'))]",
+          "severity": 1,
+          "evaluationFrequency": "PT15M",
+          "windowSize": "PT15M",
+          "criteria": {
+            "allOf": [
+              {
+                "threshold": 100,
+                "name": "Metric1",
+                "metricName": "SuccessE2ELatency",
+                "operator": "GreaterThan",
+                "timeAggregation": "Average",
+                "criterionType": "StaticThresholdCriterion"
+              }
+            ],
+            "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+          },
+          "targetResourceType": "Microsoft.Storage/storageAccounts"
+        },
+        {
+          "name": "[format('{0}-Storage-Azure Files Availability', parameters('AlertNamePrefix'))]",
+          "displayName": "[format('{0}-Storage-Azure Files Availability', parameters('AlertNamePrefix'))]",
+          "description": "[format('{0}\nThis could indicate storage is unavailable for user Profiles or Apps using MSIX App Attach.', variables('AlertDescriptionHeader'))]",
+          "severity": 1,
+          "evaluationFrequency": "PT5M",
+          "windowSize": "PT5M",
+          "criteria": {
+            "allOf": [
+              {
+                "threshold": 99,
+                "name": "Metric1",
+                "metricName": "Availability",
+                "operator": "LessThanOrEqual",
+                "timeAggregation": "Average",
+                "criterionType": "StaticThresholdCriterion"
+              }
+            ],
+            "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+          },
+          "targetResourceType": "Microsoft.Storage/storageAccounts"
+        }
+      ],
+      "fileShares": [
+        {
+          "name": "[format('{0}-Storage-Possible Throttling Due to High IOPs', parameters('AlertNamePrefix'))]",
+          "displayName": "[format('{0}-Storage-Possible Throttling Due to High IOPs', parameters('AlertNamePrefix'))]",
+          "description": "[format('{0}\nThis indicates you may be maxing out the allowed IOPs.\nhttps://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled', variables('AlertDescriptionHeader'))]",
+          "severity": 2,
+          "evaluationFrequency": "PT15M",
+          "windowSize": "PT15M",
+          "criteria": {
+            "allOf": [
+              {
+                "threshold": 1,
+                "name": "Metric1",
+                "metricName": "Transactions",
+                "dimensions": [
+                  {
+                    "name": "ResponseType",
+                    "operator": "Include",
+                    "values": [
+                      "SuccessWithThrottling",
+                      "SuccessWithShareIopsThrottling",
+                      "ClientShareIopsThrottlingError"
+                    ]
+                  },
+                  {
+                    "name": "FileShare",
+                    "operator": "Include",
+                    "values": [
+                      "SuccessWithShareEgressThrottling",
+                      "SuccessWithShareIngressThrottling",
+                      "SuccessWithShareIopsThrottling",
+                      "ClientShareEgressThrottlingError",
+                      "ClientShareIngressThrottlingError",
+                      "ClientShareIopsThrottlingError"
+                    ]
+                  }
+                ],
+                "operator": "GreaterThanOrEqual",
+                "timeAggregation": "Total",
+                "criterionType": "StaticThresholdCriterion"
+              }
+            ],
+            "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria"
+          },
+          "targetResourceType": "Microsoft.Storage/storageAccounts/fileServices"
+        }
+      ],
+      "anf": [
+        {
+          "name": "[format('{0}-Storage-Low Space on ANF Share-15 Percent Remaining', parameters('AlertNamePrefix'))]",
+          "displayName": "[format('{0}-Storage-Low Space on ANF Share-15% Remaining', parameters('AlertNamePrefix'))]",
+          "description": "[variables('AlertDescriptionHeader')]",
+          "severity": 2,
+          "evaluationFrequency": "PT1H",
+          "windowSize": "PT1H",
+          "criteria": {
+            "allOf": [
+              {
+                "threshold": 85,
+                "name": "Metric1",
+                "metricNamespace": "microsoft.netapp/netappaccounts/capacitypools/volumes",
+                "metricName": "VolumeConsumedSizePercentage",
+                "operator": "GreaterThanOrEqual",
+                "timeAggregation": "Average",
+                "criterionType": "StaticThresholdCriterion"
+              }
+            ],
+            "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria"
+          },
+          "targetResourceType": "Microsoft.NetApp/netAppAccounts/capacityPools/volumes"
+        },
+        {
+          "name": "[format('{0}-Storage-Low Space on ANF Share-5 Percent Remaining', parameters('AlertNamePrefix'))]",
+          "displayName": "[format('{0}-Storage-Low Space on ANF Share-5% Remaining', parameters('AlertNamePrefix'))]",
+          "description": "[variables('AlertDescriptionHeader')]",
+          "severity": 1,
+          "evaluationFrequency": "PT1H",
+          "windowSize": "PT1H",
+          "criteria": {
+            "allOf": [
+              {
+                "threshold": 95,
+                "name": "Metric1",
+                "metricNamespace": "microsoft.netapp/netappaccounts/capacitypools/volumes",
+                "metricName": "VolumeConsumedSizePercentage",
+                "operator": "GreaterThanOrEqual",
+                "timeAggregation": "Average",
+                "criterionType": "StaticThresholdCriterion"
+              }
+            ],
+            "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria"
+          },
+          "targetResourceType": "Microsoft.NetApp/netAppAccounts/capacityPools/volumes"
+        }
+      ],
+      "virtualMachines": [
+        {
+          "name": "[format('{0}-HostPool-VM-High CPU 85 Percent (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+          "displayName": "[format('{0}-HostPool-VM-High CPU 85% (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+          "description": "[variables('AlertDescriptionHeader')]",
+          "severity": 2,
+          "evaluationFrequency": "PT1M",
+          "windowSize": "PT5M",
+          "criteria": {
+            "allOf": [
+              {
+                "threshold": 85,
+                "name": "Metric1",
+                "metricNamespace": "microsoft.compute/virtualmachines",
+                "metricName": "Percentage CPU",
+                "operator": "GreaterThan",
+                "timeAggregation": "Average",
+                "criterionType": "StaticThresholdCriterion"
+              }
+            ],
+            "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria"
+          },
+          "targetResourceType": "microsoft.compute/virtualmachines"
+        },
+        {
+          "name": "[format('{0}-HostPool-VM-High CPU 95 Percent (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+          "displayName": "[format('{0}-HostPool-VM-High CPU 95% (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+          "description": "[variables('AlertDescriptionHeader')]",
+          "severity": 1,
+          "evaluationFrequency": "PT1M",
+          "windowSize": "PT5M",
+          "criteria": {
+            "allOf": [
+              {
+                "threshold": 95,
+                "name": "Metric1",
+                "metricNamespace": "microsoft.compute/virtualmachines",
+                "metricName": "Percentage CPU",
+                "operator": "GreaterThan",
+                "timeAggregation": "Average",
+                "criterionType": "StaticThresholdCriterion"
+              }
+            ],
+            "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria"
+          },
+          "targetResourceType": "microsoft.compute/virtualmachines"
+        },
+        {
+          "name": "[format('{0}-HostPool-VM-Available Memory Less Than 2GB (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+          "displayName": "[format('{0}-HostPool-VM-Available Memory Less Than 2GB (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+          "description": "[variables('AlertDescriptionHeader')]",
+          "severity": 2,
+          "evaluationFrequency": "PT1M",
+          "windowSize": "PT5M",
+          "criteria": {
+            "allOf": [
+              {
+                "threshold": 2147483648,
+                "name": "Metric1",
+                "metricNamespace": "microsoft.compute/virtualmachines",
+                "metricName": "Available Memory Bytes",
+                "operator": "LessThanOrEqual",
+                "timeAggregation": "Average",
+                "criterionType": "StaticThresholdCriterion"
+              }
+            ],
+            "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria"
+          },
+          "targetResourceType": "microsoft.compute/virtualmachines"
+        },
+        {
+          "name": "[format('{0}-HostPool-VM-Available Memory Less Than 1GB (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+          "displayName": "[format('{0}-HostPool-VM-Available Memory Less Than 1GB (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+          "description": "[variables('AlertDescriptionHeader')]",
+          "severity": 1,
+          "evaluationFrequency": "PT1M",
+          "windowSize": "PT5M",
+          "criteria": {
+            "allOf": [
+              {
+                "threshold": 1073741824,
+                "name": "Metric1",
+                "metricNamespace": "microsoft.compute/virtualmachines",
+                "metricName": "Available Memory Bytes",
+                "operator": "LessThanOrEqual",
+                "timeAggregation": "Average",
+                "criterionType": "StaticThresholdCriterion"
+              }
+            ],
+            "odata.type": "Microsoft.Azure.Monitor.MultipleResourceMultipleMetricCriteria"
+          },
+          "targetResourceType": "microsoft.compute/virtualmachines"
+        }
+      ]
+    },
+    "ActivityLogAlerts": [
+      {
+        "name": "[format('{0}-SerivceHealth-Service Issue', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-SerivceHealth-Serivice Issue', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "anyof": [
+          {
+            "field": "properties.incidentType",
+            "equals": "Incident"
+          }
+        ]
+      },
+      {
+        "name": "[format('{0}-SerivceHealth-Planned Maintenance', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-SerivceHealth-Planned Maintenance', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "anyOf": [
+          {
+            "field": "properties.incidentType",
+            "equals": "Maintenance"
+          }
+        ]
+      },
+      {
+        "name": "[format('{0}-SerivceHealth-Health Advisory', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-SerivceHealth-HealthAdvisory', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "anyOf": [
+          {
+            "field": "properties.incidentType",
+            "equals": "Informational"
+          },
+          {
+            "field": "properties.incidentType",
+            "equals": "ActionRequired"
+          }
+        ]
+      },
+      {
+        "name": "[format('{0}-SerivceHealth-Security', parameters('AlertNamePrefix'))]",
+        "displayName": "[format('{0}-SerivceHealth-Security', parameters('AlertNamePrefix'))]",
+        "description": "[variables('AlertDescriptionHeader')]",
+        "anyOf": [
+          {
+            "field": "properties.incidentType",
+            "equals": "Security"
+          }
+        ]
+      }
+    ]
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/resourceGroups",
+      "apiVersion": "2021-04-01",
+      "name": "[parameters('ResourceGroupName')]",
+      "tags": "[if(contains(parameters('Tags'), 'Microsoft.Resources/resourceGroups'), parameters('Tags')['Microsoft.Resources/resourceGroups'], createObject())]",
+      "location": "[parameters('Location')]"
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('linked_AutomtnAcct-{0}', variables('AutomationAccountName'))]",
+      "resourceGroup": "[parameters('ResourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "AutomationAccountName": {
+            "value": "[variables('AutomationAccountName')]"
+          },
+          "Location": {
+            "value": "[parameters('Location')]"
+          },
+          "LogAnalyticsWorkspaceResourceId": {
+            "value": "[parameters('LogAnalyticsWorkspaceResourceId')]"
+          },
+          "UsrManagedIdentityName": {
+            "value": "[variables('UsrManagedIdentityName')]"
+          },
+          "Tags": {
+            "value": "[parameters('Tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.11.1.770",
+              "templateHash": "15755615438520736011"
+            }
+          },
+          "parameters": {
+            "AutomationAccountName": {
+              "type": "string"
+            },
+            "Location": {
+              "type": "string"
+            },
+            "LogAnalyticsWorkspaceResourceId": {
+              "type": "string"
+            },
+            "UsrManagedIdentityName": {
+              "type": "string"
+            },
+            "Tags": {
+              "type": "object"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Automation/automationAccounts",
+              "apiVersion": "2021-06-22",
+              "name": "[parameters('AutomationAccountName')]",
+              "tags": "[if(contains(parameters('Tags'), 'Microsoft.Automation/automationAccounts'), parameters('Tags')['Microsoft.Automation/automationAccounts'], createObject())]",
+              "location": "[parameters('Location')]",
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "sku": {
+                  "name": "Free"
+                }
+              }
+            },
+            {
+              "condition": "[not(empty(parameters('LogAnalyticsWorkspaceResourceId')))]",
+              "type": "Microsoft.Insights/diagnosticSettings",
+              "apiVersion": "2017-05-01-preview",
+              "scope": "[format('Microsoft.Automation/automationAccounts/{0}', parameters('AutomationAccountName'))]",
+              "name": "[format('diag-{0}', parameters('AutomationAccountName'))]",
+              "properties": {
+                "logs": [
+                  {
+                    "category": "JobLogs",
+                    "enabled": true
+                  },
+                  {
+                    "category": "JobStreams",
+                    "enabled": true
+                  }
+                ],
+                "workspaceId": "[parameters('LogAnalyticsWorkspaceResourceId')]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Automation/automationAccounts', parameters('AutomationAccountName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+              "apiVersion": "2018-11-30",
+              "name": "[parameters('UsrManagedIdentityName')]",
+              "tags": "[if(contains(parameters('Tags'), 'Microsoft.ManagedIdentity/userAssignedIdentities'), parameters('Tags')['Microsoft.ManagedIdentity/userAssignedIdentities'], createObject())]",
+              "location": "[parameters('Location')]"
+            }
+          ],
+          "outputs": {
+            "AutomationAcctPrincipalID": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Automation/automationAccounts', parameters('AutomationAccountName')), '2021-06-22', 'full').identity.principalId]"
+            },
+            "AutomationAcctID": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Automation/automationAccounts', parameters('AutomationAccountName'))]"
+            },
+            "UsrIdentityPrincipalID": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('UsrManagedIdentityName'))).principalId]"
+            },
+            "UsrIdentityID": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('UsrManagedIdentityName'))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('ResourceGroupName'))]"
+      ]
+    },
+    {
+      "copy": {
+        "name": "roleAssignment_UsrIdDesktopRead",
+        "count": "[length(variables('HostPoolSubIds'))]"
+      },
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('linked_UsrID-DS_{0}', variables('HostPoolSubIds')[copyIndex()])]",
+      "subscriptionId": "[variables('HostPoolSubIds')[copyIndex()]]",
+      "location": "[deployment().location]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "AccountName": {
+            "value": "[variables('UsrManagedIdentityName')]"
+          },
+          "Subscription": {
+            "value": "[variables('HostPoolSubIds')[copyIndex()]]"
+          },
+          "RoleDefinition": {
+            "value": "[variables('RoleAssignments').DesktopVirtualizationRead]"
+          },
+          "PrincipalId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('linked_AutomtnAcct-{0}', variables('AutomationAccountName')))).outputs.UsrIdentityPrincipalID.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.11.1.770",
+              "templateHash": "15617631439877557725"
+            }
+          },
+          "parameters": {
+            "AccountName": {
+              "type": "string"
+            },
+            "RoleDefinition": {
+              "type": "object"
+            },
+            "PrincipalId": {
+              "type": "string"
+            },
+            "Subscription": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2020-10-01-preview",
+              "name": "[guid(parameters('Subscription'), parameters('AccountName'), parameters('RoleDefinition').name)]",
+              "properties": {
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', parameters('RoleDefinition').GUID)]",
+                "principalId": "[parameters('PrincipalId')]",
+                "principalType": "ServicePrincipal"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('linked_AutomtnAcct-{0}', variables('AutomationAccountName')))]"
+      ]
+    },
+    {
+      "copy": {
+        "name": "roleAssignment_AutoAcctDesktopRead",
+        "count": "[length(variables('DesktopReadRoleRGs'))]"
+      },
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('linked_DsktpRead_{0}', variables('DesktopReadRoleRGs')[copyIndex()])]",
+      "resourceGroup": "[variables('DesktopReadRoleRGs')[copyIndex()]]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "AccountName": {
+            "value": "[variables('AutomationAccountName')]"
+          },
+          "ResourceGroup": {
+            "value": "[variables('DesktopReadRoleRGs')[copyIndex()]]"
+          },
+          "RoleDefinition": {
+            "value": "[variables('RoleAssignments').DesktopVirtualizationRead]"
+          },
+          "PrincipalId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('linked_AutomtnAcct-{0}', variables('AutomationAccountName')))).outputs.AutomationAcctPrincipalID.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.11.1.770",
+              "templateHash": "12504518230236227180"
+            }
+          },
+          "parameters": {
+            "AccountName": {
+              "type": "string"
+            },
+            "ResourceGroup": {
+              "type": "string"
+            },
+            "RoleDefinition": {
+              "type": "object"
+            },
+            "PrincipalId": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2020-10-01-preview",
+              "name": "[guid(subscription().id, parameters('AccountName'), parameters('RoleDefinition').name, parameters('ResourceGroup'))]",
+              "properties": {
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', parameters('RoleDefinition').GUID)]",
+                "principalId": "[parameters('PrincipalId')]",
+                "principalType": "ServicePrincipal"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('linked_AutomtnAcct-{0}', variables('AutomationAccountName')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('linked_LogContrib_{0}', split(parameters('LogAnalyticsWorkspaceResourceId'), '/')[4])]",
+      "subscriptionId": "[split(parameters('LogAnalyticsWorkspaceResourceId'), '/')[2]]",
+      "resourceGroup": "[split(parameters('LogAnalyticsWorkspaceResourceId'), '/')[4]]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "AccountName": {
+            "value": "[variables('AutomationAccountName')]"
+          },
+          "ResourceGroup": {
+            "value": "[split(parameters('LogAnalyticsWorkspaceResourceId'), '/')[4]]"
+          },
+          "RoleDefinition": {
+            "value": "[variables('RoleAssignments').DesktopVirtualizationRead]"
+          },
+          "PrincipalId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('linked_AutomtnAcct-{0}', variables('AutomationAccountName')))).outputs.AutomationAcctPrincipalID.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.11.1.770",
+              "templateHash": "12504518230236227180"
+            }
+          },
+          "parameters": {
+            "AccountName": {
+              "type": "string"
+            },
+            "ResourceGroup": {
+              "type": "string"
+            },
+            "RoleDefinition": {
+              "type": "object"
+            },
+            "PrincipalId": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2020-10-01-preview",
+              "name": "[guid(subscription().id, parameters('AccountName'), parameters('RoleDefinition').name, parameters('ResourceGroup'))]",
+              "properties": {
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', parameters('RoleDefinition').GUID)]",
+                "principalId": "[parameters('PrincipalId')]",
+                "principalType": "ServicePrincipal"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('linked_AutomtnAcct-{0}', variables('AutomationAccountName')))]"
+      ]
+    },
+    {
+      "copy": {
+        "name": "roleAssignment_Storage",
+        "count": "[length(variables('StorAcctRGs'))]"
+      },
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "[format('linked_StorAcctContrib_{0}', variables('StorAcctRGs')[copyIndex()])]",
+      "resourceGroup": "[variables('StorAcctRGs')[copyIndex()]]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "AccountName": {
+            "value": "[variables('AutomationAccountName')]"
+          },
+          "ResourceGroup": {
+            "value": "[variables('StorAcctRGs')[copyIndex()]]"
+          },
+          "RoleDefinition": {
+            "value": "[variables('RoleAssignments').StoreAcctContrib]"
+          },
+          "PrincipalId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('linked_AutomtnAcct-{0}', variables('AutomationAccountName')))).outputs.AutomationAcctPrincipalID.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.11.1.770",
+              "templateHash": "12504518230236227180"
+            }
+          },
+          "parameters": {
+            "AccountName": {
+              "type": "string"
+            },
+            "ResourceGroup": {
+              "type": "string"
+            },
+            "RoleDefinition": {
+              "type": "object"
+            },
+            "PrincipalId": {
+              "type": "string"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2020-10-01-preview",
+              "name": "[guid(subscription().id, parameters('AccountName'), parameters('RoleDefinition').name, parameters('ResourceGroup'))]",
+              "properties": {
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', parameters('RoleDefinition').GUID)]",
+                "principalId": "[parameters('PrincipalId')]",
+                "principalType": "ServicePrincipal"
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('linked_AutomtnAcct-{0}', variables('AutomationAccountName')))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "linked_MonitoringResourcesDeployment",
+      "resourceGroup": "[parameters('ResourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "_ArtifactsLocation": {
+            "value": "[parameters('_ArtifactsLocation')]"
+          },
+          "_ArtifactsLocationSasToken": {
+            "value": "[parameters('_ArtifactsLocationSasToken')]"
+          },
+          "ActivityLogAlerts": {
+            "value": "[variables('ActivityLogAlerts')]"
+          },
+          "AutomationAccountName": {
+            "value": "[variables('AutomationAccountName')]"
+          },
+          "DistributionGroup": {
+            "value": "[parameters('DistributionGroup')]"
+          },
+          "HostPools": {
+            "value": "[parameters('HostPools')]"
+          },
+          "Location": {
+            "value": "[parameters('Location')]"
+          },
+          "LogAnalyticsWorkspaceResourceId": {
+            "value": "[parameters('LogAnalyticsWorkspaceResourceId')]"
+          },
+          "LogAlerts": {
+            "value": "[variables('LogAlerts')]"
+          },
+          "LogAlertsHostPool": {
+            "value": "[variables('LogAlertsHostPool')]"
+          },
+          "LogicAppName": {
+            "value": "[variables('LogicAppName')]"
+          },
+          "MetricAlerts": {
+            "value": "[variables('MetricAlerts')]"
+          },
+          "RunbookNameGetStorage": {
+            "value": "[variables('RunbookNameGetStorage')]"
+          },
+          "RunbookNameGetHostPool": {
+            "value": "[variables('RunbookNameGetHostPool')]"
+          },
+          "RunbookScriptGetStorage": {
+            "value": "[variables('RunbookScriptGetStorage')]"
+          },
+          "RunbookScriptGetHostPool": {
+            "value": "[variables('RunbookScriptGetHostPool')]"
+          },
+          "ScriptsRepositoryUri": {
+            "value": "[variables('ScriptsRepositoryUri')]"
+          },
+          "StorageAccountResourceIds": {
+            "value": "[parameters('StorageAccountResourceIds')]"
+          },
+          "ActionGroupName": {
+            "value": "[variables('ActionGroupName')]"
+          },
+          "ANFVolumeResourceIds": {
+            "value": "[parameters('ANFVolumeResourceIds')]"
+          },
+          "Tags": {
+            "value": "[parameters('Tags')]"
+          },
+          "UsrAssignedId": {
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('linked_AutomtnAcct-{0}', variables('AutomationAccountName')))).outputs.UsrIdentityID.value]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.11.1.770",
+              "templateHash": "4868013181417931413"
+            }
+          },
+          "parameters": {
+            "_ArtifactsLocation": {
+              "type": "string"
+            },
+            "_ArtifactsLocationSasToken": {
+              "type": "secureString"
+            },
+            "ActionGroupName": {
+              "type": "string"
+            },
+            "ActivityLogAlerts": {
+              "type": "array"
+            },
+            "ANFVolumeResourceIds": {
+              "type": "array"
+            },
+            "AutomationAccountName": {
+              "type": "string"
+            },
+            "DistributionGroup": {
+              "type": "string"
+            },
+            "HostPools": {
+              "type": "array"
+            },
+            "Location": {
+              "type": "string"
+            },
+            "LogAnalyticsWorkspaceResourceId": {
+              "type": "string"
+            },
+            "LogAlerts": {
+              "type": "array"
+            },
+            "LogAlertsHostPool": {
+              "type": "array"
+            },
+            "LogicAppName": {
+              "type": "string"
+            },
+            "MetricAlerts": {
+              "type": "object"
+            },
+            "RunbookNameGetStorage": {
+              "type": "string"
+            },
+            "RunbookNameGetHostPool": {
+              "type": "string"
+            },
+            "RunbookScriptGetStorage": {
+              "type": "string"
+            },
+            "RunbookScriptGetHostPool": {
+              "type": "string"
+            },
+            "ScriptsRepositoryUri": {
+              "type": "string"
+            },
+            "StorageAccountResourceIds": {
+              "type": "array"
+            },
+            "Tags": {
+              "type": "object"
+            },
+            "Timestamp": {
+              "type": "string",
+              "defaultValue": "[utcNow('u')]"
+            },
+            "UsrAssignedId": {
+              "type": "string"
+            }
+          },
+          "variables": {
+            "SubscriptionId": "[subscription().subscriptionId]",
+            "CloudEnvironment": "[environment().name]",
+            "AVDResIDsString": "[string(parameters('HostPools'))]",
+            "HostPoolsAsString": "[replace(replace(variables('AVDResIDsString'), '[', ''), ']', '')]"
+          },
+          "resources": [
+            {
+              "type": "microsoft.insights/actionGroups",
+              "apiVersion": "2019-06-01",
+              "name": "[parameters('ActionGroupName')]",
+              "tags": "[if(contains(parameters('Tags'), 'Microsoft.Insights/actionGroups'), parameters('Tags')['Microsoft.Insights/actionGroups'], createObject())]",
+              "location": "global",
+              "properties": {
+                "groupShortName": "EmailAlerts",
+                "enabled": true,
+                "emailReceivers": [
+                  {
+                    "name": "[parameters('DistributionGroup')]",
+                    "emailAddress": "[parameters('DistributionGroup')]",
+                    "useCommonAlertSchema": true
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.Resources/deploymentScripts",
+              "apiVersion": "2020-10-01",
+              "name": "ds_GetHostPoolVMAssociation",
+              "location": "[parameters('Location')]",
+              "tags": "[if(contains(parameters('Tags'), 'Microsoft.Resources/deploymentScripts'), parameters('Tags')['Microsoft.Resources/deploymentScripts'], createObject())]",
+              "kind": "AzurePowerShell",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', parameters('UsrAssignedId'))]": {}
+                }
+              },
+              "properties": {
+                "forceUpdateTag": "[parameters('Timestamp')]",
+                "azPowerShellVersion": "7.1",
+                "arguments": "[format('-AVDResourceIDs {0}', variables('HostPoolsAsString'))]",
+                "primaryScriptUri": "[format('{0}dsHostPoolVMMap.ps1{1}', parameters('_ArtifactsLocation'), parameters('_ArtifactsLocationSasToken'))]",
+                "timeout": "PT2H",
+                "cleanupPreference": "OnSuccess",
+                "retentionInterval": "P1D"
+              }
+            },
+            {
+              "copy": {
+                "name": "logAlertQueries",
+                "count": "[length(range(0, length(parameters('LogAlerts'))))]"
+              },
+              "type": "Microsoft.Insights/scheduledQueryRules",
+              "apiVersion": "2021-08-01",
+              "name": "[parameters('LogAlerts')[range(0, length(parameters('LogAlerts')))[copyIndex()]].name]",
+              "location": "[parameters('Location')]",
+              "tags": "[if(contains(parameters('Tags'), 'Microsoft.Insights/scheduledQueryRules'), parameters('Tags')['Microsoft.Insights/scheduledQueryRules'], createObject())]",
+              "properties": {
+                "actions": {
+                  "actionGroups": [
+                    "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+                  ],
+                  "customProperties": {}
+                },
+                "criteria": "[parameters('LogAlerts')[range(0, length(parameters('LogAlerts')))[copyIndex()]].criteria]",
+                "displayName": "[parameters('LogAlerts')[range(0, length(parameters('LogAlerts')))[copyIndex()]].displayName]",
+                "description": "[parameters('LogAlerts')[range(0, length(parameters('LogAlerts')))[copyIndex()]].description]",
+                "enabled": false,
+                "evaluationFrequency": "[parameters('LogAlerts')[range(0, length(parameters('LogAlerts')))[copyIndex()]].evaluationFrequency]",
+                "scopes": [
+                  "[parameters('LogAnalyticsWorkspaceResourceId')]"
+                ],
+                "severity": "[parameters('LogAlerts')[range(0, length(parameters('LogAlerts')))[copyIndex()]].severity]",
+                "windowSize": "[parameters('LogAlerts')[range(0, length(parameters('LogAlerts')))[copyIndex()]].windowSize]"
+              },
+              "dependsOn": [
+                "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+              ]
+            },
+            {
+              "condition": "[equals(variables('CloudEnvironment'), 'AzureCloud')]",
+              "copy": {
+                "name": "activityLogAlerts",
+                "count": "[length(range(0, length(parameters('ActivityLogAlerts'))))]"
+              },
+              "type": "Microsoft.Insights/activityLogAlerts",
+              "apiVersion": "2020-10-01",
+              "name": "[parameters('ActivityLogAlerts')[range(0, length(parameters('ActivityLogAlerts')))[copyIndex()]].name]",
+              "location": "Global",
+              "tags": "[if(contains(parameters('Tags'), 'Microsoft.Insights/activityLogAlerts'), parameters('Tags')['Microsoft.Insights/activityLogAlerts'], createObject())]",
+              "properties": {
+                "scopes": [
+                  "[format('/subscriptions/{0}', variables('SubscriptionId'))]"
+                ],
+                "condition": {
+                  "allOf": [
+                    {
+                      "field": "category",
+                      "equals": "ServiceHealth"
+                    },
+                    {
+                      "anyOf": "[parameters('ActivityLogAlerts')[range(0, length(parameters('ActivityLogAlerts')))[copyIndex()]].anyof]"
+                    },
+                    {
+                      "field": "properties.impactedServices[*].ServiceName",
+                      "containsAny": [
+                        "Windows Virtual Desktop"
+                      ]
+                    },
+                    {
+                      "field": "properties.impactedServices[*].ImpactedRegions[*].RegionName",
+                      "containsAny": [
+                        "[parameters('Location')]"
+                      ]
+                    }
+                  ]
+                },
+                "actions": {
+                  "actionGroups": [
+                    {
+                      "actionGroupId": "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+                    }
+                  ]
+                },
+                "description": "[parameters('ActivityLogAlerts')[range(0, length(parameters('ActivityLogAlerts')))[copyIndex()]].description]",
+                "enabled": false
+              },
+              "dependsOn": [
+                "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+              ]
+            },
+            {
+              "copy": {
+                "name": "metricAlertsVMs",
+                "count": "[length(range(0, length(parameters('HostPools'))))]"
+              },
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "[format('linked_VMMetricAlerts_{0}', guid(parameters('HostPools')[range(0, length(parameters('HostPools')))[copyIndex()]]))]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "HostPoolInfo": {
+                    "value": "[json(reference(resourceId('Microsoft.Resources/deploymentScripts', 'ds_GetHostPoolVMAssociation')).outputs.HostPoolInfo)[range(0, length(parameters('HostPools')))[copyIndex()]]]"
+                  },
+                  "MetricAlerts": {
+                    "value": "[parameters('MetricAlerts')]"
+                  },
+                  "Enabled": {
+                    "value": false
+                  },
+                  "AutoMitigate": {
+                    "value": false
+                  },
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "ActionGroupId": {
+                    "value": "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+                  },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.11.1.770",
+                      "templateHash": "11004693429115375530"
+                    }
+                  },
+                  "parameters": {
+                    "AutoMitigate": {
+                      "type": "bool"
+                    },
+                    "ActionGroupId": {
+                      "type": "string"
+                    },
+                    "Enabled": {
+                      "type": "bool"
+                    },
+                    "HostPoolInfo": {
+                      "type": "object"
+                    },
+                    "MetricAlerts": {
+                      "type": "object"
+                    },
+                    "Tags": {
+                      "type": "object"
+                    },
+                    "Location": {
+                      "type": "string"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "condition": "[not(equals(parameters('HostPoolInfo').VMResourceGroup, null()))]",
+                      "copy": {
+                        "name": "metricAlerts_VirtualMachines",
+                        "count": "[length(range(0, length(parameters('MetricAlerts').virtualMachines)))]"
+                      },
+                      "type": "Microsoft.Insights/metricAlerts",
+                      "apiVersion": "2018-03-01",
+                      "name": "[replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolInfo').HostPoolName)]",
+                      "location": "global",
+                      "tags": "[if(contains(parameters('Tags'), 'Microsoft.Insights/metricAlerts'), parameters('Tags')['Microsoft.Insights/metricAlerts'], createObject())]",
+                      "properties": {
+                        "description": "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].description]",
+                        "severity": "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].severity]",
+                        "enabled": "[parameters('Enabled')]",
+                        "scopes": [
+                          "[parameters('HostPoolInfo').VMResourceGroup]"
+                        ],
+                        "evaluationFrequency": "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].evaluationFrequency]",
+                        "windowSize": "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].windowSize]",
+                        "criteria": "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].criteria]",
+                        "autoMitigate": "[parameters('AutoMitigate')]",
+                        "targetResourceType": "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].targetResourceType]",
+                        "targetResourceRegion": "[parameters('Location')]",
+                        "actions": [
+                          {
+                            "actionGroupId": "[parameters('ActionGroupId')]",
+                            "webHookProperties": {}
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "outputs": {
+                    "HostPoolInfo": {
+                      "type": "object",
+                      "value": "[parameters('HostPoolInfo')]"
+                    },
+                    "HostPoolName": {
+                      "type": "string",
+                      "value": "[parameters('HostPoolInfo').HostPoolName]"
+                    },
+                    "HostPoolRG": {
+                      "type": "string",
+                      "value": "[if(not(equals(parameters('HostPoolInfo').VMResourceIDs, null())), split(parameters('HostPoolInfo').VMResourceIDs[0], '/')[4], 'Null Value')]"
+                    }
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]",
+                "[resourceId('Microsoft.Resources/deploymentScripts', 'ds_GetHostPoolVMAssociation')]"
+              ]
+            },
+            {
+              "condition": "[greater(length(parameters('StorageAccountResourceIds')), 0)]",
+              "copy": {
+                "name": "storAccountMetric",
+                "count": "[length(range(0, length(parameters('StorageAccountResourceIds'))))]"
+              },
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "[format('MetricAlert_StorageAccount_{0}', split(parameters('StorageAccountResourceIds')[range(0, length(parameters('StorageAccountResourceIds')))[copyIndex()]], '/')[8])]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "StorageAccountResourceID": {
+                    "value": "[parameters('StorageAccountResourceIds')[range(0, length(parameters('StorageAccountResourceIds')))[copyIndex()]]]"
+                  },
+                  "MetricAlertsStorageAcct": {
+                    "value": "[parameters('MetricAlerts').storageAccounts]"
+                  },
+                  "ActionGroupID": {
+                    "value": "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+                  },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.11.1.770",
+                      "templateHash": "10838824638881343579"
+                    }
+                  },
+                  "parameters": {
+                    "Location": {
+                      "type": "string"
+                    },
+                    "StorageAccountResourceID": {
+                      "type": "string"
+                    },
+                    "MetricAlertsStorageAcct": {
+                      "type": "array"
+                    },
+                    "ActionGroupID": {
+                      "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "copy": {
+                        "name": "metricAlerts_StorageAcct",
+                        "count": "[length(range(0, length(parameters('MetricAlertsStorageAcct'))))]"
+                      },
+                      "type": "Microsoft.Insights/metricAlerts",
+                      "apiVersion": "2018-03-01",
+                      "name": "[format('{0}-{1}', parameters('MetricAlertsStorageAcct')[range(0, length(parameters('MetricAlertsStorageAcct')))[copyIndex()]].name, split(parameters('StorageAccountResourceID'), '/')[8])]",
+                      "location": "global",
+                      "tags": "[if(contains(parameters('Tags'), 'Microsoft.Insights/metricAlerts'), parameters('Tags')['Microsoft.Insights/metricAlerts'], createObject())]",
+                      "properties": {
+                        "severity": "[parameters('MetricAlertsStorageAcct')[range(0, length(parameters('MetricAlertsStorageAcct')))[copyIndex()]].severity]",
+                        "enabled": false,
+                        "scopes": [
+                          "[parameters('StorageAccountResourceID')]"
+                        ],
+                        "evaluationFrequency": "[parameters('MetricAlertsStorageAcct')[range(0, length(parameters('MetricAlertsStorageAcct')))[copyIndex()]].evaluationFrequency]",
+                        "windowSize": "[parameters('MetricAlertsStorageAcct')[range(0, length(parameters('MetricAlertsStorageAcct')))[copyIndex()]].windowSize]",
+                        "criteria": "[parameters('MetricAlertsStorageAcct')[range(0, length(parameters('MetricAlertsStorageAcct')))[copyIndex()]].criteria]",
+                        "autoMitigate": false,
+                        "targetResourceType": "[parameters('MetricAlertsStorageAcct')[range(0, length(parameters('MetricAlertsStorageAcct')))[copyIndex()]].targetResourceType]",
+                        "targetResourceRegion": "[parameters('Location')]",
+                        "actions": [
+                          {
+                            "actionGroupId": "[parameters('ActionGroupID')]"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+              ]
+            },
+            {
+              "condition": "[greater(length(parameters('ANFVolumeResourceIds')), 0)]",
+              "copy": {
+                "name": "azureNetAppFilesMetric",
+                "count": "[length(range(0, length(parameters('ANFVolumeResourceIds'))))]"
+              },
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "[format('MetricAlert_ANF_{0}', split(parameters('ANFVolumeResourceIds')[range(0, length(parameters('ANFVolumeResourceIds')))[copyIndex()]], '/')[12])]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "ANFVolumeResourceID": {
+                    "value": "[parameters('ANFVolumeResourceIds')[range(0, length(parameters('ANFVolumeResourceIds')))[copyIndex()]]]"
+                  },
+                  "MetricAlertsANF": {
+                    "value": "[parameters('MetricAlerts').anf]"
+                  },
+                  "ActionGroupID": {
+                    "value": "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+                  },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.11.1.770",
+                      "templateHash": "6725601804398586256"
+                    }
+                  },
+                  "parameters": {
+                    "Location": {
+                      "type": "string"
+                    },
+                    "MetricAlertsANF": {
+                      "type": "array"
+                    },
+                    "ANFVolumeResourceID": {
+                      "type": "string"
+                    },
+                    "ActionGroupID": {
+                      "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "copy": {
+                        "name": "metricAlerts_ANFVolume",
+                        "count": "[length(range(0, length(parameters('MetricAlertsANF'))))]"
+                      },
+                      "type": "Microsoft.Insights/metricAlerts",
+                      "apiVersion": "2018-03-01",
+                      "name": "[format('{0}-{1}', parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].name, split(parameters('ANFVolumeResourceID'), '/')[12])]",
+                      "location": "global",
+                      "tags": "[if(contains(parameters('Tags'), 'Microsoft.Insights/metricAlerts'), parameters('Tags')['Microsoft.Insights/metricAlerts'], createObject())]",
+                      "properties": {
+                        "description": "[parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].description]",
+                        "severity": "[parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].severity]",
+                        "enabled": false,
+                        "scopes": [
+                          "[parameters('ANFVolumeResourceID')]"
+                        ],
+                        "evaluationFrequency": "[parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].evaluationFrequency]",
+                        "windowSize": "[parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].windowSize]",
+                        "criteria": "[parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].criteria]",
+                        "autoMitigate": false,
+                        "targetResourceType": "[parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].targetResourceType]",
+                        "targetResourceRegion": "[parameters('Location')]",
+                        "actions": [
+                          {
+                            "actionGroupId": "[parameters('ActionGroupID')]"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+              ]
+            },
+            {
+              "condition": "[greater(length(parameters('StorageAccountResourceIds')), 0)]",
+              "copy": {
+                "name": "fileServicesMetric",
+                "count": "[length(range(0, length(parameters('StorageAccountResourceIds'))))]"
+              },
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "[format('MetricAlert_FileServices_{0}', range(0, length(parameters('StorageAccountResourceIds')))[copyIndex()])]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "StorageAccountResourceID": {
+                    "value": "[parameters('StorageAccountResourceIds')[range(0, length(parameters('StorageAccountResourceIds')))[copyIndex()]]]"
+                  },
+                  "MetricAlertsFileShares": {
+                    "value": "[parameters('MetricAlerts').fileShares]"
+                  },
+                  "ActionGroupID": {
+                    "value": "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+                  },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.11.1.770",
+                      "templateHash": "6655940499032011516"
+                    }
+                  },
+                  "parameters": {
+                    "Location": {
+                      "type": "string"
+                    },
+                    "StorageAccountResourceID": {
+                      "type": "string"
+                    },
+                    "MetricAlertsFileShares": {
+                      "type": "array"
+                    },
+                    "ActionGroupID": {
+                      "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
+                    }
+                  },
+                  "variables": {
+                    "FileServicesResourceID": "[format('{0}/fileServices/default', parameters('StorageAccountResourceID'))]"
+                  },
+                  "resources": [
+                    {
+                      "copy": {
+                        "name": "metricAlerts_FileShares",
+                        "count": "[length(range(0, length(parameters('MetricAlertsFileShares'))))]"
+                      },
+                      "type": "Microsoft.Insights/metricAlerts",
+                      "apiVersion": "2018-03-01",
+                      "name": "[format('{0}-{1}', parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].name, split(variables('FileServicesResourceID'), '/')[8])]",
+                      "location": "global",
+                      "tags": "[if(contains(parameters('Tags'), 'Microsoft.Insights/metricAlerts'), parameters('Tags')['Microsoft.Insights/metricAlerts'], createObject())]",
+                      "properties": {
+                        "description": "[parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].description]",
+                        "severity": "[parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].severity]",
+                        "enabled": false,
+                        "scopes": [
+                          "[variables('FileServicesResourceID')]"
+                        ],
+                        "evaluationFrequency": "[parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].evaluationFrequency]",
+                        "windowSize": "[parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].windowSize]",
+                        "criteria": "[parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].criteria]",
+                        "autoMitigate": false,
+                        "targetResourceType": "[parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].targetResourceType]",
+                        "targetResourceRegion": "[parameters('Location')]",
+                        "actions": [
+                          {
+                            "actionGroupId": "[parameters('ActionGroupID')]"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+              ]
+            },
+            {
+              "copy": {
+                "name": "logAlertHostPoolQueries",
+                "count": "[length(parameters('HostPools'))]"
+              },
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "[format('linked_HostPoolAlerts-{0}', guid(parameters('HostPools')[copyIndex()], subscription().id))]",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "ActionGroupId": {
+                    "value": "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+                  },
+                  "HostPoolName": {
+                    "value": "[split(parameters('HostPools')[copyIndex()], '/')[8]]"
+                  },
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "LogAlertsHostPool": {
+                    "value": "[parameters('LogAlertsHostPool')]"
+                  },
+                  "LogAnalyticsWorkspaceResourceId": {
+                    "value": "[parameters('LogAnalyticsWorkspaceResourceId')]"
+                  },
+                  "Tags": {
+                    "value": {}
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.11.1.770",
+                      "templateHash": "12934536467998086749"
+                    }
+                  },
+                  "parameters": {
+                    "ActionGroupId": {
+                      "type": "string"
+                    },
+                    "HostPoolName": {
+                      "type": "string"
+                    },
+                    "LogAlertsHostPool": {
+                      "type": "array"
+                    },
+                    "LogAnalyticsWorkspaceResourceId": {
+                      "type": "string"
+                    },
+                    "Location": {
+                      "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "copy": {
+                        "name": "logAlertHostPoolQueries",
+                        "count": "[length(range(0, length(parameters('LogAlertsHostPool'))))]"
+                      },
+                      "type": "Microsoft.Insights/scheduledQueryRules",
+                      "apiVersion": "2021-08-01",
+                      "name": "[replace(parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName'))]",
+                      "location": "[parameters('Location')]",
+                      "tags": "[if(contains(parameters('Tags'), 'Microsoft.Insights/scheduledQueryRules'), parameters('Tags')['Microsoft.Insights/scheduledQueryRules'], createObject())]",
+                      "properties": {
+                        "actions": {
+                          "actionGroups": [
+                            "[parameters('ActionGroupId')]"
+                          ],
+                          "customProperties": {}
+                        },
+                        "criteria": {
+                          "allOf": [
+                            {
+                              "query": "[replace(parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].criteria.allOf[0].query, 'xHostPoolNamex', parameters('HostPoolName'))]",
+                              "timeAggregation": "[parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].criteria.allOf[0].timeAggregation]",
+                              "dimensions": "[parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].criteria.allOf[0].dimensions]",
+                              "operator": "[parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].criteria.allOf[0].operator]",
+                              "threshold": "[parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].criteria.allOf[0].threshold]",
+                              "failingPeriods": "[parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].criteria.allOf[0].failingPeriods]"
+                            }
+                          ]
+                        },
+                        "displayName": "[replace(parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].displayName, 'xHostPoolNamex', parameters('HostPoolName'))]",
+                        "description": "[replace(parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].description, 'xHostPoolNamex', parameters('HostPoolName'))]",
+                        "enabled": false,
+                        "evaluationFrequency": "[parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].evaluationFrequency]",
+                        "scopes": [
+                          "[parameters('LogAnalyticsWorkspaceResourceId')]"
+                        ],
+                        "severity": "[parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].severity]",
+                        "windowSize": "[parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].windowSize]"
+                      }
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('microsoft.insights/actionGroups', parameters('ActionGroupName'))]"
+              ]
+            },
+            {
+              "condition": "[greater(length(parameters('StorageAccountResourceIds')), 0)]",
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "LogicApp_Storage",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "AutomationAccountName": {
+                    "value": "[parameters('AutomationAccountName')]"
+                  },
+                  "CloudEnvironment": {
+                    "value": "[variables('CloudEnvironment')]"
+                  },
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "LogicAppName": {
+                    "value": "[format('{0}-Storage', parameters('LogicAppName'))]"
+                  },
+                  "RunbookNameGetStorage": {
+                    "value": "[parameters('RunbookNameGetStorage')]"
+                  },
+                  "RunbookURI": {
+                    "value": "[format('{0}{1}', parameters('ScriptsRepositoryUri'), parameters('RunbookScriptGetStorage'))]"
+                  },
+                  "StorageAccountResourceIds": {
+                    "value": "[parameters('StorageAccountResourceIds')]"
+                  },
+                  "Timestamp": {
+                    "value": "[parameters('Timestamp')]"
+                  },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.11.1.770",
+                      "templateHash": "6096781018497654410"
+                    }
+                  },
+                  "parameters": {
+                    "AutomationAccountName": {
+                      "type": "string"
+                    },
+                    "CloudEnvironment": {
+                      "type": "string"
+                    },
+                    "Location": {
+                      "type": "string"
+                    },
+                    "LogicAppName": {
+                      "type": "string"
+                    },
+                    "RunbookNameGetStorage": {
+                      "type": "string"
+                    },
+                    "RunbookURI": {
+                      "type": "string"
+                    },
+                    "StorageAccountResourceIds": {
+                      "type": "array"
+                    },
+                    "Timestamp": {
+                      "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Automation/automationAccounts/runbooks",
+                      "apiVersion": "2018-06-30",
+                      "name": "[format('{0}/{1}', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage'))]",
+                      "tags": "[if(contains(parameters('Tags'), 'Microsoft.Automation/automationAccounts/runbooks'), parameters('Tags')['Microsoft.Automation/automationAccounts/runbooks'], createObject())]",
+                      "location": "[parameters('Location')]",
+                      "properties": {
+                        "runbookType": "PowerShell",
+                        "logProgress": false,
+                        "logVerbose": false,
+                        "publishContentLink": {
+                          "uri": "[parameters('RunbookURI')]",
+                          "version": "1.0.0.0"
+                        }
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Automation/automationAccounts/webhooks",
+                      "apiVersion": "2015-10-31",
+                      "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]",
+                      "properties": {
+                        "isEnabled": true,
+                        "expiryTime": "[dateTimeAdd(parameters('Timestamp'), 'P5Y')]",
+                        "runbook": {
+                          "name": "[parameters('RunbookNameGetStorage')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Logic/workflows",
+                      "apiVersion": "2016-06-01",
+                      "name": "[parameters('LogicAppName')]",
+                      "tags": "[if(contains(parameters('Tags'), 'Microsoft.Logic/workflows'), parameters('Tags')['Microsoft.Logic/workflows'], createObject())]",
+                      "location": "[parameters('Location')]",
+                      "properties": {
+                        "state": "Enabled",
+                        "definition": {
+                          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                          "actions": {
+                            "HTTP": {
+                              "type": "Http",
+                              "inputs": {
+                                "method": "POST",
+                                "uri": "[reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))).uri]",
+                                "body": {
+                                  "CloudEnvironment": "[parameters('CloudEnvironment')]",
+                                  "StorageAccountResourceIDs": "[parameters('StorageAccountResourceIds')]"
+                                }
+                              }
+                            }
+                          },
+                          "triggers": {
+                            "Recurrence": {
+                              "type": "Recurrence",
+                              "recurrence": {
+                                "frequency": "Minute",
+                                "interval": 5
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage'))]",
+                        "[resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]"
+                      ]
+                    }
+                  ],
+                  "outputs": {
+                    "RunbookURI": {
+                      "type": "string",
+                      "value": "[parameters('RunbookURI')]"
+                    },
+                    "webhookname": {
+                      "type": "string",
+                      "value": "[format('{0}_{1}', parameters('RunbookNameGetStorage'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss'))]"
+                    },
+                    "RunbookProp": {
+                      "type": "object",
+                      "value": "[reference(resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetStorage')))]"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Resources/deployments",
+              "apiVersion": "2020-10-01",
+              "name": "LogicApp_HostPool",
+              "properties": {
+                "expressionEvaluationOptions": {
+                  "scope": "inner"
+                },
+                "mode": "Incremental",
+                "parameters": {
+                  "AutomationAccountName": {
+                    "value": "[parameters('AutomationAccountName')]"
+                  },
+                  "CloudEnvironment": {
+                    "value": "[variables('CloudEnvironment')]"
+                  },
+                  "Location": {
+                    "value": "[parameters('Location')]"
+                  },
+                  "LogicAppName": {
+                    "value": "[format('{0}-HostPool', parameters('LogicAppName'))]"
+                  },
+                  "RunbookNameGetHostPool": {
+                    "value": "[parameters('RunbookNameGetHostPool')]"
+                  },
+                  "RunbookURI": {
+                    "value": "[format('{0}{1}', parameters('ScriptsRepositoryUri'), parameters('RunbookScriptGetHostPool'))]"
+                  },
+                  "SubscriptionId": {
+                    "value": "[variables('SubscriptionId')]"
+                  },
+                  "Timestamp": {
+                    "value": "[parameters('Timestamp')]"
+                  },
+                  "Tags": {
+                    "value": "[parameters('Tags')]"
+                  }
+                },
+                "template": {
+                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                  "contentVersion": "1.0.0.0",
+                  "metadata": {
+                    "_generator": {
+                      "name": "bicep",
+                      "version": "0.11.1.770",
+                      "templateHash": "9002331442764203879"
+                    }
+                  },
+                  "parameters": {
+                    "AutomationAccountName": {
+                      "type": "string"
+                    },
+                    "CloudEnvironment": {
+                      "type": "string"
+                    },
+                    "Location": {
+                      "type": "string"
+                    },
+                    "LogicAppName": {
+                      "type": "string"
+                    },
+                    "RunbookNameGetHostPool": {
+                      "type": "string"
+                    },
+                    "RunbookURI": {
+                      "type": "string"
+                    },
+                    "SubscriptionId": {
+                      "type": "string"
+                    },
+                    "Timestamp": {
+                      "type": "string"
+                    },
+                    "Tags": {
+                      "type": "object"
+                    }
+                  },
+                  "resources": [
+                    {
+                      "type": "Microsoft.Automation/automationAccounts/runbooks",
+                      "apiVersion": "2019-06-01",
+                      "name": "[format('{0}/{1}', parameters('AutomationAccountName'), parameters('RunbookNameGetHostPool'))]",
+                      "tags": "[if(contains(parameters('Tags'), 'Microsoft.Automation/automationAccounts/runbooks'), parameters('Tags')['Microsoft.Automation/automationAccounts/runbooks'], createObject())]",
+                      "location": "[parameters('Location')]",
+                      "properties": {
+                        "runbookType": "PowerShell",
+                        "logProgress": false,
+                        "logVerbose": false,
+                        "publishContentLink": {
+                          "uri": "[parameters('RunbookURI')]",
+                          "version": "1.0.0.0"
+                        }
+                      }
+                    },
+                    {
+                      "type": "Microsoft.Automation/automationAccounts/webhooks",
+                      "apiVersion": "2015-10-31",
+                      "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetHostPool'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]",
+                      "properties": {
+                        "isEnabled": true,
+                        "expiryTime": "[dateTimeAdd(parameters('Timestamp'), 'P5Y')]",
+                        "runbook": {
+                          "name": "[parameters('RunbookNameGetHostPool')]"
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetHostPool'))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Automation/automationAccounts/variables",
+                      "apiVersion": "2019-06-01",
+                      "name": "[format('{0}/{1}', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetHostPool')))]",
+                      "properties": {
+                        "value": "[format('\"{0}\"', reference(resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetHostPool'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))).uri)]",
+                        "isEncrypted": false
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetHostPool'))]",
+                        "[resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetHostPool'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]"
+                      ]
+                    },
+                    {
+                      "type": "Microsoft.Logic/workflows",
+                      "apiVersion": "2016-06-01",
+                      "name": "[parameters('LogicAppName')]",
+                      "tags": "[if(contains(parameters('Tags'), 'Microsoft.Logic/workflows'), parameters('Tags')['Microsoft.Logic/workflows'], createObject())]",
+                      "location": "[parameters('Location')]",
+                      "properties": {
+                        "state": "Enabled",
+                        "definition": {
+                          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                          "actions": {
+                            "HTTP": {
+                              "type": "Http",
+                              "inputs": {
+                                "method": "POST",
+                                "uri": "[replace(reference(resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetHostPool')))).value, '\"', '')]",
+                                "body": {
+                                  "CloudEnvironment": "[parameters('CloudEnvironment')]",
+                                  "SubscriptionId": "[parameters('SubscriptionId')]"
+                                }
+                              }
+                            }
+                          },
+                          "triggers": {
+                            "Recurrence": {
+                              "type": "Recurrence",
+                              "recurrence": {
+                                "frequency": "Minute",
+                                "interval": 5
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "dependsOn": [
+                        "[resourceId('Microsoft.Automation/automationAccounts/runbooks', parameters('AutomationAccountName'), parameters('RunbookNameGetHostPool'))]",
+                        "[resourceId('Microsoft.Automation/automationAccounts/variables', parameters('AutomationAccountName'), format('WebhookURI_{0}', parameters('RunbookNameGetHostPool')))]",
+                        "[resourceId('Microsoft.Automation/automationAccounts/webhooks', parameters('AutomationAccountName'), format('{0}_{1}', parameters('RunbookNameGetHostPool'), dateTimeAdd(parameters('Timestamp'), 'PT0H', 'yyyyMMddhhmmss')))]"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      },
+      "dependsOn": [
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('linked_AutomtnAcct-{0}', variables('AutomationAccountName')))]",
+        "[subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('ResourceGroupName'))]"
+      ]
+    }
+  ]
+}

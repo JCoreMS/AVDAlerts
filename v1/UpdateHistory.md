@@ -1,23 +1,5 @@
 # Update History
 
-4/14/23
-
-- Version 2.0 Release consolidates the need for Enterprise versus Subscription deployments yet allows resources in separate Subscriptions
-- Added UI Definition for ease of deployment vs running scripts  
-- All VM alerts are now revised which will create separate ones for each Host Pool thus allowing separate groups to be alerted for specific host pool VM resources and their health (deployment script creates AVD Host Pool to VM resource mapping)
-- Documentation updated to reflect changes and additional description information added to alerts
-- Corrected queries for "Profile Disk n% full" as these would potentially never fire or alert
-
-```sql
-prefix-VM-FSLogix Profile Less Than 2% Free Space  
-| where EventLevelName == "Error"  
-| where EventID == 33  
-
-prefix-VM-FSLogix Profile Less Than 5% Free Space
-| where EventLevelName == "Warning"
-| where EventID == 34
-```
-
 1/11/23
 
 - Deploy scripts now allow custom, existing Resource Group input
@@ -56,4 +38,4 @@ prefix-VM-FSLogix Profile Less Than 5% Free Space
 
 10/20/22  
 
-- Revised deployment to utilize PowerShell vs Blue button in docs due to storage account parameter type
+- Revised deployment to utilize PowerShell vs Blue button in docs due to storage account parameter type.
