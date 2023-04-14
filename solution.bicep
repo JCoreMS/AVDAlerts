@@ -9,7 +9,7 @@ param SetEnabled bool = false
  */
 
 @description('Location of needed scripts to deploy solution.')
-param _ArtifactsLocation string = 'https://storavdlabeus2.blob.core.windows.net/postdeployscripts/'
+param _ArtifactsLocation string = 'https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/'
 
 @description('SaS token if needed for script location.')
 @secure()
@@ -52,8 +52,6 @@ param ANFVolumeResourceIds array = []
 
 param Tags object = {}
 
-param Timestamp string = utcNow()
-
 var ActionGroupName = 'ag-avdmetrics-${Environment}-${Location}'
 var AlertDescriptionHeader = 'Automated AVD Alert Deployment Solution (v2.0.0)\n'
 var AutomationAccountName = 'aa-avdmetrics-${Environment}-${Location}'
@@ -68,7 +66,6 @@ var RunbookNameGetStorage = 'AvdStorageLogData'
 var RunbookNameGetHostPool = 'AvdHostPoolLogData'
 var RunbookScriptGetStorage = 'Get-StorAcctInfov2.ps1'
 var RunbookScriptGetHostPool = 'Get-HostPoolInfo.ps1'
-var ScriptsRepositoryUri = 'https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/'
 var SessionHostRGsAll = [for item in SessionHostsResourceGroupIds : split(item, '/')[4]]
 var SessionHostRGs = union(SessionHostRGsAll,[])
 var StorAcctRGsAll = [for item in StorageAccountResourceIds: split(item, '/')[4]]
@@ -1590,7 +1587,6 @@ module metricsResources 'modules/metricsResources.bicep' = {
     RunbookNameGetHostPool: RunbookNameGetHostPool
     RunbookScriptGetStorage: RunbookScriptGetStorage
     RunbookScriptGetHostPool: RunbookScriptGetHostPool
-    ScriptsRepositoryUri: ScriptsRepositoryUri
     StorageAccountResourceIds: StorageAccountResourceIds
     ActionGroupName: ActionGroupName
     ANFVolumeResourceIds: ANFVolumeResourceIds

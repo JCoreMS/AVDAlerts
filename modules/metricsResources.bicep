@@ -21,7 +21,6 @@ param RunbookNameGetStorage string
 param RunbookNameGetHostPool string
 param RunbookScriptGetStorage string
 param RunbookScriptGetHostPool string
-param ScriptsRepositoryUri string
 param StorageAccountResourceIds array
 param Tags object
 param Timestamp string = utcNow('u')
@@ -217,7 +216,7 @@ module logicApp_Storage './logicApp_Storage.bicep' = if(length(StorageAccountRes
     Location: Location
     LogicAppName: '${LogicAppName}-Storage'
     RunbookNameGetStorage: RunbookNameGetStorage
-    RunbookURI: '${ScriptsRepositoryUri}${RunbookScriptGetStorage}'
+    RunbookURI: '${_ArtifactsLocation}${RunbookScriptGetStorage}'
     StorageAccountResourceIds: StorageAccountResourceIds
     Timestamp: Timestamp
     Tags: Tags
@@ -232,7 +231,7 @@ module logicApp_HostPool './logicApp_HostPool.bicep' = {
     Location: Location
     LogicAppName: '${LogicAppName}-HostPool'
     RunbookNameGetHostPool: RunbookNameGetHostPool
-    RunbookURI: '${ScriptsRepositoryUri}${RunbookScriptGetHostPool}'
+    RunbookURI: '${_ArtifactsLocation}${RunbookScriptGetHostPool}'
     SubscriptionId: SubscriptionId
     Timestamp: Timestamp
     Tags: Tags
