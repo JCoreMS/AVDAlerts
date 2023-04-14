@@ -1499,7 +1499,7 @@ resource resourceGroupAVDMetrics 'Microsoft.Resources/resourceGroups@2021-04-01'
   location: Location
 }
 
-module identities 'modules/identities.bicep' = {
+module identities './modules/identities.bicep' = {
   name: 'linked_AutomtnAcct-${AutomationAccountName}'
   scope: resourceGroupAVDMetrics
   params: {
@@ -1511,7 +1511,7 @@ module identities 'modules/identities.bicep' = {
   }
 }
 
-module roleAssignment_UsrIdDesktopRead 'roleAssignSub.bicep' = [for HostPoolId in HostPoolSubIds : {
+module roleAssignment_UsrIdDesktopRead './modules/roleAssignSub.bicep' = [for HostPoolId in HostPoolSubIds : {
   name: 'linked_UsrID-DS_${HostPoolId}'
   scope: subscription(HostPoolId)
   params: {
@@ -1525,7 +1525,7 @@ module roleAssignment_UsrIdDesktopRead 'roleAssignSub.bicep' = [for HostPoolId i
   ]
 }]
 
-module roleAssignment_AutoAcctDesktopRead 'modules/roleAssignRG.bicep' = [for RG in DesktopReadRoleRGs: {
+module roleAssignment_AutoAcctDesktopRead './modules/roleAssignRG.bicep' = [for RG in DesktopReadRoleRGs: {
   scope: resourceGroup(RG)
   name: 'linked_DsktpRead_${RG}'
   params: {
@@ -1539,7 +1539,7 @@ module roleAssignment_AutoAcctDesktopRead 'modules/roleAssignRG.bicep' = [for RG
   ]
 }]
 
-module roleAssignment_LogAnalytics 'modules/roleAssignRG.bicep' = {
+module roleAssignment_LogAnalytics './modules/roleAssignRG.bicep' = {
   scope: resourceGroup(split(LogAnalyticsWorkspaceResourceId, '/')[2], split(LogAnalyticsWorkspaceResourceId, '/')[4])
   name: 'linked_LogContrib_${split(LogAnalyticsWorkspaceResourceId, '/')[4]}'
   params: {
@@ -1553,7 +1553,7 @@ module roleAssignment_LogAnalytics 'modules/roleAssignRG.bicep' = {
   ]
 }
 
-module roleAssignment_Storage 'modules/roleAssignRG.bicep' = [for StorAcctRG in StorAcctRGs: {
+module roleAssignment_Storage './modules/roleAssignRG.bicep' = [for StorAcctRG in StorAcctRGs: {
   scope: resourceGroup(StorAcctRG)
   name: 'linked_StorAcctContrib_${StorAcctRG}'
   params: {
@@ -1567,7 +1567,7 @@ module roleAssignment_Storage 'modules/roleAssignRG.bicep' = [for StorAcctRG in 
   ]
 }]
 
-module metricsResources 'modules/metricsResources.bicep' = {
+module metricsResources './modules/metricsResources.bicep' = {
   name: 'linked_MonitoringResourcesDeployment'
   scope: resourceGroupAVDMetrics
   params: {
