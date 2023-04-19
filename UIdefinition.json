@@ -351,8 +351,6 @@
         },
         "outputs": {
             "parameters": {
-                "_ArtifactsLocation": "[steps('AlertsConfig')._ArtifactsLocation]",
-                "_ArtifactsLocationSasToken": "[steps('AlertsConfig')._ArtifactsLocationSasToken]",
                 "AlertNamePrefix": "[steps('AlertsConfig').AlertNamePrefix]",
                 "DistributionGroup": "[steps('AlertsConfig').DistributionGroup]",
                 "Environment": "[steps('AlertsConfig').Environment]",
