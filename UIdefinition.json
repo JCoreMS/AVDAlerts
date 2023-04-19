@@ -81,7 +81,7 @@
                             "options": {
                                 "hideConfirmation": true
                             },
-                            "visible": true
+                            "visible": false
                         },
                         {
                             "name": "ResourceGroupStatus",
