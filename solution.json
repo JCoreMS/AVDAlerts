@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "1371103719781371120"
+      "templateHash": "4540337384705165540"
     }
   },
   "parameters": {
@@ -118,7 +118,7 @@
     "RunbookNameGetHostPool": "AvdHostPoolLogData",
     "RunbookScriptGetStorage": "Get-StorAcctInfov2.ps1",
     "RunbookScriptGetHostPool": "Get-HostPoolInfo.ps1",
-    "ScriptLocation": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/",
+    "ScriptLocation": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/scripts/",
     "SessionHostRGs": "[union(variables('SessionHostRGsAll'), createArray())]",
     "StorAcctRGs": "[union(variables('StorAcctRGsAll'), createArray())]",
     "UsrManagedIdentityName": "id-ds-avdAlerts-Deployment",
