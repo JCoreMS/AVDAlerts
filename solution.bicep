@@ -13,7 +13,7 @@ param _ArtifactsLocation string = 'https://raw.githubusercontent.com/JCoreMS/AVD
 
 @description('SaS token if needed for script location.')
 @secure()
-param _ArtifactsLocationSasToken string
+param _ArtifactsLocationSasToken string = ''
 
 @description('Alert Name Prefix (Dash will be added after prefix for you.)')
 param AlertNamePrefix string = 'AVD'
