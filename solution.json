@@ -5,24 +5,10 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "4979780418492333818"
+      "templateHash": "1371103719781371120"
     }
   },
   "parameters": {
-    "_ArtifactsLocation": {
-      "type": "string",
-      "defaultValue": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/",
-      "metadata": {
-        "description": "Location of needed scripts to deploy solution."
-      }
-    },
-    "_ArtifactsLocationSasToken": {
-      "type": "securestring",
-      "defaultValue": "",
-      "metadata": {
-        "description": "SaS token if needed for script location."
-      }
-    },
     "AlertNamePrefix": {
       "type": "string",
       "defaultValue": "AVD",
@@ -132,6 +118,7 @@
     "RunbookNameGetHostPool": "AvdHostPoolLogData",
     "RunbookScriptGetStorage": "Get-StorAcctInfov2.ps1",
     "RunbookScriptGetHostPool": "Get-HostPoolInfo.ps1",
+    "ScriptLocation": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/",
     "SessionHostRGs": "[union(variables('SessionHostRGsAll'), createArray())]",
     "StorAcctRGs": "[union(variables('StorAcctRGsAll'), createArray())]",
     "UsrManagedIdentityName": "id-ds-avdAlerts-Deployment",
@@ -1833,11 +1820,8 @@
         },
         "mode": "Incremental",
         "parameters": {
-          "_ArtifactsLocation": {
-            "value": "[parameters('_ArtifactsLocation')]"
-          },
-          "_ArtifactsLocationSasToken": {
-            "value": "[parameters('_ArtifactsLocationSasToken')]"
+          "ScriptLocation": {
+            "value": "[variables('ScriptLocation')]"
           },
           "ActivityLogAlerts": {
             "value": "[variables('ActivityLogAlerts')]"
@@ -1904,15 +1888,12 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "1896337313864131675"
+              "templateHash": "18010204232208152679"
             }
           },
           "parameters": {
-            "_ArtifactsLocation": {
+            "ScriptLocation": {
               "type": "string"
-            },
-            "_ArtifactsLocationSasToken": {
-              "type": "securestring"
             },
             "ActionGroupName": {
               "type": "string"
@@ -2018,7 +1999,7 @@
                 "forceUpdateTag": "[parameters('Timestamp')]",
                 "azPowerShellVersion": "7.1",
                 "arguments": "[format('-AVDResourceIDs {0}', variables('HostPoolsAsString'))]",
-                "primaryScriptUri": "[format('{0}dsHostPoolVMMap.ps1{1}', parameters('_ArtifactsLocation'), parameters('_ArtifactsLocationSasToken'))]",
+                "primaryScriptUri": "[format('{0}dsHostPoolVMMap.ps1', parameters('ScriptLocation'))]",
                 "timeout": "PT2H",
                 "cleanupPreference": "OnSuccess",
                 "retentionInterval": "P1D"
@@ -2660,7 +2641,7 @@
                     "value": "[parameters('RunbookNameGetStorage')]"
                   },
                   "RunbookURI": {
-                    "value": "[format('{0}{1}', parameters('_ArtifactsLocation'), parameters('RunbookScriptGetStorage'))]"
+                    "value": "[format('{0}{1}', parameters('ScriptLocation'), parameters('RunbookScriptGetStorage'))]"
                   },
                   "StorageAccountResourceIds": {
                     "value": "[parameters('StorageAccountResourceIds')]"
@@ -2826,7 +2807,7 @@
                     "value": "[parameters('RunbookNameGetHostPool')]"
                   },
                   "RunbookURI": {
-                    "value": "[format('{0}{1}', parameters('_ArtifactsLocation'), parameters('RunbookScriptGetHostPool'))]"
+                    "value": "[format('{0}{1}', parameters('ScriptLocation'), parameters('RunbookScriptGetHostPool'))]"
                   },
                   "SubscriptionId": {
                     "value": "[variables('SubscriptionId')]"

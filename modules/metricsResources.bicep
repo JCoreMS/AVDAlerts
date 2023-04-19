@@ -1,6 +1,4 @@
-param _ArtifactsLocation string
-@secure()
-param _ArtifactsLocationSasToken string
+param ScriptLocation string
 param ActionGroupName string
 param ActivityLogAlerts array
 param ANFVolumeResourceIds array
@@ -67,7 +65,7 @@ resource deploymentScript_HP2VM 'Microsoft.Resources/deploymentScripts@2020-10-0
     forceUpdateTag: Timestamp
     azPowerShellVersion: '7.1'
     arguments: '-AVDResourceIDs ${HostPoolsAsString}'
-    primaryScriptUri: '${_ArtifactsLocation}dsHostPoolVMMap.ps1${_ArtifactsLocationSasToken}'
+    primaryScriptUri: '${ScriptLocation}dsHostPoolVMMap.ps1'
     timeout: 'PT2H'
     cleanupPreference: 'OnSuccess'
     retentionInterval: 'P1D'
@@ -216,7 +214,7 @@ module logicApp_Storage './logicApp_Storage.bicep' = if(length(StorageAccountRes
     Location: Location
     LogicAppName: '${LogicAppName}-Storage'
     RunbookNameGetStorage: RunbookNameGetStorage
-    RunbookURI: '${_ArtifactsLocation}${RunbookScriptGetStorage}'
+    RunbookURI: '${ScriptLocation}${RunbookScriptGetStorage}'
     StorageAccountResourceIds: StorageAccountResourceIds
     Timestamp: Timestamp
     Tags: Tags
@@ -231,7 +229,7 @@ module logicApp_HostPool './logicApp_HostPool.bicep' = {
     Location: Location
     LogicAppName: '${LogicAppName}-HostPool'
     RunbookNameGetHostPool: RunbookNameGetHostPool
-    RunbookURI: '${_ArtifactsLocation}${RunbookScriptGetHostPool}'
+    RunbookURI: '${ScriptLocation}${RunbookScriptGetHostPool}'
     SubscriptionId: SubscriptionId
     Timestamp: Timestamp
     Tags: Tags

@@ -8,13 +8,6 @@ param SetAutoResolve bool = true
 param SetEnabled bool = false
  */
 
-@description('Location of needed scripts to deploy solution.')
-param _ArtifactsLocation string = 'https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/'
-
-@description('SaS token if needed for script location.')
-@secure()
-param _ArtifactsLocationSasToken string = ''
-
 @description('Alert Name Prefix (Dash will be added after prefix for you.)')
 param AlertNamePrefix string = 'AVD'
 
@@ -66,6 +59,7 @@ var RunbookNameGetStorage = 'AvdStorageLogData'
 var RunbookNameGetHostPool = 'AvdHostPoolLogData'
 var RunbookScriptGetStorage = 'Get-StorAcctInfov2.ps1'
 var RunbookScriptGetHostPool = 'Get-HostPoolInfo.ps1'
+var ScriptLocation = 'https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/deploySubscription/scripts/'
 var SessionHostRGsAll = [for item in SessionHostsResourceGroupIds : split(item, '/')[4]]
 var SessionHostRGs = union(SessionHostRGsAll,[])
 var StorAcctRGsAll = [for item in StorageAccountResourceIds: split(item, '/')[4]]
@@ -1571,8 +1565,7 @@ module metricsResources './modules/metricsResources.bicep' = {
   name: 'linked_MonitoringResourcesDeployment'
   scope: resourceGroupAVDMetrics
   params: {
-    _ArtifactsLocation: _ArtifactsLocation
-    _ArtifactsLocationSasToken: _ArtifactsLocationSasToken
+    ScriptLocation: ScriptLocation
     ActivityLogAlerts: ActivityLogAlerts
     AutomationAccountName: AutomationAccountName
     DistributionGroup: DistributionGroup

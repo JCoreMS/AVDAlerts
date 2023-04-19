@@ -65,25 +65,6 @@
                             "visible": false
                         },
                         {
-                            "name": "_ArtifactsLocationSasToken",
-                            "type": "Microsoft.Common.PasswordBox",
-                            "label": {
-                                "password": "_Artifacts Location Sas Token",
-                                "confirmPassword": "Confirm password"
-                            },
-                            "toolTip": "SaS token if needed for script location.",
-                            "constraints": {
-                                "required": true,
-                                "regex": "",
-                                "validationMessage": "",
-                                "validations": []
-                            },
-                            "options": {
-                                "hideConfirmation": true
-                            },
-                            "visible": false
-                        },
-                        {
                             "name": "ResourceGroupStatus",
                             "type": "Microsoft.Common.OptionsGroup",
                             "label": "Use New or Existing Resource Group",
