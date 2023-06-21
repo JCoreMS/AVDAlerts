@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "15474464227822600242"
+      "templateHash": "17929052401905101234"
     }
   },
   "parameters": {
@@ -7989,7 +7989,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "18223100317441612856"
+              "templateHash": "5377148850068336917"
             }
           },
           "parameters": {
@@ -8034,8 +8034,7 @@
             }
           },
           "variables": {
-            "SubscriptionId": "[subscription().subscriptionId]",
-            "CloudEnvironment": "[environment().name]"
+            "SubscriptionId": "[subscription().subscriptionId]"
           },
           "resources": [
             {
