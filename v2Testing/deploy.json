@@ -11,7 +11,7 @@
   "parameters": {
     "_ArtifactsLocation": {
       "type": "string",
-      "defaultValue": "https://github.com/JCoreMS/AVDAlerts/blob/main/v2Testing/scripts/",
+      "defaultValue": "https://raw.githubusercontent.com/JCoreMS/AVDAlerts/main/v2Testing/scripts/",
       "metadata": {
         "description": "Location of needed scripts to deploy solution."
       }
