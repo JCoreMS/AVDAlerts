@@ -64,7 +64,7 @@ Foreach ($HostPoolID in $AVDResourceIDs) {
 		$HostPoolobj.VMResourceGroup = ""
 	}
 	$AllHPinfo += $HostPoolobj
-	Start-Sleep -Seconds 1
+	Start-Sleep -Seconds 5
 }
 
 $AllHPInfo = $AllHPInfo | ConvertTo-Json -Depth 20
