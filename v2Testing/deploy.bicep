@@ -9,7 +9,7 @@ param SetEnabled bool = false
  */
 
 @description('Location of needed scripts to deploy solution.')
-param _ArtifactsLocation string = 'https://raw.githubusercontent.com/Azure/avdaccelerator/main/workload/scripts/alerts/'
+param _ArtifactsLocation string = 'https://github.com/JCoreMS/AVDAlerts/blob/main/v2Testing/scripts/'
 
 @description('SaS token if needed for script location.')
 @secure()
