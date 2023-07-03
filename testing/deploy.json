@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "12001362977023448708"
+      "templateHash": "10187089791946368606"
     }
   },
   "parameters": {
@@ -1568,8 +1568,8 @@
           "displayName": "[format('{0}-HostPool-VM-OS Disk Bandwidth Average Consumed at or over 85% (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
           "description": "[variables('AlertDescriptionHeader')]",
           "severity": 2,
-          "evaluationFrequency": "PT5M",
-          "windowSize": "PT1H",
+          "evaluationFrequency": "PT15M",
+          "windowSize": "PT15M",
           "criteria": {
             "allOf": [
               {
@@ -1586,7 +1586,7 @@
                   }
                 ],
                 "metricName": "OS Disk Bandwidth Consumed Percentage",
-                "operator": "GreaterThan",
+                "operator": "GreaterThanOrEqual",
                 "timeAggregation": "Average",
                 "criterionType": "StaticThresholdCriterion"
               }
@@ -1600,8 +1600,8 @@
           "displayName": "[format('{0}-HostPool-VM-OS Disk Bandwidth Average Consumed at or over 95% (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
           "description": "[variables('AlertDescriptionHeader')]",
           "severity": 1,
-          "evaluationFrequency": "PT5M",
-          "windowSize": "PT1H",
+          "evaluationFrequency": "PT15M",
+          "windowSize": "PT15M",
           "criteria": {
             "allOf": [
               {
@@ -1618,7 +1618,7 @@
                   }
                 ],
                 "metricName": "OS Disk Bandwidth Consumed Percentage",
-                "operator": "GreaterThan",
+                "operator": "GreaterThanOrEqual",
                 "timeAggregation": "Average",
                 "criterionType": "StaticThresholdCriterion"
               }
