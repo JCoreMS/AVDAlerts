@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "17781790147581509093"
+      "templateHash": "11195002454170018160"
     }
   },
   "parameters": {
@@ -6628,7 +6628,7 @@
       },
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "[format('carml_DsktpRead_{0}', variables('SessionHostRGs')[copyIndex()])]",
+      "name": "[format('carml_DSMapVMContrib_{0}', variables('SessionHostRGs')[copyIndex()])]",
       "resourceGroup": "[variables('SessionHostRGs')[copyIndex()]]",
       "properties": {
         "expressionEvaluationOptions": {
