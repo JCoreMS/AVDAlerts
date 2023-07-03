@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "17244236105129381507"
+      "templateHash": "17763684646058044930"
     }
   },
   "parameters": {
@@ -6643,7 +6643,7 @@
             "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('carml_AutomtnAcct-{0}', variables('AutomationAccountName'))), '2022-09-01').outputs.systemAssignedPrincipalId.value]"
           },
           "roleDefinitionIdOrName": {
-            "value": "9980e02c-c2be-4d73-94e8-173b1dc7cf3c"
+            "value": "Virtual Machine Contributor"
           },
           "principalType": {
             "value": "ServicePrincipal"
@@ -8708,7 +8708,9 @@
         }
       },
       "dependsOn": [
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(variables('ResourceGroupCreate'), parameters('ResourceGroupName'), parameters('ResourceGroupName'))), 'Microsoft.Resources/deployments', format('carml_UserMgId_{0}', variables('UsrManagedIdentityName')))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(variables('ResourceGroupCreate'), parameters('ResourceGroupName'), parameters('ResourceGroupName'))), 'Microsoft.Resources/deployments', format('carml_UserMgId_{0}', variables('UsrManagedIdentityName')))]",
+        "roleAssignment_AutoAcctDesktopRead",
+        "roleAssignment_DSMapVMContrib"
       ]
     },
     {
