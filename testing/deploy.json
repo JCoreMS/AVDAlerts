@@ -1088,7 +1088,7 @@
                   ]
                 },
                 {
-                  "name": "ClientOs",
+                  "name": "ClientOS",
                   "operator": "Include",
                   "values": [
                     "*"
