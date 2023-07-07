@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "17763684646058044930"
+      "templateHash": "5825919581708881444"
     }
   },
   "parameters": {
@@ -6640,7 +6640,7 @@
             "value": false
           },
           "principalId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('carml_AutomtnAcct-{0}', variables('AutomationAccountName'))), '2022-09-01').outputs.systemAssignedPrincipalId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(variables('ResourceGroupCreate'), parameters('ResourceGroupName'), parameters('ResourceGroupName'))), 'Microsoft.Resources/deployments', format('carml_UserMgId_{0}', variables('UsrManagedIdentityName'))), '2022-09-01').outputs.principalId.value]"
           },
           "roleDefinitionIdOrName": {
             "value": "Virtual Machine Contributor"
@@ -7208,7 +7208,8 @@
         }
       },
       "dependsOn": [
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('carml_AutomtnAcct-{0}', variables('AutomationAccountName')))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('carml_AutomtnAcct-{0}', variables('AutomationAccountName')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(variables('ResourceGroupCreate'), parameters('ResourceGroupName'), parameters('ResourceGroupName'))), 'Microsoft.Resources/deployments', format('carml_UserMgId_{0}', variables('UsrManagedIdentityName')))]"
       ]
     },
     {
