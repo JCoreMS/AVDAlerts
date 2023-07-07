@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "5825919581708881444"
+      "templateHash": "3162837860886210636"
     }
   },
   "parameters": {
@@ -8772,7 +8772,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "2279381735835463314"
+              "templateHash": "2012381431224987823"
             }
           },
           "parameters": {
@@ -9376,7 +9376,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "4256933363988310932"
+                      "templateHash": "10042500528584503883"
                     }
                   },
                   "parameters": {
@@ -9411,7 +9411,7 @@
                       "condition": "[not(equals(parameters('HostPoolInfo').VMResourceGroup, null()))]",
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
-                      "name": "[format('carml_{0}', parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name)]",
+                      "name": "[format('carml_{0}', replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolInfo').HostPoolName))]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
@@ -9425,9 +9425,7 @@
                             "value": "[replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolInfo').HostPoolName)]"
                           },
                           "criterias": {
-                            "value": [
-                              "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].criteria.allOf]"
-                            ]
+                            "value": "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].criteria.allOf]"
                           },
                           "location": {
                             "value": "global"
