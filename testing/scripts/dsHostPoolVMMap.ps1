@@ -33,8 +33,6 @@ try {
 		$HostPoolName = ($HostPoolID -split '/')[8]
 		$HostPoolRG = ($HostPoolID -split '/')[4]
 		$HostPoolSubID = ($HostPoolID -split '/')[2]   	
-		$NoSessinHosts = $true
-		$HostPool = Get-AzWvdHostPool -ResourceGroupName $HostPoolRG -SubscriptionId $HostPoolSubID -Name $HostPoolName
 
 		$SessionHostNames = Get-AzWvdSessionHost -SubscriptionId $HostPoolSubID -ResourceGroupName $HostPoolRG -HostPoolName $HostPoolName
 		foreach ($sessionHost in $SessionHostNames) {
@@ -72,7 +70,6 @@ try {
 }
 catch {
 	$ErrContainer = $PSItem
-	# $ErrContainer = $_
 
 	[string]$ErrMsg = $ErrContainer | Format-List -Force | Out-String
 	$ErrMsg += "Version: $Version`n"
