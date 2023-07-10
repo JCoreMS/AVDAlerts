@@ -147,7 +147,7 @@
                             "toolTip": "Alert Name Prefix of 1 to 5 characters. (Dash will be added after prefix for you.)",
                             "constraints": {
                                 "required": true,
-                                "regex": "^([a-zA-Z0-9_-]){1,5}$",
+                                "regex": "",
                                 "validationMessage": "Must be 1-5 characters."
                             },
                             "visible": true
