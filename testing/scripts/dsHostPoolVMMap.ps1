@@ -65,6 +65,7 @@ try {
 		Start-Sleep -Seconds 3
 	}
 
+
 	$AllHPInfo = $AllHPInfo | ConvertTo-Json -Depth 20
 
 	$DeploymentScriptOutputs["HostPoolInfo"] = $AllHPInfo
