@@ -210,6 +210,21 @@
                         },
                         {
                             "name": "LogAnalyticsWorkspaceResource",
+                            "type": "Microsoft.Common.TextBox",
+                            "label": "LogAnalytics Resource ID",
+                            "defaultValue": "",
+                            "toolTip": "Use only allowed characters",
+                            "placeholder": "",
+                            "multiLine": false,
+                            "constraints": {
+                              "required": true,
+                              "validations": [
+                              ]
+                            },
+                            "visible": true
+                          },
+                        {
+                            "name": "LogAnalyticsWorkspaceResource2",
                             "type": "Microsoft.Common.DropDown",
                             "label": "Insights Log Analytics Workspace",
                             "multiselect": false,
@@ -220,9 +235,9 @@
                             "defaultDescription": "A value for selection",
                             "constraints": {
                                 "allowedValues": "[map(steps('basics').LogAnalyticsApi.value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\"}')))]",
-                                "required": true
+                                "required": false
                             },
-                            "visible": true
+                            "visible": false
                         },
                         {
                             "name": "SessionHostsResourceGroupIds",
