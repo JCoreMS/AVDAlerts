@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "3162837860886210636"
+      "templateHash": "9425096040069961318"
     }
   },
   "parameters": {
@@ -140,7 +140,7 @@
       }
     ],
     "ActionGroupName": "[format('ag-avdmetrics-{0}-{1}', parameters('Environment'), parameters('Location'))]",
-    "AlertDescriptionHeader": "Automated AVD Alert Deployment Solution (v2.0.1)\n",
+    "AlertDescriptionHeader": "Automated AVD Alert Deployment Solution (v2.1.0)\n",
     "AutomationAccountName": "[format('aa-avdmetrics-{0}-{1}', parameters('Environment'), parameters('Location'))]",
     "CloudEnvironment": "[environment().name]",
     "HostPoolSubIds": "[union(variables('HostPoolSubIdsAll'), createArray())]",
@@ -376,7 +376,7 @@
       {
         "name": "[format('{0}-HP-NoResAvail-xHostPoolNamex', parameters('AlertNamePrefix'))]",
         "displayName": "[format('{0}-HostPool-No Resources Available (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-        "description": "[variables('AlertDescriptionHeader')]",
+        "description": "[format('{0}Catastrophic Event! Indicates potential problems with dependencies, diagnose and resolve.', variables('AlertDescriptionHeader'))]",
         "severity": 1,
         "evaluationFrequency": "PT15M",
         "windowSize": "PT15M",
@@ -415,7 +415,7 @@
       {
         "name": "[format('{0}-HP-DiscUser24Hrs-xHostPoolNamex', parameters('AlertNamePrefix'))]",
         "displayName": "[format('{0}-HostPool-Disconnected User over 24 Hours (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-        "description": "[variables('AlertDescriptionHeader')]",
+        "description": "[format('{0}Verify Remote Desktop Policies are applied relating to Session Limits. This could impact your scaling plan as well.', variables('AlertDescriptionHeader'))]",
         "severity": 2,
         "evaluationFrequency": "PT1H",
         "windowSize": "PT1H",
@@ -454,7 +454,7 @@
       {
         "name": "[format('{0}-HP-DiscUser72Hrs-xHostPoolNamex', parameters('AlertNamePrefix'))]",
         "displayName": "[format('{0}-HostPool-Disconnected User over 72 Hours (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-        "description": "[variables('AlertDescriptionHeader')]",
+        "description": "[format('{0}Verify Remote Desktop Policies are applied relating to Session Limits. This could impact your scaling plan as well.', variables('AlertDescriptionHeader'))]",
         "severity": 1,
         "evaluationFrequency": "PT1H",
         "windowSize": "PT1H",
@@ -493,7 +493,7 @@
       {
         "name": "[format('{0}-HP-VM-LocDskFree10Prcnt-xHostPoolNamex', parameters('AlertNamePrefix'))]",
         "displayName": "[format('{0}-HostPool-VM-Local Disk Free Space 10 Percent (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-        "description": "[variables('AlertDescriptionHeader')]",
+        "description": "[format('{0}Disk space Moderately Low. \nConsider review of the VM local C drive and determine what is consuming disk space. This could be local profiles or temp files that need to be cleaned up or removed.', variables('AlertDescriptionHeader'))]",
         "severity": 2,
         "evaluationFrequency": "PT15M",
         "windowSize": "PT15M",
@@ -539,7 +539,7 @@
       {
         "name": "[format('{0}-HP-VM-LocDskFree5Prcnt-xHostPoolNamex', parameters('AlertNamePrefix'))]",
         "displayName": "[format('{0}-HostPool-VM-Local Disk Free Space 5 Percent (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-        "description": "[variables('AlertDescriptionHeader')]",
+        "description": "[format('{0}Disk space Critically Low. \nConsider review of the VM local C drive and determine what is consuming disk space. This could be local profiles or temp files that need to be cleaned up or removed.', variables('AlertDescriptionHeader'))]",
         "severity": 1,
         "evaluationFrequency": "PT15M",
         "windowSize": "PT15M",
@@ -585,7 +585,7 @@
       {
         "name": "[format('{0}-HP-VM-FSLgxProf5PrcntFree-xHostPoolNamex', parameters('AlertNamePrefix'))]",
         "displayName": "[format('{0}-HostPool-VM-FSLogix Profile Less Than 5% Free Space (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-        "description": "[variables('AlertDescriptionHeader')]",
+        "description": "[format('{0}User Profiles Service logged Event ID 33. Expand User''s Virtual Profile Disk and/or clean up user profile data.', variables('AlertDescriptionHeader'))]",
         "severity": 2,
         "evaluationFrequency": "PT5M",
         "windowSize": "PT5M",
@@ -638,7 +638,7 @@
       {
         "name": "[format('{0}-HP-VM-FSLgxProf2PrcntFree-xHostPoolNamex', parameters('AlertNamePrefix'))]",
         "displayName": "[format('{0}-HostPool-VM-FSLogix Profile Less Than 2% Free Space (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-        "description": "[variables('AlertDescriptionHeader')]",
+        "description": "[format('{0}User Profiles Service logged Event ID 34. Expand User''s Virtual Profile Disk and/or clean up user profile data.', variables('AlertDescriptionHeader'))]",
         "severity": 1,
         "evaluationFrequency": "PT5M",
         "windowSize": "PT5M",
@@ -691,7 +691,7 @@
       {
         "name": "[format('{0}-HP-VM-FSLgxProf-NetwrkIssue-xHostPoolNamex', parameters('AlertNamePrefix'))]",
         "displayName": "[format('{0}-HostPool-VM-FSLogix Profile Failed due to Network Issue (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-        "description": "[variables('AlertDescriptionHeader')]",
+        "description": "[format('{0}User Profiles Service logged Event ID 43. Verify network communications between the storage and AVD VM.', variables('AlertDescriptionHeader'))]",
         "severity": 1,
         "evaluationFrequency": "PT5M",
         "windowSize": "PT5M",
@@ -744,7 +744,7 @@
       {
         "name": "[format('{0}-HP-VM-FSLgxProf-FailAttVHD-xHostPoolNamex', parameters('AlertNamePrefix'))]",
         "displayName": "[format('{0}-HostPool-VM-FSLogix Profile Disk Failed to Attach (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-        "description": "[variables('AlertDescriptionHeader')]",
+        "description": "[format('{0}User Profiles Service logged an Event ID 52 or 40. Investigate error details for reason.', variables('AlertDescriptionHeader'))]",
         "severity": 1,
         "evaluationFrequency": "PT5M",
         "windowSize": "PT5M",
@@ -797,7 +797,7 @@
       {
         "name": "[format('{0}-HP-VM-FSLgxProf-SvcDisabled-xHostPoolNamex', parameters('AlertNamePrefix'))]",
         "displayName": "[format('{0}-HostPool-VM-FSLogix Profile Service Disabled (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-        "description": "[variables('AlertDescriptionHeader')]",
+        "description": "[format('{0}User Profile Service Disabled. Determine why service was disabled and re-enable / start the FSLogix service', variables('AlertDescriptionHeader'))]",
         "severity": 1,
         "evaluationFrequency": "PT5M",
         "windowSize": "PT5M",
@@ -850,7 +850,7 @@
       {
         "name": "[format('{0}-HP-VM-FSLgxProf-DskCompFailed-xHostPoolNamex', parameters('AlertNamePrefix'))]",
         "displayName": "[format('{0}-HostPool-VM-FSLogix Profile Disk Compaction Failed (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-        "description": "[variables('AlertDescriptionHeader')]",
+        "description": "[format('{0}User Profile Service logged Event ID 62 or 63. The profile Disk was marked for compaction due to additional white space but failed. See error details for additional information.', variables('AlertDescriptionHeader'))]",
         "severity": 2,
         "evaluationFrequency": "PT5M",
         "windowSize": "PT5M",
@@ -903,7 +903,7 @@
       {
         "name": "[format('{0}-HP-VM-FSLgxProf-DskInUse-xHostPoolNamex', parameters('AlertNamePrefix'))]",
         "displayName": "[format('{0}-HostPool-VM-FSLogix Profile Disk Attached to another VM (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-        "description": "[variables('AlertDescriptionHeader')]",
+        "description": "[format('{0}User Profile Service logged an Event ID 51. This indicates that a user attempted to load their profile disk but it was in use or possibly mapped to another VM. Ensure the user is not connected to another host pool or remote app with the same profile.', variables('AlertDescriptionHeader'))]",
         "severity": 2,
         "evaluationFrequency": "PT5M",
         "windowSize": "PT5M",
@@ -1054,8 +1054,8 @@
       },
       {
         "name": "[format('{0}-HP-Usr-ConnectionFailed-xHostPoolNamex', parameters('AlertNamePrefix'))]",
-        "displayName": "[format('{0}-HostPool-User-Connection Failed for User (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-        "description": "[format('{0}While trying to connect to xHostPoolNamex a user had an error and failed to connect to a VM.', variables('AlertDescriptionHeader'))]",
+        "displayName": "[format('{0}-HostPool-User-Connection Failed (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+        "description": "[format('{0}While trying to connect to xHostPoolNamex a user had an error and failed to connect to a VM. There are lots of variables between the end uers and AVD VMs. If this is frequent for the user, determine if their Internet connection is slow or latency is over 150 ms.', variables('AlertDescriptionHeader'))]",
         "severity": 3,
         "evaluationFrequency": "PT15M",
         "windowSize": "PT15M",
@@ -1143,7 +1143,7 @@
       {
         "name": "[format('{0}-HP-VM-MissingCriticalUpdates-xHostPoolNamex', parameters('AlertNamePrefix'))]",
         "displayName": "[format('{0}-HostPool-VM-Missing Critical Security Updates (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-        "description": "[format('{0}The VM is missing critical security updates that are not marked \"optional\" and are \"approved\" (xHostPoolNamex)', variables('AlertDescriptionHeader'))]",
+        "description": "[format('{0}The VM is missing critical security updates that are not marked \"optional\" and are \"approved\" (xHostPoolNamex)\nEnsure patching is working as expected and update the VM as soon as possible.', variables('AlertDescriptionHeader'))]",
         "severity": 1,
         "evaluationFrequency": "P1D",
         "windowSize": "P1D",
@@ -1269,7 +1269,7 @@
           "displayName": "[format('{0}-Storage-Over 50ms Latency for Storage Acct', parameters('AlertNamePrefix'))]",
           "description": "[format('{0}\nThis could indicate a lag or poor performance for user Profiles or Apps using MSIX App Attach.\nThis alert is specific to the Storage Account itself and does not include network latency.\nFor additional details on troubleshooting see:\n\"https://learn.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#very-high-latency-for-requests\"', variables('AlertDescriptionHeader'))]",
           "severity": 2,
-          "evaluationFrequency": "PT15M",
+          "evaluationFrequency": "PT5M",
           "windowSize": "PT15M",
           "criteria": {
             "allOf": [
@@ -1291,7 +1291,7 @@
           "displayName": "[format('{0}-Storage-Over 100ms Latency for Storage Acct', parameters('AlertNamePrefix'))]",
           "description": "[format('{0}\nThis could indicate a lag or poor performance for user Profiles or Apps using MSIX App Attach.\nThis alert is specific to the Storage Account itself and does not include network latency.\nFor additional details on troubleshooting see:\n\"https://learn.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#very-high-latency-for-requests\"', variables('AlertDescriptionHeader'))]",
           "severity": 1,
-          "evaluationFrequency": "PT15M",
+          "evaluationFrequency": "PT5M",
           "windowSize": "PT15M",
           "criteria": {
             "allOf": [
@@ -1313,7 +1313,7 @@
           "displayName": "[format('{0}-Storage-Over 50ms Latency Between Client-Storage', parameters('AlertNamePrefix'))]",
           "description": "[format('{0}\nThis could indicate a lag or poor performance for user Profiles or Apps using MSIX App Attach.\nThis is a total latency from end to end between the Host VM and Storage to include network.\nFor additional details on troubleshooting see:\n\"https://learn.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#very-high-latency-for-requests\"', variables('AlertDescriptionHeader'))]",
           "severity": 2,
-          "evaluationFrequency": "PT15M",
+          "evaluationFrequency": "PT5M",
           "windowSize": "PT15M",
           "criteria": {
             "allOf": [
@@ -1335,7 +1335,7 @@
           "displayName": "[format('{0}-Storage-Over 100ms Latency Between Client-Storage', parameters('AlertNamePrefix'))]",
           "description": "[format('{0}\nThis could indicate a lag or poor performance for user Profiles or Apps using MSIX App Attach.\nThis is a total latency from end to end between the Host VM and Storage to include network.\nFor additional details on troubleshooting see:\n\"https://learn.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#very-high-latency-for-requests\"', variables('AlertDescriptionHeader'))]",
           "severity": 1,
-          "evaluationFrequency": "PT15M",
+          "evaluationFrequency": "PT5M",
           "windowSize": "PT15M",
           "criteria": {
             "allOf": [
@@ -1358,7 +1358,7 @@
           "description": "[format('{0}\nThis could indicate storage is unavailable for user Profiles or Apps using MSIX App Attach.', variables('AlertDescriptionHeader'))]",
           "severity": 1,
           "evaluationFrequency": "PT5M",
-          "windowSize": "PT5M",
+          "windowSize": "PT55M",
           "criteria": {
             "allOf": [
               {
@@ -1381,7 +1381,7 @@
           "displayName": "[format('{0}-Storage-Possible Throttling Due to High IOPs', parameters('AlertNamePrefix'))]",
           "description": "[format('{0}\nThis indicates you may be maxing out the allowed IOPs.\nhttps://docs.microsoft.com/en-us/azure/storage/files/storage-troubleshooting-files-performance#how-to-create-an-alert-if-a-file-share-is-throttled', variables('AlertDescriptionHeader'))]",
           "severity": 2,
-          "evaluationFrequency": "PT15M",
+          "evaluationFrequency": "PT5M",
           "windowSize": "PT15M",
           "criteria": {
             "allOf": [
@@ -1426,10 +1426,10 @@
         {
           "name": "[format('{0}-StorLowSpcANF-15-PrcntRem', parameters('AlertNamePrefix'))]",
           "displayName": "[format('{0}-Storage-Low Space on ANF Share-15% Remaining', parameters('AlertNamePrefix'))]",
-          "description": "[variables('AlertDescriptionHeader')]",
+          "description": "[format('{0}Storage for the follow Azure NetApp volume is Moderately low. Verify sufficient storage is available and expand when/where needed.', variables('AlertDescriptionHeader'))]",
           "severity": 2,
           "evaluationFrequency": "PT1H",
-          "windowSize": "PT1H",
+          "windowSize": "PT3H",
           "criteria": {
             "allOf": [
               {
@@ -1449,10 +1449,10 @@
         {
           "name": "[format('{0}-StorLowSpcANF-5-PrcntRem', parameters('AlertNamePrefix'))]",
           "displayName": "[format('{0}-Storage-Low Space on ANF Share-5% Remaining', parameters('AlertNamePrefix'))]",
-          "description": "[variables('AlertDescriptionHeader')]",
+          "description": "[format('{0}Storage for the follow Azure NetApp volume is Critically low. Verify sufficient storage is available and expand when/where needed.', variables('AlertDescriptionHeader'))]",
           "severity": 1,
           "evaluationFrequency": "PT1H",
-          "windowSize": "PT1H",
+          "windowSize": "PT3H",
           "criteria": {
             "allOf": [
               {
@@ -1474,7 +1474,7 @@
         {
           "name": "[format('{0}-HP-VM-HighCPU-85-Prcnt-xHostPoolNamex', parameters('AlertNamePrefix'))]",
           "displayName": "[format('{0}-HostPool-VM-High CPU 85% (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-          "description": "[variables('AlertDescriptionHeader')]",
+          "description": "[format('{0}Potential performance issues for users on the same host due to moderately limited CPU (Avarage over 5 mins.) Investigate session host CPU usage per user and/or CPU requirements and adjust if/as needed.  Check user active vs. disconnected status.', variables('AlertDescriptionHeader'))]",
           "severity": 2,
           "evaluationFrequency": "PT1M",
           "windowSize": "PT5M",
@@ -1497,7 +1497,7 @@
         {
           "name": "[format('{0}-HP-VM-HighCPU-95-Prcnt-xHostPoolNamex', parameters('AlertNamePrefix'))]",
           "displayName": "[format('{0}-HostPool-VM-High CPU 95% (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-          "description": "[variables('AlertDescriptionHeader')]",
+          "description": "[format('{0}Potential performance issues for users on the same host due to critically limited CPU (Avarage over 5 mins.) Investigate session host CPU usage per user and/or CPU requirements and adjust if/as needed.  Check user active vs. disconnected status.', variables('AlertDescriptionHeader'))]",
           "severity": 1,
           "evaluationFrequency": "PT1M",
           "windowSize": "PT5M",
@@ -1520,7 +1520,7 @@
         {
           "name": "[format('{0}-HP-VM-AvailMemLess-2GB-xHostPoolNamex', parameters('AlertNamePrefix'))]",
           "displayName": "[format('{0}-HostPool-VM-Available Memory Less Than 2GB (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-          "description": "[variables('AlertDescriptionHeader')]",
+          "description": "[format('{0}Potential performance issues for users on the same host due to moderately low memory. Investigate session host memory usage per user and/or memory requirements and adjust if/as needed.  Check user active vs. disconnected status.', variables('AlertDescriptionHeader'))]",
           "severity": 2,
           "evaluationFrequency": "PT1M",
           "windowSize": "PT5M",
@@ -1543,7 +1543,7 @@
         {
           "name": "[format('{0}-HP-VM-AvailMemLess-1GB-xHostPoolNamex', parameters('AlertNamePrefix'))]",
           "displayName": "[format('{0}-HostPool-VM-Available Memory Less Than 1GB (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-          "description": "[variables('AlertDescriptionHeader')]",
+          "description": "[format('{0}Potential performance issues for users on the same host due to critically low memory. Investigate session host memory usage per user and/or memory requirements and adjust if/as needed.  Check user active vs. disconnected status.', variables('AlertDescriptionHeader'))]",
           "severity": 1,
           "evaluationFrequency": "PT1M",
           "windowSize": "PT5M",
@@ -1565,10 +1565,10 @@
         },
         {
           "name": "[format('{0}-HP-VM-OSDiskBandwidthAvg85-xHostPoolNamex', parameters('AlertNamePrefix'))]",
-          "displayName": "[format('{0}-HostPool-VM-OS Disk Bandwidth Average Consumed at or over 85% (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-          "description": "[variables('AlertDescriptionHeader')]",
+          "displayName": "[format('{0}-HostPool-VM-OS Disk Bandwidth Average Consumed 85% (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+          "description": "[format('{0}The OS Disk is nearing it''s allowed IO maximum based on the Disk SKU. Consider review of what applications are possibly causing excessive disk activity and potentially move to a larger or premium disk SKU.', variables('AlertDescriptionHeader'))]",
           "severity": 2,
-          "evaluationFrequency": "PT15M",
+          "evaluationFrequency": "PT5M",
           "windowSize": "PT15M",
           "criteria": {
             "allOf": [
@@ -1597,10 +1597,10 @@
         },
         {
           "name": "[format('{0}-HP-VM-OSDiskBandwidthAvg95-xHostPoolNamex', parameters('AlertNamePrefix'))]",
-          "displayName": "[format('{0}-HostPool-VM-OS Disk Bandwidth Average Consumed at or over 95% (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
-          "description": "[variables('AlertDescriptionHeader')]",
+          "displayName": "[format('{0}-HostPool-VM-OS Disk Bandwidth Average Consumed 95% (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
+          "description": "[format('{0}The OS Disk is near it''s allowed IO maximum based on the Disk SKU. Consider review of what applications are possibly causing excessive disk activity and potentially move to a larger or premium disk SKU.', variables('AlertDescriptionHeader'))]",
           "severity": 1,
-          "evaluationFrequency": "PT15M",
+          "evaluationFrequency": "PT5M",
           "windowSize": "PT15M",
           "criteria": {
             "allOf": [
@@ -2349,7 +2349,7 @@
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "[format('carml_UserMgId_{0}', variables('UsrManagedIdentityName'))]",
+      "name": "[format('c_UserMgId_{0}', variables('UsrManagedIdentityName'))]",
       "resourceGroup": "[if(variables('ResourceGroupCreate'), parameters('ResourceGroupName'), parameters('ResourceGroupName'))]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -2667,7 +2667,7 @@
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "[format('carml_AutomtnAcct-{0}', variables('AutomationAccountName'))]",
+      "name": "[format('c_AutomtnAcct-{0}', variables('AutomationAccountName'))]",
       "resourceGroup": "[parameters('ResourceGroupName')]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -5450,7 +5450,7 @@
       },
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "[format('carml_UsrID-DS_{0}', guid(variables('HostPoolSubIds')[copyIndex()]))]",
+      "name": "[format('c_UsrID-DS_{0}', guid(variables('HostPoolSubIds')[copyIndex()]))]",
       "subscriptionId": "[variables('HostPoolSubIds')[copyIndex()]]",
       "location": "[deployment().location]",
       "properties": {
@@ -5466,7 +5466,7 @@
             "value": false
           },
           "principalId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(variables('ResourceGroupCreate'), parameters('ResourceGroupName'), parameters('ResourceGroupName'))), 'Microsoft.Resources/deployments', format('carml_UserMgId_{0}', variables('UsrManagedIdentityName'))), '2022-09-01').outputs.principalId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(variables('ResourceGroupCreate'), parameters('ResourceGroupName'), parameters('ResourceGroupName'))), 'Microsoft.Resources/deployments', format('c_UserMgId_{0}', variables('UsrManagedIdentityName'))), '2022-09-01').outputs.principalId.value]"
           },
           "roleDefinitionIdOrName": {
             "value": "Desktop Virtualization Reader"
@@ -6028,7 +6028,7 @@
         }
       },
       "dependsOn": [
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(variables('ResourceGroupCreate'), parameters('ResourceGroupName'), parameters('ResourceGroupName'))), 'Microsoft.Resources/deployments', format('carml_UserMgId_{0}', variables('UsrManagedIdentityName')))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(variables('ResourceGroupCreate'), parameters('ResourceGroupName'), parameters('ResourceGroupName'))), 'Microsoft.Resources/deployments', format('c_UserMgId_{0}', variables('UsrManagedIdentityName')))]"
       ]
     },
     {
@@ -6038,7 +6038,7 @@
       },
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "[format('carml_DsktpRead_{0}', variables('DesktopReadRoleRGs')[copyIndex()])]",
+      "name": "[format('c_DsktpRead_{0}', variables('DesktopReadRoleRGs')[copyIndex()])]",
       "resourceGroup": "[variables('DesktopReadRoleRGs')[copyIndex()]]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -6050,7 +6050,7 @@
             "value": false
           },
           "principalId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('carml_AutomtnAcct-{0}', variables('AutomationAccountName'))), '2022-09-01').outputs.systemAssignedPrincipalId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('c_AutomtnAcct-{0}', variables('AutomationAccountName'))), '2022-09-01').outputs.systemAssignedPrincipalId.value]"
           },
           "roleDefinitionIdOrName": {
             "value": "Desktop Virtualization Reader"
@@ -6618,7 +6618,7 @@
         }
       },
       "dependsOn": [
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('carml_AutomtnAcct-{0}', variables('AutomationAccountName')))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('c_AutomtnAcct-{0}', variables('AutomationAccountName')))]"
       ]
     },
     {
@@ -6628,7 +6628,7 @@
       },
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "[format('carml_DSMapVMContrib_{0}', variables('SessionHostRGs')[copyIndex()])]",
+      "name": "[format('c_DSMapVMContrib_{0}', variables('SessionHostRGs')[copyIndex()])]",
       "resourceGroup": "[variables('SessionHostRGs')[copyIndex()]]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -6640,7 +6640,7 @@
             "value": false
           },
           "principalId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(variables('ResourceGroupCreate'), parameters('ResourceGroupName'), parameters('ResourceGroupName'))), 'Microsoft.Resources/deployments', format('carml_UserMgId_{0}', variables('UsrManagedIdentityName'))), '2022-09-01').outputs.principalId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(variables('ResourceGroupCreate'), parameters('ResourceGroupName'), parameters('ResourceGroupName'))), 'Microsoft.Resources/deployments', format('c_UserMgId_{0}', variables('UsrManagedIdentityName'))), '2022-09-01').outputs.principalId.value]"
           },
           "roleDefinitionIdOrName": {
             "value": "Virtual Machine Contributor"
@@ -7208,14 +7208,14 @@
         }
       },
       "dependsOn": [
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('carml_AutomtnAcct-{0}', variables('AutomationAccountName')))]",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(variables('ResourceGroupCreate'), parameters('ResourceGroupName'), parameters('ResourceGroupName'))), 'Microsoft.Resources/deployments', format('carml_UserMgId_{0}', variables('UsrManagedIdentityName')))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('c_AutomtnAcct-{0}', variables('AutomationAccountName')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(variables('ResourceGroupCreate'), parameters('ResourceGroupName'), parameters('ResourceGroupName'))), 'Microsoft.Resources/deployments', format('c_UserMgId_{0}', variables('UsrManagedIdentityName')))]"
       ]
     },
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "[format('carml_LogContrib_{0}', split(parameters('LogAnalyticsWorkspaceResourceId'), '/')[4])]",
+      "name": "[format('c_LogContrib_{0}', split(parameters('LogAnalyticsWorkspaceResourceId'), '/')[4])]",
       "subscriptionId": "[split(parameters('LogAnalyticsWorkspaceResourceId'), '/')[2]]",
       "resourceGroup": "[split(parameters('LogAnalyticsWorkspaceResourceId'), '/')[4]]",
       "properties": {
@@ -7228,7 +7228,7 @@
             "value": false
           },
           "principalId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('carml_AutomtnAcct-{0}', variables('AutomationAccountName'))), '2022-09-01').outputs.systemAssignedPrincipalId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('c_AutomtnAcct-{0}', variables('AutomationAccountName'))), '2022-09-01').outputs.systemAssignedPrincipalId.value]"
           },
           "roleDefinitionIdOrName": {
             "value": "[format('/providers/Microsoft.Authorization/roleDefinitions/{0}', variables('RoleAssignments').LogAnalyticsContributor.GUID)]"
@@ -7796,7 +7796,7 @@
         }
       },
       "dependsOn": [
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('carml_AutomtnAcct-{0}', variables('AutomationAccountName')))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('c_AutomtnAcct-{0}', variables('AutomationAccountName')))]"
       ]
     },
     {
@@ -7806,7 +7806,7 @@
       },
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "[format('carml_StorAcctContrib_{0}', variables('StorAcctRGs')[copyIndex()])]",
+      "name": "[format('c_StorAcctContrib_{0}', variables('StorAcctRGs')[copyIndex()])]",
       "resourceGroup": "[variables('StorAcctRGs')[copyIndex()]]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -7818,7 +7818,7 @@
             "value": false
           },
           "principalId": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('carml_AutomtnAcct-{0}', variables('AutomationAccountName'))), '2022-09-01').outputs.systemAssignedPrincipalId.value]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('c_AutomtnAcct-{0}', variables('AutomationAccountName'))), '2022-09-01').outputs.systemAssignedPrincipalId.value]"
           },
           "roleDefinitionIdOrName": {
             "value": "[format('/providers/Microsoft.Authorization/roleDefinitions/{0}', variables('RoleAssignments').StoreAcctContrib.GUID)]"
@@ -8386,13 +8386,13 @@
         }
       },
       "dependsOn": [
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('carml_AutomtnAcct-{0}', variables('AutomationAccountName')))]"
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', format('c_AutomtnAcct-{0}', variables('AutomationAccountName')))]"
       ]
     },
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "carml_ds-PS-GetHostPoolVMAssociation",
+      "name": "c_ds-PS-GetHostPoolVMAssociation",
       "resourceGroup": "[parameters('ResourceGroupName')]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -8417,7 +8417,7 @@
           },
           "userAssignedIdentities": {
             "value": {
-              "[format('{0}', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(variables('ResourceGroupCreate'), parameters('ResourceGroupName'), parameters('ResourceGroupName'))), 'Microsoft.Resources/deployments', format('carml_UserMgId_{0}', variables('UsrManagedIdentityName'))), '2022-09-01').outputs.resourceId.value)]": {}
+              "[format('{0}', reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(variables('ResourceGroupCreate'), parameters('ResourceGroupName'), parameters('ResourceGroupName'))), 'Microsoft.Resources/deployments', format('c_UserMgId_{0}', variables('UsrManagedIdentityName'))), '2022-09-01').outputs.resourceId.value)]": {}
             }
           },
           "kind": {
@@ -8709,7 +8709,7 @@
         }
       },
       "dependsOn": [
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(variables('ResourceGroupCreate'), parameters('ResourceGroupName'), parameters('ResourceGroupName'))), 'Microsoft.Resources/deployments', format('carml_UserMgId_{0}', variables('UsrManagedIdentityName')))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, if(variables('ResourceGroupCreate'), parameters('ResourceGroupName'), parameters('ResourceGroupName'))), 'Microsoft.Resources/deployments', format('c_UserMgId_{0}', variables('UsrManagedIdentityName')))]",
         "roleAssignment_AutoAcctDesktopRead",
         "roleAssignment_DSMapVMContrib"
       ]
@@ -8717,7 +8717,7 @@
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "linked_MonitoringResourcesDeployment",
+      "name": "lnk_MonitoringResourcesDeployment",
       "resourceGroup": "[if(variables('ResourceGroupCreate'), parameters('ResourceGroupName'), parameters('ResourceGroupName'))]",
       "properties": {
         "expressionEvaluationOptions": {
@@ -8732,7 +8732,7 @@
             "value": "[parameters('HostPools')]"
           },
           "HostPoolInfo": {
-            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', 'carml_ds-PS-GetHostPoolVMAssociation'), '2022-09-01').outputs.outputs.value.HostPoolInfo]"
+            "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', 'c_ds-PS-GetHostPoolVMAssociation'), '2022-09-01').outputs.outputs.value.HostPoolInfo]"
           },
           "Location": {
             "value": "[parameters('Location')]"
@@ -8772,7 +8772,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "2012381431224987823"
+              "templateHash": "507907402735935226"
             }
           },
           "parameters": {
@@ -9340,7 +9340,7 @@
               },
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
-              "name": "[format('linked_VMMtrcAlrts_{0}', split(parameters('HostPools')[range(0, length(parameters('HostPools')))[copyIndex()]], '/')[8])]",
+              "name": "[format('lnk_VMMtrcAlrts_{0}', split(parameters('HostPools')[range(0, length(parameters('HostPools')))[copyIndex()]], '/')[8])]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -9376,7 +9376,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "10042500528584503883"
+                      "templateHash": "5962956887045169273"
                     }
                   },
                   "parameters": {
@@ -9411,7 +9411,7 @@
                       "condition": "[not(equals(parameters('HostPoolInfo').VMResourceGroup, null()))]",
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
-                      "name": "[format('carml_{0}', replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolInfo').HostPoolName))]",
+                      "name": "[format('c_{0}', replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolInfo').HostPoolName))]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
@@ -10006,7 +10006,7 @@
               "condition": "[greater(length(parameters('StorageAccountResourceIds')), 0)]",
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
-              "name": "[format('linked_StrAcctMtrcAlrts_{0}', split(parameters('StorageAccountResourceIds')[range(0, length(parameters('StorageAccountResourceIds')))[copyIndex()]], '/')[8])]",
+              "name": "[format('lnk_StrAcctMtrcAlrts_{0}', split(parameters('StorageAccountResourceIds')[range(0, length(parameters('StorageAccountResourceIds')))[copyIndex()]], '/')[8])]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -10042,7 +10042,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "9515523941132218883"
+                      "templateHash": "16346705881561565049"
                     }
                   },
                   "parameters": {
@@ -10076,7 +10076,7 @@
                       },
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
-                      "name": "[format('carml_{0}-{1}', parameters('MetricAlertsStorageAcct')[range(0, length(parameters('MetricAlertsStorageAcct')))[copyIndex()]].name, split(parameters('StorageAccountResourceID'), '/')[8])]",
+                      "name": "[format('c_{0}-{1}', parameters('MetricAlertsStorageAcct')[range(0, length(parameters('MetricAlertsStorageAcct')))[copyIndex()]].name, split(parameters('StorageAccountResourceID'), '/')[8])]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
@@ -10670,7 +10670,7 @@
               "condition": "[greater(length(parameters('ANFVolumeResourceIds')), 0)]",
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
-              "name": "[format('linked_ANFMtrcAlrts_{0}', split(parameters('ANFVolumeResourceIds')[range(0, length(parameters('ANFVolumeResourceIds')))[copyIndex()]], '/')[12])]",
+              "name": "[format('lnk_ANFMtrcAlrts_{0}', split(parameters('ANFVolumeResourceIds')[range(0, length(parameters('ANFVolumeResourceIds')))[copyIndex()]], '/')[12])]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -10706,7 +10706,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "8243463540169597271"
+                      "templateHash": "1485714074384858053"
                     }
                   },
                   "parameters": {
@@ -10740,7 +10740,7 @@
                       },
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
-                      "name": "[format('carml_{0}-{1}', parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].name, split(parameters('ANFVolumeResourceID'), '/')[12])]",
+                      "name": "[format('c_{0}-{1}', parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].name, split(parameters('ANFVolumeResourceID'), '/')[12])]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
@@ -11334,7 +11334,7 @@
               "condition": "[greater(length(parameters('StorageAccountResourceIds')), 0)]",
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
-              "name": "[format('linked_FlSvcsMtrcAlrts_{0}', range(0, length(parameters('StorageAccountResourceIds')))[copyIndex()])]",
+              "name": "[format('lnk_FlSvcsMtrcAlrts_{0}', range(0, length(parameters('StorageAccountResourceIds')))[copyIndex()])]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -11370,7 +11370,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "10656760918620624490"
+                      "templateHash": "10932207242228320944"
                     }
                   },
                   "parameters": {
@@ -11407,7 +11407,7 @@
                       },
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
-                      "name": "[format('carml_{0}-{1}', parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].name, split(variables('FileServicesResourceID'), '/')[8])]",
+                      "name": "[format('c_{0}-{1}', parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].name, split(variables('FileServicesResourceID'), '/')[8])]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
@@ -12000,7 +12000,7 @@
               },
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
-              "name": "[format('carml_{0}', parameters('LogAlertsStorage')[range(0, length(parameters('LogAlertsStorage')))[copyIndex()]].name)]",
+              "name": "[format('c_{0}', parameters('LogAlertsStorage')[range(0, length(parameters('LogAlertsStorage')))[copyIndex()]].name)]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -12566,7 +12566,7 @@
               },
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
-              "name": "[format('linked_HPAlrts-{0}', guid(split(parameters('HostPools')[copyIndex()], '/')[4], split(parameters('HostPools')[copyIndex()], '/')[8]))]",
+              "name": "[format('lnk_HPAlrts-{0}', guid(split(parameters('HostPools')[copyIndex()], '/')[4], split(parameters('HostPools')[copyIndex()], '/')[8]))]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -12602,7 +12602,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "9059454634858903863"
+                      "templateHash": "10920335714713281065"
                     }
                   },
                   "parameters": {
@@ -12640,7 +12640,7 @@
                       },
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
-                      "name": "[format('carml_{0}', guid(replace(parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName')), parameters('Timestamp')))]",
+                      "name": "[format('c_{0}', guid(replace(parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName')), parameters('Timestamp')))]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
@@ -13221,7 +13221,7 @@
               },
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
-              "name": "[format('carml_{0}', parameters('LogAlertsSvcHealth')[range(0, length(parameters('LogAlertsSvcHealth')))[copyIndex()]].name)]",
+              "name": "[format('c_{0}', parameters('LogAlertsSvcHealth')[range(0, length(parameters('LogAlertsSvcHealth')))[copyIndex()]].name)]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -13724,10 +13724,10 @@
         }
       },
       "dependsOn": [
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', 'carml_ds-PS-GetHostPoolVMAssociation')]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, parameters('ResourceGroupName')), 'Microsoft.Resources/deployments', 'c_ds-PS-GetHostPoolVMAssociation')]",
         "[subscriptionResourceId('Microsoft.Resources/deployments', parameters('ResourceGroupName'))]",
         "roleAssignment_AutoAcctDesktopRead",
-        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', split(parameters('LogAnalyticsWorkspaceResourceId'), '/')[2], split(parameters('LogAnalyticsWorkspaceResourceId'), '/')[4]), 'Microsoft.Resources/deployments', format('carml_LogContrib_{0}', split(parameters('LogAnalyticsWorkspaceResourceId'), '/')[4]))]",
+        "[extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', split(parameters('LogAnalyticsWorkspaceResourceId'), '/')[2], split(parameters('LogAnalyticsWorkspaceResourceId'), '/')[4]), 'Microsoft.Resources/deployments', format('c_LogContrib_{0}', split(parameters('LogAnalyticsWorkspaceResourceId'), '/')[4]))]",
         "roleAssignment_Storage",
         "roleAssignment_UsrIdDesktopRead"
       ]
