@@ -147,7 +147,7 @@
                             "toolTip": "Alert Name Prefix of 1 to 5 characters. (Dash will be added after prefix for you.)",
                             "constraints": {
                                 "required": true,
-                                "regex": "",
+                                "regex": "^([a-zA-Z0-9_-]){1,5}$",
                                 "validationMessage": "Must be 1-5 characters."
                             },
                             "visible": true
@@ -192,53 +192,82 @@
                             "visible": true
                         },
                         {
-                            "name": "HostPools",
-                            "type": "Microsoft.Common.DropDown",
-                            "label": "Host Pools",
-                            "multiselect": true,
-                            "selectAll": true,
-                            "defaultValue": "[]",
-                            "toolTip": "Select Host Pools to configure Alerts for.",
-                            "filter": true,
-                            "filterPlaceholder": "Filter Host Pools...",
-                            "defaultDescription": "A value for selection",
-                            "constraints": {
-                                "allowedValues": "[map(steps('basics').HostPoolsApi.value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\"}')))]",
-                                "required": true
-                            },
-                            "visible": true
-                        },
-                        {
                             "name": "LogAnalyticsWorkspaceResource",
-                            "type": "Microsoft.Common.TextBox",
-                            "label": "LogAnalytics Resource ID",
-                            "defaultValue": "",
-                            "toolTip": "Use only allowed characters",
-                            "placeholder": "",
-                            "multiLine": false,
-                            "constraints": {
-                                "required": true,
-                                "validations": []
-                            },
-                            "visible": true
-                        },
-                        {
-                            "name": "SessionHostsResourceGroupIds",
                             "type": "Microsoft.Common.DropDown",
-                            "label": "Session Host VM Resource Groups",
-                            "multiselect": true,
-                            "defaultValue": "[]",
-                            "selectAll": true,
-                            "toolTip": "The Resource Group(s) where the AVD VMs are located.",
+                            "label": "Insights Log Analytics Workspace",
+                            "multiselect": false,
+                            "selectAll": false,
+                            "toolTip": "Log Analytics Workspace in which AVD Insigts and diagnostics data resides in.",
                             "filter": true,
-                            "filterPlaceholder": "Filter Resource Groups...",
+                            "filterPlaceholder": "Filter Log Analytics Workspaces...",
                             "defaultDescription": "A value for selection",
                             "constraints": {
-                                "allowedValues": "[map(steps('basics').ResGroupsApi.value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\"}')))]",
+                                "allowedValues": "[map(steps('basics').LogAnalyticsApi.value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\"}')))]",
                                 "required": true
                             },
                             "visible": true
                         },
+                        {
+                            "name": "hostPoolInfo",
+                            "type": "Microsoft.Common.EditableGrid",
+                            "ariaLabel": "Host Pool to VM Resource Mapping",
+                            "label": "HostPool",
+                            "constraints": {
+                              "width": "Full",
+                              "rows": {
+                                "count": {
+                                  "min": 1,
+                                  "max": 10
+                                }
+                              },
+                              "columns": [
+                                {
+                                  "id": "colHostPoolName",
+                                  "header": "Host Pool",
+                                  "width": "1fr",
+                                  "element": {
+                                    "name": "HostPools",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "label": "Host Pools",
+                                    "multiselect": false,
+                                    "selectAll": false,
+									"placeholder": "",
+                                    "toolTip": "Select Host Pools to configure Alerts for.",
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter Host Pools...",
+                                    "defaultDescription": "A value for selection",
+                                    "constraints": {
+                                        "allowedValues": "[map(steps('basics').HostPoolsApi.value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\"}')))]",
+                                        "required": true
+                                    },
+                                    "visible": true
+                                  }
+                                },
+                                {
+                                  "id": "colVMresGroup",
+                                  "header": "VM Resource Group",
+                                  "width": "1fr",
+                                  "element": {
+                                    "name": "SessionHostsResourceGroupIds",
+                                    "type": "Microsoft.Common.DropDown",
+                                    "label": "VM Resource Groups",
+                                    "multiselect": false,
+                                    "placeholder": "",
+                                    "selectAll": false,
+                                    "toolTip": "The Resource Group(s) where the AVD VMs are located.",
+                                    "filter": true,
+                                    "filterPlaceholder": "Filter Resource Groups...",
+                                    "defaultDescription": "A value for selection",
+                                    "constraints": {
+                                        "allowedValues": "[map(steps('basics').ResGroupsApi.value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\"}')))]",
+                                        "required": true
+                                    },
+                                    "visible": true
+                                  }
+                                }
+                              ]
+                            }
+                          },
                         {
                             "name": "optionAzFiles",
                             "type": "Microsoft.Common.CheckBox",
@@ -310,7 +339,7 @@
                                     "type": "Microsoft.Common.DropDown",
                                     "label": "ANF Volumes used for AVD",
                                     "multiselect": true,
-                                    "defaultValue": "[]",
+									"defaultValue": "[]",
                                     "selectAll": true,
                                     "toolTip": "The NetApp Volumes that are used for FSLogix or MSIX App attach.",
                                     "filterPlaceholder": "Filter ANF Volumes...",
@@ -353,11 +382,10 @@
                 "AlertNamePrefix": "[steps('AlertsConfig').AlertNamePrefix]",
                 "DistributionGroup": "[steps('AlertsConfig').DistributionGroup]",
                 "Environment": "[steps('AlertsConfig').Environment]",
-                "HostPools": "[steps('AlertsConfig').HostPools]",
+                "HostPoolInfo": "[steps('AlertsConfig').hostPoolInfo]",
                 "LogAnalyticsWorkspaceResourceId": "[steps('AlertsConfig').LogAnalyticsWorkspaceResource]",
                 "ResourceGroupName": "[if(equals(steps('AlertsConfig').ResourceGroupStatus, 'New'), steps('AlertsConfig').resourceGroupNameNew, last(split(steps('AlertsConfig').resourceGroupNameExisting, '/')))]",
                 "ResourceGroupStatus": "[steps('AlertsConfig').ResourceGroupStatus]",
-                "SessionHostsResourceGroupIds": "[steps('AlertsConfig').SessionHostsResourceGroupIds]",
                 "StorageAccountResourceIds": "[steps('AlertsConfig').AzFilesStorageSection.StorageAccountResourceIds]",
                 "ANFVolumeResourceIds": "[steps('AlertsConfig').ANFStorageSection.ANFVolumeResourceIds]",
                 "Tags": "[steps('AlertsConfig').Tags]"
