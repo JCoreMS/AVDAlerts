@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "5858318819564534546"
+      "templateHash": "5042027561607252043"
     }
   },
   "parameters": {
@@ -57,12 +57,7 @@
     },
     "HostPoolInfo": {
       "type": "array",
-      "defaultValue": [
-        {
-          "colHostPoolName": "/subscriptions/<subscriptionId>/resourceGroups/<resourceGroupName>/providers/Microsoft.DesktopVirtualization/hostpools/<hostPoolName>",
-          "colVMresGroup": "/subscriptions/<subscriptionId>/resourceGroups/<resourceGroupName>"
-        }
-      ],
+      "defaultValue": [],
       "metadata": {
         "description": "Array of objects with the Resource ID for colHostPoolName and colVMresGroup for each Host Pool."
       }
@@ -148,6 +143,7 @@
     "AlertDescriptionHeader": "Automated AVD Alert Deployment Solution (v2.1.0)\n",
     "AutomationAccountName": "[format('aa-avdmetrics-{0}-{1}', parameters('Environment'), parameters('Location'))]",
     "CloudEnvironment": "[environment().name]",
+    "HostPoolMapping": "[if(parameters('AllResourcesSameRG'), createArray(createObject('colHostPoolName', parameters('HostPools'), 'colVMresGroup', parameters('AVDResourceGroupId'))), parameters('HostPoolInfo'))]",
     "ResourceGroupCreate": "[if(equals(parameters('ResourceGroupStatus'), 'New'), true(), false())]",
     "RunbookNameGetStorage": "AvdStorageLogData",
     "RunbookNameGetHostPool": "AvdHostPoolLogData",
@@ -5126,12 +5122,12 @@
     {
       "copy": {
         "name": "roleAssignment_AutoAcctDesktopRead",
-        "count": "[length(parameters('HostPoolInfo'))]"
+        "count": "[length(variables('HostPoolMapping'))]"
       },
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "[if(parameters('AllResourcesSameRG'), format('c_DskTpRead_{0}', split(parameters('AVDResourceGroupId'), '/')[4]), format('c_DsktpRead_{0}', split(parameters('HostPoolInfo')[copyIndex()].colVMResGroup, '/')[4]))]",
-      "location": "[deployment().location]",
+      "name": "[format('c_DsktpRead_{0}', split(variables('HostPoolMapping')[copyIndex()].colVMResGroup, '/')[4])]",
+      "resourceGroup": "[split(variables('HostPoolMapping')[copyIndex()].colVMResGroup, '/')[4]]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -5150,7 +5146,9 @@
           "principalType": {
             "value": "ServicePrincipal"
           },
-          "resourceGroupName": "[if(parameters('AllResourcesSameRG'), createObject('value', split(parameters('AVDResourceGroupId'), '/')[4]), createObject('value', split(parameters('HostPoolInfo')[copyIndex()].colVMResGroup, '/')[4]))]"
+          "resourceGroupName": {
+            "value": "[split(variables('HostPoolMapping')[copyIndex()].colVMResGroup, '/')[4]]"
+          }
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -6908,8 +6906,8 @@
           "DistributionGroup": {
             "value": "[parameters('DistributionGroup')]"
           },
-          "HostPoolInfo": {
-            "value": "[parameters('HostPoolInfo')]"
+          "HostPoolMapping": {
+            "value": "[variables('HostPoolMapping')]"
           },
           "HostPools": {
             "value": "[parameters('HostPools')]"
@@ -6952,7 +6950,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "1723144868946471997"
+              "templateHash": "12224816684366662968"
             }
           },
           "parameters": {
@@ -6971,7 +6969,7 @@
             "DistributionGroup": {
               "type": "string"
             },
-            "HostPoolInfo": {
+            "HostPoolMapping": {
               "type": "array"
             },
             "HostPools": {
@@ -7521,21 +7519,24 @@
             },
             {
               "copy": {
-                "name": "metricAlertsVmsMulti",
-                "count": "[length(range(0, length(parameters('HostPoolInfo'))))]"
+                "name": "metricAlertsVms",
+                "count": "[length(range(0, length(parameters('HostPoolMapping'))))]"
               },
               "condition": "[not(parameters('AllResourcesSameRG'))]",
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
-              "name": "[format('lnk_VMMtrcAlrts_{0}', split(parameters('HostPoolInfo')[range(0, length(parameters('HostPoolInfo')))[copyIndex()]].colHostPoolName, '/')[8])]",
+              "name": "[format('lnk_VMMtrcAlrts_m_{0}', split(parameters('HostPoolMapping')[range(0, length(parameters('HostPoolMapping')))[copyIndex()]].colHostPoolName, '/')[8])]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
                 },
                 "mode": "Incremental",
                 "parameters": {
-                  "HostPoolInfo": {
-                    "value": "[parameters('HostPoolInfo')[range(0, length(parameters('HostPoolInfo')))[copyIndex()]]]"
+                  "HostPoolName": {
+                    "value": "[split(parameters('HostPoolMapping')[range(0, length(parameters('HostPoolMapping')))[copyIndex()]].colHostPoolName, '/')[8]]"
+                  },
+                  "VMResourceGroupId": {
+                    "value": "[parameters('HostPoolMapping')[range(0, length(parameters('HostPoolMapping')))[copyIndex()]].colVMresGroup]"
                   },
                   "MetricAlerts": {
                     "value": "[parameters('MetricAlerts')]"
@@ -7563,7 +7564,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "1394271972458663701"
+                      "templateHash": "1148938713987650099"
                     }
                   },
                   "parameters": {
@@ -7576,8 +7577,8 @@
                     "Enabled": {
                       "type": "bool"
                     },
-                    "HostPoolInfo": {
-                      "type": "object"
+                    "HostPoolName": {
+                      "type": "string"
                     },
                     "MetricAlerts": {
                       "type": "object"
@@ -7587,6 +7588,9 @@
                     },
                     "Location": {
                       "type": "string"
+                    },
+                    "VMResourceGroupId": {
+                      "type": "string"
                     }
                   },
                   "resources": [
@@ -7595,10 +7599,9 @@
                         "name": "metricAlerts_VirtualMachines",
                         "count": "[length(range(0, length(parameters('MetricAlerts').virtualMachines)))]"
                       },
-                      "condition": "[not(equals(parameters('HostPoolInfo').colVMresGroup, null()))]",
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
-                      "name": "[format('c_{0}', replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', split(parameters('HostPoolInfo').colHostPoolName, '/')[8]))]",
+                      "name": "[format('c_{0}', replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName')))]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
@@ -7609,7 +7612,7 @@
                             "value": false
                           },
                           "name": {
-                            "value": "[replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', split(parameters('HostPoolInfo').colHostPoolName, '/')[8])]"
+                            "value": "[replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName'))]"
                           },
                           "criterias": {
                             "value": "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].criteria.allOf]"
@@ -7628,7 +7631,7 @@
                           },
                           "scopes": {
                             "value": [
-                              "[parameters('HostPoolInfo').colVMresGroup]"
+                              "[parameters('VMResourceGroupId')]"
                             ]
                           },
                           "evaluationFrequency": {
@@ -8186,17 +8189,24 @@
               ]
             },
             {
+              "copy": {
+                "name": "metricAlertsVmsSingleRG",
+                "count": "[length(range(0, length(parameters('HostPools'))))]"
+              },
               "condition": "[parameters('AllResourcesSameRG')]",
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
-              "name": "[format('lnk_VMMtrcAlrts_{0}', guid(parameters('AVDResourceGroupId')))]",
+              "name": "[format('lnk_VMMtrcAlrts_s_{0}', split(parameters('HostPools')[range(0, length(parameters('HostPools')))[copyIndex()]], '/')[8])]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
                 },
                 "mode": "Incremental",
                 "parameters": {
-                  "AVDResourceGroupId": {
+                  "HostPoolName": {
+                    "value": "[split(parameters('HostPools')[range(0, length(parameters('HostPools')))[copyIndex()]], '/')[8]]"
+                  },
+                  "VMResourceGroupId": {
                     "value": "[parameters('AVDResourceGroupId')]"
                   },
                   "MetricAlerts": {
@@ -8225,7 +8235,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "17038069980159960607"
+                      "templateHash": "1148938713987650099"
                     }
                   },
                   "parameters": {
@@ -8235,11 +8245,11 @@
                     "ActionGroupId": {
                       "type": "string"
                     },
-                    "AVDResourceGroupId": {
-                      "type": "string"
-                    },
                     "Enabled": {
                       "type": "bool"
+                    },
+                    "HostPoolName": {
+                      "type": "string"
                     },
                     "MetricAlerts": {
                       "type": "object"
@@ -8249,6 +8259,9 @@
                     },
                     "Location": {
                       "type": "string"
+                    },
+                    "VMResourceGroupId": {
+                      "type": "string"
                     }
                   },
                   "resources": [
@@ -8257,10 +8270,9 @@
                         "name": "metricAlerts_VirtualMachines",
                         "count": "[length(range(0, length(parameters('MetricAlerts').virtualMachines)))]"
                       },
-                      "condition": "[not(equals(parameters('AVDResourceGroupId'), 'none'))]",
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
-                      "name": "[format('c_{0}', replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', ''))]",
+                      "name": "[format('c_{0}', replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName')))]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
@@ -8271,7 +8283,7 @@
                             "value": false
                           },
                           "name": {
-                            "value": "[replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', '')]"
+                            "value": "[replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName'))]"
                           },
                           "criterias": {
                             "value": "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].criteria.allOf]"
@@ -8290,7 +8302,7 @@
                           },
                           "scopes": {
                             "value": [
-                              "[parameters('AVDResourceGroupId')]"
+                              "[parameters('VMResourceGroupId')]"
                             ]
                           },
                           "evaluationFrequency": {
@@ -11411,12 +11423,12 @@
             {
               "copy": {
                 "name": "logAlertHostPoolQueriesMapped",
-                "count": "[length(parameters('HostPoolInfo'))]"
+                "count": "[length(parameters('HostPoolMapping'))]"
               },
               "condition": "[not(parameters('AllResourcesSameRG'))]",
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
-              "name": "[format('lnk_HPAlrts-{0}', split(parameters('HostPoolInfo')[copyIndex()].colHostPoolName, '/')[8])]",
+              "name": "[format('lnk_HPAlrts-{0}', split(parameters('HostPoolMapping')[copyIndex()].colHostPoolName, '/')[8])]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
@@ -11430,7 +11442,7 @@
                     "value": "[reference(resourceId('Microsoft.Resources/deployments', parameters('ActionGroupName')), '2022-09-01').outputs.resourceId.value]"
                   },
                   "HostPoolName": {
-                    "value": "[split(parameters('HostPoolInfo')[copyIndex()].colHostPoolName, '/')[8]]"
+                    "value": "[split(parameters('HostPoolMapping')[copyIndex()].colHostPoolName, '/')[8]]"
                   },
                   "Location": {
                     "value": "[parameters('Location')]"
