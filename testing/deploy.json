@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "3377208468890191198"
+      "templateHash": "13262185319007354974"
     }
   },
   "parameters": {
@@ -1132,9 +1132,9 @@
         "displayName": "[format('{0}-HostPool-VM-Missing Critical Security Updates (xHostPoolNamex)', parameters('AlertNamePrefix'))]",
         "description": "[format('{0}The VM is missing critical security updates that are not marked \"optional\" and are \"approved\" (xHostPoolNamex)\nEnsure patching is working as expected and update the VM as soon as possible.', variables('AlertDescriptionHeader'))]",
         "severity": 1,
-        "evaluationFrequency": "P1D",
-        "windowSize": "P1D",
-        "overrideQueryTimeRange": "P2D",
+        "evaluationFrequency": "PT24H",
+        "windowSize": "PT8H",
+        "overrideQueryTimeRange": "PT24H",
         "criteria": {
           "allOf": [
             {
@@ -1345,7 +1345,7 @@
           "description": "[format('{0}\nThis could indicate storage is unavailable for user Profiles or Apps using MSIX App Attach.', variables('AlertDescriptionHeader'))]",
           "severity": 1,
           "evaluationFrequency": "PT5M",
-          "windowSize": "PT55M",
+          "windowSize": "PT5M",
           "criteria": {
             "allOf": [
               {
