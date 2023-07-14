@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "1322006603732674915"
+      "templateHash": "3141377728253612206"
     }
   },
   "parameters": {
@@ -6938,7 +6938,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "8977321623724863741"
+              "templateHash": "9338791775446719649"
             }
           },
           "parameters": {
@@ -8208,7 +8208,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "14845704632463085384"
+                      "templateHash": "17038069980159960607"
                     }
                   },
                   "parameters": {
@@ -8240,6 +8240,7 @@
                         "name": "metricAlerts_VirtualMachines",
                         "count": "[length(range(0, length(parameters('MetricAlerts').virtualMachines)))]"
                       },
+                      "condition": "[not(equals(parameters('AVDResourceGroupId'), 'none'))]",
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
                       "name": "[format('c_{0}', replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', ''))]",
