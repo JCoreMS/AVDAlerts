@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "8371141363546648351"
+      "templateHash": "923030179204215543"
     }
   },
   "parameters": {
@@ -6950,7 +6950,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "14610830459979910484"
+              "templateHash": "17999533639977677611"
             }
           },
           "parameters": {
@@ -7532,9 +7532,7 @@
                 },
                 "mode": "Incremental",
                 "parameters": {
-                  "HostPoolName": {
-                    "value": "[split(parameters('HostPoolMapping')[range(0, length(parameters('HostPoolMapping')))[copyIndex()]].colHostPoolName, '/')[8]]"
-                  },
+                  "HostPoolName": "[if(not(parameters('AllResourcesSameRG')), createObject('value', split(parameters('HostPoolMapping')[range(0, length(parameters('HostPoolMapping')))[copyIndex()]].colHostPoolName, '/')[8]), createObject('value', 'none'))]",
                   "VMResourceGroupId": {
                     "value": "[parameters('HostPoolMapping')[range(0, length(parameters('HostPoolMapping')))[copyIndex()]].colVMresGroup]"
                   },
