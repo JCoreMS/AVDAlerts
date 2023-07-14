@@ -193,18 +193,14 @@
                         },
                         {
                             "name": "LogAnalyticsWorkspaceResource",
-                            "type": "Microsoft.Common.DropDown",
+                            "type": "Microsoft.Solutions.ResourceSelector",
                             "label": "Insights Log Analytics Workspace",
-                            "multiselect": false,
-                            "selectAll": false,
                             "toolTip": "Log Analytics Workspace in which AVD Insigts and diagnostics data resides in.",
-                            "filter": true,
-                            "filterPlaceholder": "Filter Log Analytics Workspaces...",
-                            "defaultDescription": "A value for selection",
+                            "resourceType": "Microsoft.OperationalInsights/workspaces",
                             "constraints": {
-                                "allowedValues": "[map(steps('basics').LogAnalyticsApi.value, (item) => parse(concat('{\"label\":\"', item.name, '\",\"value\":\"', item.id, '\"}')))]",
                                 "required": true
                             },
+                            "infoMessages": [],
                             "visible": true
                         },
                         {
