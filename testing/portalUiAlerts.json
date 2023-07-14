@@ -402,6 +402,7 @@
                 "_ArtifactsLocation": "[steps('AlertsConfig')._ArtifactsLocation]",
                 "_ArtifactsLocationSasToken": "[steps('AlertsConfig')._ArtifactsLocationSasToken]",
                 "AlertNamePrefix": "[steps('AlertsConfig').AlertNamePrefix]",
+                "AllResourcesSameRG": "[if(steps('AlertsConfig').optionVMMetrics, false, true)]",
                 "AVDResourceGroupId": "[steps('AlertsConfig').AVDResourceGroupId]",
                 "DistributionGroup": "[steps('AlertsConfig').DistributionGroup]",
                 "Environment": "[steps('AlertsConfig').Environment]",
