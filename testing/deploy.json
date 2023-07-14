@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "3769457950772545945"
+      "templateHash": "7509743307827696622"
     }
   },
   "parameters": {
@@ -5118,7 +5118,7 @@
         "name": "roleAssignment_AutoAcctDesktopReadMulti",
         "count": "[length(parameters('HostPoolInfo'))]"
       },
-      "condition": "[not(equals(parameters('HostPoolInfo')[0], 'none'))]",
+      "condition": "[not(contains(parameters('HostPoolInfo'), 'none'))]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
       "name": "[format('c_DsktpRead_{0}', split(parameters('HostPoolInfo')[copyIndex()].colVMResGroup, '/')[4])]",
