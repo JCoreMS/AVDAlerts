@@ -407,7 +407,7 @@
                 "Environment": "[steps('AlertsConfig').Environment]",
                 "HostPoolInfo": "[steps('AlertsConfig').hostPoolInfo]",
                 "HostPools": "[steps('AlertsConfig').HostPools]",
-                "LogAnalyticsWorkspaceResourceId": "[steps('AlertsConfig').LogAnalyticsWorkspaceResource]",
+                "LogAnalyticsWorkspaceResourceId": "[steps('AlertsConfig').LogAnalyticsWorkspaceResource.id]",
                 "ResourceGroupName": "[if(equals(steps('AlertsConfig').ResourceGroupStatus, 'New'), steps('AlertsConfig').resourceGroupNameNew, last(split(steps('AlertsConfig').resourceGroupNameExisting, '/')))]",
                 "ResourceGroupStatus": "[steps('AlertsConfig').ResourceGroupStatus]",
                 "StorageAccountResourceIds": "[steps('AlertsConfig').AzFilesStorageSection.StorageAccountResourceIds]",
