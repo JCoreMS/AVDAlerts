@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "3141377728253612206"
+      "templateHash": "3377208468890191198"
     }
   },
   "parameters": {
@@ -6938,7 +6938,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "9338791775446719649"
+              "templateHash": "12259834388069229865"
             }
           },
           "parameters": {
@@ -8172,7 +8172,7 @@
               "condition": "[empty(parameters('HostPoolInfo'))]",
               "type": "Microsoft.Resources/deployments",
               "apiVersion": "2022-09-01",
-              "name": "[format('lnk_VMMtrcAlrts_{0}', split(parameters('AVDResourceGroupId'), '/')[4])]",
+              "name": "[format('lnk_VMMtrcAlrts_{0}', guid(parameters('AVDResourceGroupId')))]",
               "properties": {
                 "expressionEvaluationOptions": {
                   "scope": "inner"
