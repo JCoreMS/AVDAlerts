@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "10945225443878255250"
+      "templateHash": "17820631302162225792"
     }
   },
   "parameters": {
@@ -5124,8 +5124,8 @@
       "condition": "[not(equals(parameters('HostPoolInfo')[copyIndex()].colVMresGroup, 'none'))]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "[format('c_DsktpRead_{0}', split(parameters('HostPoolInfo')[copyIndex()].colVMResGroup, '/')[4])]",
-      "resourceGroup": "[split(parameters('HostPoolInfo')[copyIndex()].colVMResGroup, '/')[4]]",
+      "name": "[if(not(equals(parameters('HostPoolInfo')[copyIndex()].colVMresGroup, 'none')), format('c_DsktpRead_{0}', split(parameters('HostPoolInfo')[copyIndex()].colVMResGroup, '/')[4]), 'none')]",
+      "location": "[deployment().location]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -5144,9 +5144,7 @@
           "principalType": {
             "value": "ServicePrincipal"
           },
-          "resourceGroupName": {
-            "value": "[split(parameters('HostPoolInfo')[copyIndex()].colVMResGroup, '/')[4]]"
-          }
+          "resourceGroupName": "[if(not(equals(parameters('HostPoolInfo')[copyIndex()].colVMresGroup, 'none')), createObject('value', split(parameters('HostPoolInfo')[copyIndex()].colVMResGroup, '/')[4]), createObject('value', 'none'))]"
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
