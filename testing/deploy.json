@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "8090768822816281854"
+      "templateHash": "5341152236100050738"
     }
   },
   "parameters": {
@@ -5131,7 +5131,7 @@
       "condition": "[not(parameters('AllResourcesSameRG'))]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "[if(not(equals(parameters('HostPoolInfo')[copyIndex()].colVMresGroup, 'none')), format('c_DsktpRead_{0}', split(parameters('HostPoolInfo')[copyIndex()].colVMResGroup, '/')[4]), 'none')]",
+      "name": "[format('c_DsktpRead_{0}', split(parameters('HostPoolInfo')[copyIndex()].colVMResGroup, '/')[4])]",
       "resourceGroup": "[split(parameters('HostPoolInfo')[copyIndex()].colVMResGroup, '/')[4]]",
       "properties": {
         "expressionEvaluationOptions": {
