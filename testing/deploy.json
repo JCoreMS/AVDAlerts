@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "14163245470852939413"
+      "templateHash": "12626892303575091468"
     }
   },
   "parameters": {
@@ -1133,7 +1133,7 @@
         "description": "[format('{0}The VM is missing critical security updates that are not marked \"optional\" and are \"approved\" (xHostPoolNamex)\nEnsure patching is working as expected and update the VM as soon as possible.', variables('AlertDescriptionHeader'))]",
         "severity": 1,
         "evaluationFrequency": "PT6H",
-        "windowSize": "PT1H",
+        "windowSize": "P1D",
         "overrideQueryTimeRange": "P1D",
         "criteria": {
           "allOf": [
