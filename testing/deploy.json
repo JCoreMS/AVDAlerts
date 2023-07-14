@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "17820631302162225792"
+      "templateHash": "8090768822816281854"
     }
   },
   "parameters": {
@@ -30,6 +30,13 @@
         "description": "Alert Name Prefix (Dash will be added after prefix for you.)"
       }
     },
+    "AllResourcesSameRG": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Flag to determine if AVD VMs and AVD resources are all in the same Resource Group."
+      }
+    },
     "DistributionGroup": {
       "type": "string",
       "metadata": {
@@ -52,12 +59,12 @@
       "type": "array",
       "defaultValue": [
         {
-          "colHostPoolName": "none",
-          "colVMresGroup": "none"
+          "colHostPoolName": "/subscriptions/<subscriptionId>/resourceGroups/<resourceGroupName>/providers/Microsoft.DesktopVirtualization/hostpools/<hostPoolName>",
+          "colVMresGroup": "/subscriptions/<subscriptionId>/resourceGroups/<resourceGroupName>"
         }
       ],
       "metadata": {
-        "description": "Array of objects with the Resource ID for colHostPoolName and colVMresGroup"
+        "description": "Array of objects with the Resource ID for colHostPoolName and colVMresGroup for each Host Pool."
       }
     },
     "HostPools": {
@@ -5121,11 +5128,11 @@
         "name": "roleAssignment_AutoAcctDesktopReadMulti",
         "count": "[length(parameters('HostPoolInfo'))]"
       },
-      "condition": "[not(equals(parameters('HostPoolInfo')[copyIndex()].colVMresGroup, 'none'))]",
+      "condition": "[not(parameters('AllResourcesSameRG'))]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
       "name": "[if(not(equals(parameters('HostPoolInfo')[copyIndex()].colVMresGroup, 'none')), format('c_DsktpRead_{0}', split(parameters('HostPoolInfo')[copyIndex()].colVMResGroup, '/')[4]), 'none')]",
-      "location": "[deployment().location]",
+      "resourceGroup": "[split(parameters('HostPoolInfo')[copyIndex()].colVMResGroup, '/')[4]]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -5144,7 +5151,9 @@
           "principalType": {
             "value": "ServicePrincipal"
           },
-          "resourceGroupName": "[if(not(equals(parameters('HostPoolInfo')[copyIndex()].colVMresGroup, 'none')), createObject('value', split(parameters('HostPoolInfo')[copyIndex()].colVMResGroup, '/')[4]), createObject('value', 'none'))]"
+          "resourceGroupName": {
+            "value": "[split(parameters('HostPoolInfo')[copyIndex()].colVMResGroup, '/')[4]]"
+          }
         },
         "template": {
           "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
@@ -5706,7 +5715,7 @@
       ]
     },
     {
-      "condition": "[not(equals(parameters('HostPoolInfo')[0], 'none'))]",
+      "condition": "[parameters('AllResourcesSameRG')]",
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
       "name": "[format('c_DsktpRead_{0}', split(parameters('AVDResourceGroupId'), '/')[4])]",
