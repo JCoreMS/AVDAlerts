@@ -192,6 +192,27 @@
                             "visible": true
                         },
                         {
+                            "name": "AutoResolveAlert",
+                            "type": "Microsoft.Common.DropDown",
+                            "label": "Allow Alerts to Auto-Resolve",
+                            "defaultValue": "Yes",
+                            "toolTip": "This option determines if the alert will automatically set the flag to resolved if a subsequent check is within the defined threshold.",
+                            "constraints": {
+                                "required": true,
+                                "allowedValues": [
+                                    {
+                                        "label": "Yes",
+                                        "value": true
+                                    },
+                                    {
+                                        "label": "No",
+                                        "value": false
+                                    }
+                                ]
+                            },
+                            "visible": true
+                        },
+                        {
                             "name": "LogAnalyticsWorkspaceResource",
                             "type": "Microsoft.Solutions.ResourceSelector",
                             "label": "Insights Log Analytics Workspace",
@@ -403,6 +424,7 @@
                 "_ArtifactsLocationSasToken": "[steps('AlertsConfig')._ArtifactsLocationSasToken]",
                 "AlertNamePrefix": "[steps('AlertsConfig').AlertNamePrefix]",
                 "AllResourcesSameRG": "[if(steps('AlertsConfig').optionVMMetrics, false, true)]",
+                "AutoResolveAlert": "[steps('AlertsConfig').AutoResolveAlert]",
                 "AVDResourceGroupId": "[steps('AlertsConfig').AVDResourceGroupId]",
                 "DistributionGroup": "[steps('AlertsConfig').DistributionGroup]",
                 "Environment": "[steps('AlertsConfig').Environment]",
