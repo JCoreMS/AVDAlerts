@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.18.4.5664",
-      "templateHash": "14189749710363910676"
+      "templateHash": "14730203004020426065"
     }
   },
   "parameters": {
@@ -35,6 +35,13 @@
       "defaultValue": true,
       "metadata": {
         "description": "Flag to determine if AVD VMs and AVD resources are all in the same Resource Group."
+      }
+    },
+    "AutoResolveAlert": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Determine if you would like to set all deployed alerts to auto-resolve."
       }
     },
     "DistributionGroup": {
@@ -102,7 +109,7 @@
         "Existing"
       ],
       "metadata": {
-        "description": "Flag to determine if a new resource group needs to be created."
+        "description": "Flag to determine if a new resource group needs to be created for Alert resources."
       }
     },
     "StorageAccountResourceIds": {
@@ -7490,8 +7497,14 @@
           "AVDResourceGroupId": {
             "value": "[parameters('AVDResourceGroupId')]"
           },
+          "AutoResolveAlert": {
+            "value": "[parameters('AutoResolveAlert')]"
+          },
           "DistributionGroup": {
             "value": "[parameters('DistributionGroup')]"
+          },
+          "Environment": {
+            "value": "[parameters('Environment')]"
           },
           "HostPoolInfo": {
             "value": "[parameters('HostPoolInfo')]"
@@ -7537,7 +7550,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.18.4.5664",
-              "templateHash": "2445357015384145993"
+              "templateHash": "4123190399623842186"
             }
           },
           "parameters": {
@@ -7547,6 +7560,9 @@
             "AllResourcesSameRG": {
               "type": "bool"
             },
+            "AutoResolveAlert": {
+              "type": "bool"
+            },
             "AVDResourceGroupId": {
               "type": "string"
             },
@@ -7554,6 +7570,9 @@
               "type": "array"
             },
             "DistributionGroup": {
+              "type": "string"
+            },
+            "Environment": {
               "type": "string"
             },
             "HostPoolInfo": {
@@ -7588,7 +7607,8 @@
             }
           },
           "variables": {
-            "SubscriptionId": "[subscription().subscriptionId]"
+            "SubscriptionId": "[subscription().subscriptionId]",
+            "SubscriptionName": "[replace(subscription().displayName, ' ', '')]"
           },
           "resources": [
             {
@@ -8120,6 +8140,9 @@
                 "mode": "Incremental",
                 "parameters": {
                   "HostPoolName": "[if(not(parameters('AllResourcesSameRG')), createObject('value', split(parameters('HostPoolInfo')[range(0, length(parameters('HostPoolInfo')))[copyIndex()]].colHostPoolName, '/')[8]), createObject('value', 'none'))]",
+                  "Environment": {
+                    "value": "[parameters('Environment')]"
+                  },
                   "VMResourceGroupId": {
                     "value": "[parameters('HostPoolInfo')[range(0, length(parameters('HostPoolInfo')))[copyIndex()]].colVMresGroup]"
                   },
@@ -8130,7 +8153,7 @@
                     "value": false
                   },
                   "AutoMitigate": {
-                    "value": false
+                    "value": "[parameters('AutoResolveAlert')]"
                   },
                   "Location": {
                     "value": "[parameters('Location')]"
@@ -8149,7 +8172,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "1148938713987650099"
+                      "templateHash": "4468080969248857147"
                     }
                   },
                   "parameters": {
@@ -8161,6 +8184,9 @@
                     },
                     "Enabled": {
                       "type": "bool"
+                    },
+                    "Environment": {
+                      "type": "string"
                     },
                     "HostPoolName": {
                       "type": "string"
@@ -8186,7 +8212,7 @@
                       },
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
-                      "name": "[format('c_{0}', replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName')))]",
+                      "name": "[format('c_{0}-{1}', replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName')), parameters('Environment'))]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
@@ -8197,7 +8223,7 @@
                             "value": false
                           },
                           "name": {
-                            "value": "[replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName'))]"
+                            "value": "[format('{0}-{1}', replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName')), parameters('Environment'))]"
                           },
                           "criterias": {
                             "value": "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].criteria.allOf]"
@@ -8788,6 +8814,9 @@
                 },
                 "mode": "Incremental",
                 "parameters": {
+                  "Environment": {
+                    "value": "[parameters('Environment')]"
+                  },
                   "HostPoolName": {
                     "value": "[split(parameters('HostPools')[range(0, length(parameters('HostPools')))[copyIndex()]], '/')[8]]"
                   },
@@ -8801,7 +8830,7 @@
                     "value": false
                   },
                   "AutoMitigate": {
-                    "value": false
+                    "value": "[parameters('AutoResolveAlert')]"
                   },
                   "Location": {
                     "value": "[parameters('Location')]"
@@ -8820,7 +8849,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "1148938713987650099"
+                      "templateHash": "4468080969248857147"
                     }
                   },
                   "parameters": {
@@ -8832,6 +8861,9 @@
                     },
                     "Enabled": {
                       "type": "bool"
+                    },
+                    "Environment": {
+                      "type": "string"
                     },
                     "HostPoolName": {
                       "type": "string"
@@ -8857,7 +8889,7 @@
                       },
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
-                      "name": "[format('c_{0}', replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName')))]",
+                      "name": "[format('c_{0}-{1}', replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName')), parameters('Environment'))]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
@@ -8868,7 +8900,7 @@
                             "value": false
                           },
                           "name": {
-                            "value": "[replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName'))]"
+                            "value": "[format('{0}-{1}', replace(parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName')), parameters('Environment'))]"
                           },
                           "criterias": {
                             "value": "[parameters('MetricAlerts').virtualMachines[range(0, length(parameters('MetricAlerts').virtualMachines))[copyIndex()]].criteria.allOf]"
@@ -9460,10 +9492,13 @@
                 "mode": "Incremental",
                 "parameters": {
                   "AutoMitigate": {
-                    "value": false
+                    "value": "[parameters('AutoResolveAlert')]"
                   },
                   "Enabled": {
                     "value": false
+                  },
+                  "Environment": {
+                    "value": "[parameters('Environment')]"
                   },
                   "Location": {
                     "value": "[parameters('Location')]"
@@ -9488,7 +9523,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "16346705881561565049"
+                      "templateHash": "16205384879996663795"
                     }
                   },
                   "parameters": {
@@ -9497,6 +9532,9 @@
                     },
                     "Enabled": {
                       "type": "bool"
+                    },
+                    "Environment": {
+                      "type": "string"
                     },
                     "Location": {
                       "type": "string"
@@ -9522,7 +9560,7 @@
                       },
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
-                      "name": "[format('c_{0}-{1}', parameters('MetricAlertsStorageAcct')[range(0, length(parameters('MetricAlertsStorageAcct')))[copyIndex()]].name, split(parameters('StorageAccountResourceID'), '/')[8])]",
+                      "name": "[format('c_{0}-{1}-{2}', parameters('MetricAlertsStorageAcct')[range(0, length(parameters('MetricAlertsStorageAcct')))[copyIndex()]].name, parameters('Environment'), split(parameters('StorageAccountResourceID'), '/')[8])]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
@@ -9533,7 +9571,7 @@
                             "value": false
                           },
                           "name": {
-                            "value": "[format('{0}-{1}', parameters('MetricAlertsStorageAcct')[range(0, length(parameters('MetricAlertsStorageAcct')))[copyIndex()]].name, split(parameters('StorageAccountResourceID'), '/')[8])]"
+                            "value": "[format('{0}-{1}-{2}', parameters('MetricAlertsStorageAcct')[range(0, length(parameters('MetricAlertsStorageAcct')))[copyIndex()]].name, parameters('Environment'), split(parameters('StorageAccountResourceID'), '/')[8])]"
                           },
                           "criterias": {
                             "value": "[parameters('MetricAlertsStorageAcct')[range(0, length(parameters('MetricAlertsStorageAcct')))[copyIndex()]].criteria.allOf]"
@@ -10124,10 +10162,13 @@
                 "mode": "Incremental",
                 "parameters": {
                   "AutoMitigate": {
-                    "value": false
+                    "value": "[parameters('AutoResolveAlert')]"
                   },
                   "Enabled": {
                     "value": false
+                  },
+                  "Environment": {
+                    "value": "[parameters('Environment')]"
                   },
                   "Location": {
                     "value": "[parameters('Location')]"
@@ -10152,7 +10193,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "1485714074384858053"
+                      "templateHash": "9333285459347901490"
                     }
                   },
                   "parameters": {
@@ -10161,6 +10202,9 @@
                     },
                     "Enabled": {
                       "type": "bool"
+                    },
+                    "Environment": {
+                      "type": "string"
                     },
                     "Location": {
                       "type": "string"
@@ -10186,7 +10230,7 @@
                       },
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
-                      "name": "[format('c_{0}-{1}', parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].name, split(parameters('ANFVolumeResourceID'), '/')[12])]",
+                      "name": "[format('c_{0}-{1}-{2}', parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].name, parameters('Environment'), split(parameters('ANFVolumeResourceID'), '/')[12])]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
@@ -10197,7 +10241,7 @@
                             "value": false
                           },
                           "name": {
-                            "value": "[format('{0}-{1}', parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].name, split(parameters('ANFVolumeResourceID'), '/')[12])]"
+                            "value": "[format('{0}-{1}-{2}', parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].name, parameters('Environment'), split(parameters('ANFVolumeResourceID'), '/')[12])]"
                           },
                           "criterias": {
                             "value": "[parameters('MetricAlertsANF')[range(0, length(parameters('MetricAlertsANF')))[copyIndex()]].criteria.allOf]"
@@ -10788,10 +10832,13 @@
                 "mode": "Incremental",
                 "parameters": {
                   "AutoMitigate": {
-                    "value": false
+                    "value": "[parameters('AutoResolveAlert')]"
                   },
                   "Enabled": {
                     "value": false
+                  },
+                  "Environment": {
+                    "value": "[parameters('Environment')]"
                   },
                   "Location": {
                     "value": "[parameters('Location')]"
@@ -10816,7 +10863,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "10932207242228320944"
+                      "templateHash": "13449993053804291087"
                     }
                   },
                   "parameters": {
@@ -10825,6 +10872,9 @@
                     },
                     "Enabled": {
                       "type": "bool"
+                    },
+                    "Environment": {
+                      "type": "string"
                     },
                     "Location": {
                       "type": "string"
@@ -10853,7 +10903,7 @@
                       },
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
-                      "name": "[format('c_{0}-{1}', parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].name, split(variables('FileServicesResourceID'), '/')[8])]",
+                      "name": "[format('c_{0}-{1}-{2}', parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].name, parameters('Environment'), split(variables('FileServicesResourceID'), '/')[8])]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
@@ -10864,7 +10914,7 @@
                             "value": false
                           },
                           "name": {
-                            "value": "[format('{0}-{1}', parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].name, split(variables('FileServicesResourceID'), '/')[8])]"
+                            "value": "[format('{0}-{1}-{2}', parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].name, parameters('Environment'), split(variables('FileServicesResourceID'), '/')[8])]"
                           },
                           "criterias": {
                             "value": "[parameters('MetricAlertsFileShares')[range(0, length(parameters('MetricAlertsFileShares')))[copyIndex()]].criteria.allOf]"
@@ -11460,7 +11510,7 @@
                     "value": "[parameters('LogAlertsStorage')[range(0, length(parameters('LogAlertsStorage')))[copyIndex()]].name]"
                   },
                   "autoMitigate": {
-                    "value": false
+                    "value": "[parameters('AutoResolveAlert')]"
                   },
                   "criterias": {
                     "value": "[parameters('LogAlertsStorage')[range(0, length(parameters('LogAlertsStorage')))[copyIndex()]].criteria]"
@@ -12021,10 +12071,13 @@
                 "mode": "Incremental",
                 "parameters": {
                   "AutoMitigate": {
-                    "value": false
+                    "value": "[parameters('AutoResolveAlert')]"
                   },
                   "ActionGroupId": {
                     "value": "[reference(resourceId('Microsoft.Resources/deployments', parameters('ActionGroupName')), '2022-09-01').outputs.resourceId.value]"
+                  },
+                  "Environment": {
+                    "value": "[parameters('Environment')]"
                   },
                   "HostPoolName": {
                     "value": "[split(parameters('HostPoolInfo')[copyIndex()].colHostPoolName, '/')[8]]"
@@ -12049,7 +12102,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "10920335714713281065"
+                      "templateHash": "1871467110981414517"
                     }
                   },
                   "parameters": {
@@ -12057,6 +12110,9 @@
                       "type": "bool"
                     },
                     "ActionGroupId": {
+                      "type": "string"
+                    },
+                    "Environment": {
                       "type": "string"
                     },
                     "HostPoolName": {
@@ -12087,7 +12143,7 @@
                       },
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
-                      "name": "[format('c_{0}', guid(replace(parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName')), parameters('Timestamp')))]",
+                      "name": "[format('c_{0}-{1}', guid(replace(parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName')), parameters('Timestamp')), parameters('Environment'))]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
@@ -12098,7 +12154,7 @@
                             "value": false
                           },
                           "name": {
-                            "value": "[replace(parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName'))]"
+                            "value": "[format('{0}-{1}', replace(parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName')), parameters('Environment'))]"
                           },
                           "autoMitigate": {
                             "value": "[parameters('AutoMitigate')]"
@@ -12131,7 +12187,7 @@
                             ]
                           },
                           "alertDescription": {
-                            "value": "[replace(parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].description, 'xHostPoolNamex', parameters('HostPoolName'))]"
+                            "value": "[format('{0}-{1}', replace(parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].description, 'xHostPoolNamex', parameters('HostPoolName')), parameters('Environment'))]"
                           },
                           "enabled": {
                             "value": false
@@ -12677,10 +12733,13 @@
                 "mode": "Incremental",
                 "parameters": {
                   "AutoMitigate": {
-                    "value": false
+                    "value": "[parameters('AutoResolveAlert')]"
                   },
                   "ActionGroupId": {
                     "value": "[reference(resourceId('Microsoft.Resources/deployments', parameters('ActionGroupName')), '2022-09-01').outputs.resourceId.value]"
+                  },
+                  "Environment": {
+                    "value": "[parameters('Environment')]"
                   },
                   "HostPoolName": {
                     "value": "[split(parameters('HostPools')[copyIndex()], '/')[8]]"
@@ -12705,7 +12764,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.18.4.5664",
-                      "templateHash": "10920335714713281065"
+                      "templateHash": "1871467110981414517"
                     }
                   },
                   "parameters": {
@@ -12713,6 +12772,9 @@
                       "type": "bool"
                     },
                     "ActionGroupId": {
+                      "type": "string"
+                    },
+                    "Environment": {
                       "type": "string"
                     },
                     "HostPoolName": {
@@ -12743,7 +12805,7 @@
                       },
                       "type": "Microsoft.Resources/deployments",
                       "apiVersion": "2022-09-01",
-                      "name": "[format('c_{0}', guid(replace(parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName')), parameters('Timestamp')))]",
+                      "name": "[format('c_{0}-{1}', guid(replace(parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName')), parameters('Timestamp')), parameters('Environment'))]",
                       "properties": {
                         "expressionEvaluationOptions": {
                           "scope": "inner"
@@ -12754,7 +12816,7 @@
                             "value": false
                           },
                           "name": {
-                            "value": "[replace(parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName'))]"
+                            "value": "[format('{0}-{1}', replace(parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].name, 'xHostPoolNamex', parameters('HostPoolName')), parameters('Environment'))]"
                           },
                           "autoMitigate": {
                             "value": "[parameters('AutoMitigate')]"
@@ -12787,7 +12849,7 @@
                             ]
                           },
                           "alertDescription": {
-                            "value": "[replace(parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].description, 'xHostPoolNamex', parameters('HostPoolName'))]"
+                            "value": "[format('{0}-{1}', replace(parameters('LogAlertsHostPool')[range(0, length(parameters('LogAlertsHostPool')))[copyIndex()]].description, 'xHostPoolNamex', parameters('HostPoolName')), parameters('Environment'))]"
                           },
                           "enabled": {
                             "value": false
@@ -13335,7 +13397,7 @@
                     "value": false
                   },
                   "name": {
-                    "value": "[parameters('LogAlertsSvcHealth')[range(0, length(parameters('LogAlertsSvcHealth')))[copyIndex()]].name]"
+                    "value": "[format('{0}-{1}', parameters('LogAlertsSvcHealth')[range(0, length(parameters('LogAlertsSvcHealth')))[copyIndex()]].name, variables('SubscriptionName'))]"
                   },
                   "enabled": {
                     "value": false
