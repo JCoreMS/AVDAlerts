@@ -1431,7 +1431,7 @@
           "description": "[format('{0}Storage for the follow Azure NetApp volume is Moderately low. Verify sufficient storage is available and expand when/where needed.', variables('AlertDescriptionHeader'))]",
           "severity": 2,
           "evaluationFrequency": "PT1H",
-          "windowSize": "PT3H",
+          "windowSize": "PT1H",
           "criteria": {
             "allOf": [
               {
@@ -1454,7 +1454,7 @@
           "description": "[format('{0}Storage for the follow Azure NetApp volume is Critically low. Verify sufficient storage is available and expand when/where needed.', variables('AlertDescriptionHeader'))]",
           "severity": 1,
           "evaluationFrequency": "PT1H",
-          "windowSize": "PT3H",
+          "windowSize": "PT1H",
           "criteria": {
             "allOf": [
               {
